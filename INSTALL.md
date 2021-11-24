@@ -10,10 +10,4 @@
 
 2. Update the `ConnectionStrings:AppDatabase` setting in that file to target your local development server/database
 
-3. Create a initial migration by using this command:
-   
-```
-dotnet ef migrations add IntialCreate -s WellBot.Web -p WellBot.Infrastructure.DataAccess
-```
-
 The database will be created automatically upon application start (if it does not exist yet).
