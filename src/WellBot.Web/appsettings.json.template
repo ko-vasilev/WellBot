@@ -1,0 +1,26 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "ConnectionStrings": {
+    "AppDatabase": "Server={{databaseHost}};Database={{database}};Uid={{databaseUser}};Pwd={{databasePassword}};"
+  },
+  "Application": {
+  },
+  "Jwt": {
+    "SecretKey": "{{jwtSecretKey}}",
+    "Issuer": "{{jwtIssuer}}"
+  },
+  "Mail": {
+    "Host": "{{smtpHost}}",
+    "Password": "{{smtpPassword}}",
+    "Username": "{{smtpUser}}",
+    "Port": "{{smtpPort}}",
+    "UseSsl": "{{smtpSsl}}",
+    "FromAddress": "{{smtpFrom}}"
+  }
+}

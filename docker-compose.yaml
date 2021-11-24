@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  ###
+  # Postgres main database
+  postgres:
+    hostname: redman-db
+    container_name: redman-db
+    image: postgres:13
+    ports:
+      - "5432:5432" # database
+    environment:
+      - POSTGRES_DB=redman
+      - POSTGRES_USER=redman
+      - POSTGRES_PASSWORD=1
+    volumes:
+      - .data/pgdata:/var/lib/postgresql/data
+
+  ###
+  # Mail catcher
+  mail:
+    hostname: redman-email
+    container_name: redman-email
+    image: inbucket/inbucket
+    ports:
+      - "9000:9000" # web ui
+      - "2500:2500" # smtp
+      - "1100:1100" # pop3
