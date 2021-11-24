@@ -1,8 +1,9 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using McMaster.Extensions.CommandLineUtils;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using WellBot.Web.Commands;
 
 namespace WellBot.Web
 {
@@ -10,6 +11,7 @@ namespace WellBot.Web
     /// Entry point class.
     /// </summary>
     [Command(Name = "wellbot")]
+    [Subcommand(typeof(CreateUser))]
     internal sealed class Program
     {
         private static IHost host;
