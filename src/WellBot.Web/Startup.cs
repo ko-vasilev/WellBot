@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using WellBot.Infrastructure.DataAccess;
+using WellBot.Web.Controllers;
 using WellBot.Web.Infrastructure.Middlewares;
 using WellBot.Web.Infrastructure.Settings;
 using WellBot.Web.Infrastructure.Startup;
@@ -59,6 +61,7 @@ namespace WellBot.Web
             // MVC.
             services
                 .AddControllers()
+                .AddNewtonsoftJson()
                 .AddJsonOptions(new JsonOptionsSetup().Setup);
             services.Configure<ApiBehaviorOptions>(new ApiBehaviorOptionsSetup().Setup);
 
@@ -98,6 +101,7 @@ namespace WellBot.Web
             Infrastructure.DependencyInjection.ApplicationModule.Register(services, configuration);
             Infrastructure.DependencyInjection.MediatRModule.Register(services);
             Infrastructure.DependencyInjection.SystemModule.Register(services);
+            Infrastructure.DependencyInjection.TelegramModule.Register(services);
         }
 
         /// <summary>
@@ -129,6 +133,15 @@ namespace WellBot.Web
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
+                var appSettings = endpoints.ServiceProvider.GetRequiredService<IOptions<AppSettings>>();
+                // Configure custom endpoint per Telegram API recommendations:
+                // https://core.telegram.org/bots/api#setwebhook
+                // Using a secret path in the URL since nobody else knows bot's token to make sure the callback is from Telegram.
+                var token = appSettings.Value.BotToken;
+                endpoints.MapControllerRoute(name: "tgwebhook",
+                                             pattern: $"bot/tg/{token}",
+                                             new { controller = "Bot", action = nameof(BotController.Telegram) });
+
                 endpoints.MapHealthChecks("/health-check",
                     new HealthCheckOptionsSetup().Setup(
                         new HealthCheckOptions())
