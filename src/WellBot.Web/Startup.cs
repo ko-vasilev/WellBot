@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.Infrastructure.DataAccess;
 using WellBot.Web.Controllers;
 using WellBot.Web.Infrastructure.Middlewares;
@@ -92,6 +93,10 @@ namespace WellBot.Web
 
             // Application settings.
             services.Configure<AppSettings>(configuration.GetSection("Application"));
+            services.AddTransient<ITelegramBotSettings>(serviceProvider =>
+            {
+                return serviceProvider.GetRequiredService<IOptionsSnapshot<AppSettings>>().Value;
+            });
 
             // HTTP client.
             services.AddHttpClient();

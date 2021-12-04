@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
-using WellBot.Web.Infrastructure.Telegram;
+using WellBot.UseCases.Chats.HandleTelegramAction;
 
 namespace WellBot.Web.Controllers
 {
@@ -10,14 +11,14 @@ namespace WellBot.Web.Controllers
     /// </summary>
     public class BotController : ControllerBase
     {
-        private TelegramHandler actionHandler;
+        private readonly IMediator mediator;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public BotController(TelegramHandler actionHandler)
+        public BotController(IMediator mediator)
         {
-            this.actionHandler = actionHandler;
+            this.mediator = mediator;
         }
 
         /// <summary>
@@ -27,7 +28,10 @@ namespace WellBot.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Telegram([FromBody] Update update)
         {
-            await actionHandler.HandleAsync(update);
+            await mediator.Send(new HandleTelegramActionCommand
+            {
+                Action = update
+            });
             return Ok();
         }
     }

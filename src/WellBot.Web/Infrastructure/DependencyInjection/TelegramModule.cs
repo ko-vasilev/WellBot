@@ -27,8 +27,6 @@ namespace WellBot.Web.Infrastructure.DependencyInjection
                     var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>();
                     return new TelegramBotClient(appSettings.Value.BotToken, httpClient);
                 });
-
-            services.AddScoped<TelegramHandler>();
         }
     }
 }
