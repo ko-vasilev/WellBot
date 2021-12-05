@@ -20,7 +20,11 @@ namespace WellBot.Domain.Chats.Entities
         /// Chat id in Telegram.
         /// </summary>
         [Required]
-        [MaxLength(100)]
-        public string TelegramId { get; set; }
+        public long TelegramId { get; set; }
+
+        /// <summary>
+        /// List of registrations for daily Pidor game in this chat.
+        /// </summary>
+        public IList<PidorRegistration> PidorRegistrations { get; set; } = new List<PidorRegistration>();
     }
 }

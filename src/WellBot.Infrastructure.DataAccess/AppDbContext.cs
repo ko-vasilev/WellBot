@@ -15,10 +15,11 @@ namespace WellBot.Infrastructure.DataAccess
     {
         #region Chats
 
-        /// <summary>
-        /// Products set.
-        /// </summary>
+        /// <inheritdoc />
         public DbSet<Chat> Chats { get; protected set; }
+
+        /// <inheritdoc />
+        public DbSet<PidorRegistration> PidorRegistrations { get; protected set; }
 
         #endregion
 
@@ -41,6 +42,12 @@ namespace WellBot.Infrastructure.DataAccess
             // Indexes.
             modelBuilder.Entity<Chat>()
                 .HasIndex(c => c.TelegramId);
+
+            modelBuilder.Entity<PidorRegistration>()
+                .HasOne(reg => reg.Chat)
+                .WithMany(ch => ch.PidorRegistrations);
+            modelBuilder.Entity<PidorRegistration>()
+                .HasIndex(r => r.TelegramUserId);
         }
 
         private static void RestrictCascadeDelete(ModelBuilder modelBuilder)

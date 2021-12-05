@@ -1,6 +1,8 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using WellBot.Infrastructure.Abstractions.Interfaces;
@@ -16,39 +18,58 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
         private readonly ITelegramBotClient botClient;
         private readonly ITelegramBotSettings telegramBotSettings;
         private readonly IMediator mediator;
+        private readonly ILogger<HandleTelegramActionCommandHandler> logger;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public HandleTelegramActionCommandHandler(ITelegramBotClient botClient, ITelegramBotSettings telegramBotSettings, IMediator mediator)
+        public HandleTelegramActionCommandHandler(ITelegramBotClient botClient, ITelegramBotSettings telegramBotSettings, IMediator mediator, ILogger<HandleTelegramActionCommandHandler> logger)
         {
             this.botClient = botClient;
             this.telegramBotSettings = telegramBotSettings;
             this.mediator = mediator;
+            this.logger = logger;
         }
 
         /// <inheritdoc/>
         protected override async Task Handle(HandleTelegramActionCommand request, CancellationToken cancellationToken)
         {
             var messageText = request.Action.Message?.Text;
-            if (!string.IsNullOrEmpty(messageText))
+            ChatId chatId = null;
+            try
             {
-                var isDirectMessage = request.Action.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
-                var command = ParseCommand(messageText, out string arguments, ref isDirectMessage);
-                if (string.IsNullOrEmpty(command))
+                if (!string.IsNullOrEmpty(messageText))
                 {
-                    return;
-                }
+                    chatId = request.Action.Message.Chat.Id;
+                    var isDirectMessage = request.Action.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
+                    var command = ParseCommand(messageText, out string arguments, ref isDirectMessage);
+                    if (string.IsNullOrEmpty(command))
+                    {
+                        return;
+                    }
 
-                await HandleCommandAsync(command, arguments, isDirectMessage, request.Action.Message.Chat.Id);
+                    await HandleCommandAsync(command, arguments, isDirectMessage, chatId, request.Action.Message.From.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error handling command {text}", messageText);
+                if (chatId != null)
+                {
+                    await botClient.SendTextMessageAsync(chatId, "Something went wrong.");
+                }
             }
         }
 
-        private async Task HandleCommandAsync(string command, string arguments, bool isDirectMessage, ChatId chatId)
+        private async Task HandleCommandAsync(string command, string arguments, bool isDirectMessage, ChatId chatId, long senderId)
         {
             Task action = command switch
             {
-                "pidoreg" => mediator.Send(new PidorGameRegisterCommand()),
+                "pidoreg" => mediator.Send(new PidorGameRegisterCommand()
+                {
+                    ChatId = chatId,
+                    TelegramUserId = senderId
+                }),
                 _ => isDirectMessage
                     ? botClient.SendTextMessageAsync(chatId, "Unknown command")
                     : Task.CompletedTask
