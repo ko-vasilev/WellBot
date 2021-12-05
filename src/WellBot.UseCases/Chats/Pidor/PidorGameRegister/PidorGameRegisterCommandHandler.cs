@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 using WellBot.Domain.Chats.Entities;
+using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
 namespace WellBot.UseCases.Chats.Pidor.PidorGameRegister
@@ -16,11 +17,13 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRegister
     {
         private readonly IAppDbContext dbContext;
         private readonly ITelegramBotClient botClient;
+        private readonly CurrentChatService currentChatService;
 
-        public PidorGameRegisterCommandHandler(IAppDbContext dbContext, ITelegramBotClient botClient)
+        public PidorGameRegisterCommandHandler(IAppDbContext dbContext, ITelegramBotClient botClient, CurrentChatService currentChatService)
         {
             this.dbContext = dbContext;
             this.botClient = botClient;
+            this.currentChatService = currentChatService;
         }
 
         /// <inheritdoc/>
@@ -28,7 +31,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRegister
         {
             var registrationExists = await dbContext.PidorRegistrations
                 .Where(reg => reg.TelegramUserId == request.TelegramUserId)
-                .Where(reg => reg.Chat.TelegramId == request.ChatId.Identifier.Value)
+                .Where(reg => reg.ChatId == currentChatService.ChatId)
                 .AnyAsync(cancellationToken);
             if (registrationExists)
             {
@@ -36,19 +39,9 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRegister
                 return;
             }
 
-            var chat = await dbContext.Chats.FirstOrDefaultAsync(c => c.TelegramId == request.ChatId.Identifier.Value, cancellationToken);
-            if (chat == null)
-            {
-                chat = new Chat()
-                {
-                    TelegramId = request.ChatId.Identifier.Value
-                };
-                dbContext.Chats.Add(chat);
-            }
-
             var registration = new PidorRegistration()
             {
-                Chat = chat,
+                ChatId = currentChatService.ChatId,
                 TelegramUserId = request.TelegramUserId
             };
             dbContext.PidorRegistrations.Add(registration);
