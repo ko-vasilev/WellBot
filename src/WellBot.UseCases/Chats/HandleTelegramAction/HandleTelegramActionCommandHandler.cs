@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -56,7 +56,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 logger.LogError(ex, "Error handling command {text}", messageText);
                 if (chatId != null)
                 {
-                    await botClient.SendTextMessageAsync(chatId, "Something went wrong.");
+                    await botClient.SendTextMessageAsync(chatId, "Что-то пошло не так.");
                 }
             }
         }
@@ -71,7 +71,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     TelegramUserId = senderId
                 }),
                 _ => isDirectMessage
-                    ? botClient.SendTextMessageAsync(chatId, "Unknown command")
+                    ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")
                     : Task.CompletedTask
             };
 

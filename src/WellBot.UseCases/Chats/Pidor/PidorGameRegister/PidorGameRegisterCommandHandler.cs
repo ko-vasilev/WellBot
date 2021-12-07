@@ -18,12 +18,14 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRegister
         private readonly IAppDbContext dbContext;
         private readonly ITelegramBotClient botClient;
         private readonly CurrentChatService currentChatService;
+        private readonly ReplyService replyService;
 
-        public PidorGameRegisterCommandHandler(IAppDbContext dbContext, ITelegramBotClient botClient, CurrentChatService currentChatService)
+        public PidorGameRegisterCommandHandler(IAppDbContext dbContext, ITelegramBotClient botClient, CurrentChatService currentChatService, ReplyService replyService)
         {
             this.dbContext = dbContext;
             this.botClient = botClient;
             this.currentChatService = currentChatService;
+            this.replyService = replyService;
         }
 
         /// <inheritdoc/>
@@ -46,6 +48,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRegister
             };
             dbContext.PidorRegistrations.Add(registration);
             await dbContext.SaveChangesAsync(cancellationToken);
+            await replyService.SendSuccessAsync(request.ChatId);
         }
     }
 }

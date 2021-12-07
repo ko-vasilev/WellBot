@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WellBot.DomainServices.Chats;
+using WellBot.UseCases.Chats;
 
 namespace WellBot.Web.Infrastructure.DependencyInjection
 {
@@ -19,6 +20,7 @@ namespace WellBot.Web.Infrastructure.DependencyInjection
 #pragma warning restore CA1801 // Review unused parameters
         {
             services.AddScoped<CurrentChatService>();
+            services.AddTransient<ReplyService>();
         }
     }
 }
