@@ -69,12 +69,13 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 "pidoreg" => mediator.Send(new PidorGameRegisterCommand()
                 {
                     ChatId = chatId,
-                    TelegramUserId = senderId
+                    TelegramUserId = senderId,
                 }),
                 "pidorlist" => mediator.Send(new PidorListCommand
                 {
                     ChatId = chatId,
-                    TelegramUserId = senderId
+                    TelegramUserId = senderId,
+                    Arguments = arguments,
                 }),
                 _ => isDirectMessage
                     ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")

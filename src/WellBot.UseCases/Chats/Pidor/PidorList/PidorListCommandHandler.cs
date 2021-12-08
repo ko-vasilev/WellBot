@@ -20,16 +20,18 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
         private readonly IAppDbContext dbContext;
         private readonly CurrentChatService currentChatService;
         private readonly PidorGameService pidorGameService;
+        private readonly ReplyService replyService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PidorListCommandHandler(ITelegramBotClient botClient, IAppDbContext dbContext, CurrentChatService currentChatService, PidorGameService pidorGameService)
+        public PidorListCommandHandler(ITelegramBotClient botClient, IAppDbContext dbContext, CurrentChatService currentChatService, PidorGameService pidorGameService, ReplyService replyService)
         {
             this.botClient = botClient;
             this.dbContext = dbContext;
             this.currentChatService = currentChatService;
             this.pidorGameService = pidorGameService;
+            this.replyService = replyService;
         }
 
         /// <inheritdoc/>
@@ -48,6 +50,23 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
             }
 
             var users = await pidorGameService.GetPidorUsersAsync(currentChatService.ChatId, request.ChatId, cancellationToken);
+
+            if (IsDeleteRequest(request.Arguments, out var deleteUsername))
+            {
+                var deleteUser = users.FirstOrDefault(u => u.User.Username == deleteUsername);
+
+                if (deleteUser == null)
+                {
+                    await botClient.SendTextMessageAsync(request.ChatId, "Пользователь не зарегистрирован в игре.", Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                    return;
+                }
+
+                var user = await dbContext.PidorRegistrations.FirstOrDefaultAsync(u => u.TelegramUserId == deleteUser.User.Id);
+                dbContext.PidorRegistrations.Remove(user);
+                await dbContext.SaveChangesAsync();
+                await replyService.SendSuccessAsync(request.ChatId);
+                return;
+            }
 
             string reply;
             if (users.Any())
@@ -69,6 +88,31 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
                 userName += $" (*{user.Username}*)";
             }
             return userName;
+        }
+
+        private bool IsDeleteRequest(string arguments, out string deleteUsername)
+        {
+            deleteUsername = null;
+
+            if (string.IsNullOrEmpty(arguments))
+            {
+                return false;
+            }
+
+            var argumentParams = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (argumentParams.Length <= 1)
+            {
+                return false;
+            }
+
+            var subCommand = argumentParams[0];
+            if (subCommand.Equals("del", StringComparison.InvariantCultureIgnoreCase) || subCommand.Equals("delete", StringComparison.InvariantCultureIgnoreCase))
+            {
+                deleteUsername = argumentParams[1].TrimStart('@');
+                return true;
+            }
+
+            return false;
         }
     }
 }

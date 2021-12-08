@@ -17,5 +17,10 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
         /// Id of the user who has sent the request.
         /// </summary>
         public long TelegramUserId { get; init; }
+
+        /// <summary>
+        /// Additional command arguments.
+        /// </summary>
+        public string Arguments { get; init; }
     }
 }
