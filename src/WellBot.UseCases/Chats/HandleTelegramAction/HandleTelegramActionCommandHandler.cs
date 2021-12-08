@@ -8,6 +8,7 @@ using Telegram.Bot.Types;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.Pidor.PidorGameRegister;
 using WellBot.UseCases.Chats.Pidor.PidorList;
+using WellBot.UseCases.Chats.Pidor.PidorRules;
 
 namespace WellBot.UseCases.Chats.HandleTelegramAction
 {
@@ -76,6 +77,10 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     ChatId = chatId,
                     TelegramUserId = senderId,
                     Arguments = arguments,
+                }),
+                "pidorules" => mediator.Send(new PidorRulesCommand
+                {
+                    ChatId = chatId,
                 }),
                 _ => isDirectMessage
                     ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")
