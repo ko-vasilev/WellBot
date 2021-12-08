@@ -7,6 +7,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.Pidor.PidorGameRegister;
+using WellBot.UseCases.Chats.Pidor.PidorList;
 
 namespace WellBot.UseCases.Chats.HandleTelegramAction
 {
@@ -66,6 +67,11 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             Task action = command switch
             {
                 "pidoreg" => mediator.Send(new PidorGameRegisterCommand()
+                {
+                    ChatId = chatId,
+                    TelegramUserId = senderId
+                }),
+                "pidorlist" => mediator.Send(new PidorListCommand
                 {
                     ChatId = chatId,
                     TelegramUserId = senderId

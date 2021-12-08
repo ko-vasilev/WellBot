@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WellBot.DomainServices.Chats;
 using WellBot.UseCases.Chats;
+using WellBot.UseCases.Chats.Pidor;
 
 namespace WellBot.Web.Infrastructure.DependencyInjection
 {
@@ -21,6 +22,7 @@ namespace WellBot.Web.Infrastructure.DependencyInjection
         {
             services.AddScoped<CurrentChatService>();
             services.AddTransient<ReplyService>();
+            services.AddTransient<PidorGameService>();
         }
     }
 }
