@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -35,5 +36,10 @@ namespace WellBot.Domain.Chats.Entities
         /// When the registration happened.
         /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        /// <summary>
+        /// When the user has won the game with this registration.
+        /// </summary>
+        public IList<ChatPidor> Wins { get; set; } = new List<ChatPidor>();
     }
 }

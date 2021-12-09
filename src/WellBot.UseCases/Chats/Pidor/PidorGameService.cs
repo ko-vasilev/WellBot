@@ -34,13 +34,13 @@ namespace WellBot.UseCases.Chats.Pidor
         /// <param name="telegramChatId">Id of the telegram chat.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>List of active chat members.</returns>
-        public async Task<IEnumerable<ChatMember>> GetPidorUsersAsync(int chatId, ChatId telegramChatId, CancellationToken cancellationToken)
+        public async Task<IList<PidorParticipant>> GetPidorUsersAsync(int chatId, ChatId telegramChatId, CancellationToken cancellationToken)
         {
             var registrations = dbContext.PidorRegistrations
                 .AsNoTracking()
                 .Where(reg => reg.ChatId == chatId)
                 .AsAsyncEnumerable();
-            var users = new List<ChatMember>();
+            var users = new List<PidorParticipant>();
             await foreach (var registration in registrations)
             {
                 var telegramUser = await botClient.GetChatMemberAsync(telegramChatId, registration.TelegramUserId, cancellationToken);
@@ -48,7 +48,11 @@ namespace WellBot.UseCases.Chats.Pidor
                 {
                     continue;
                 }
-                users.Add(telegramUser);
+                users.Add(new PidorParticipant
+                {
+                    PidorRegistration = registration,
+                    User = telegramUser.User
+                });
             }
 
             return users;

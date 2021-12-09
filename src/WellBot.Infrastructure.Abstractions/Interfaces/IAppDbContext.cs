@@ -31,6 +31,11 @@ namespace WellBot.Infrastructure.Abstractions.Interfaces
         /// </summary>
         DbSet<PidorRegistration> PidorRegistrations { get; }
 
+        /// <summary>
+        /// List of daily pidor game winners.
+        /// </summary>
+        DbSet<ChatPidor> ChatPidors { get; }
+
         #endregion
     }
 }

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace WellBot.Domain.Chats.Entities
 {
@@ -26,5 +24,10 @@ namespace WellBot.Domain.Chats.Entities
         /// List of registrations for daily Pidor game in this chat.
         /// </summary>
         public IList<PidorRegistration> PidorRegistrations { get; set; } = new List<PidorRegistration>();
+
+        /// <summary>
+        /// List of chat pidor winners.
+        /// </summary>
+        public IList<ChatPidor> Pidors { get; set; } = new List<ChatPidor>();
     }
 }
