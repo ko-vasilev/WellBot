@@ -68,9 +68,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
         /// <inheritdoc/>
         protected override async Task Handle(PidorGameRunCommand request, CancellationToken cancellationToken)
         {
-            var moscowTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
-            var currentMoscowTime = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, moscowTimeZone);
-            var pidorGameDay = currentMoscowTime.Date;
+            var pidorGameDay = pidorGameService.GetCurrentGameDay();
 
             // Make sure the game has not run yet.
             var selectedPidor = await dbContext.ChatPidors

@@ -10,6 +10,7 @@ using WellBot.UseCases.Chats.Pidor.PidorGameRegister;
 using WellBot.UseCases.Chats.Pidor.PidorGameRun;
 using WellBot.UseCases.Chats.Pidor.PidorList;
 using WellBot.UseCases.Chats.Pidor.PidorRules;
+using WellBot.UseCases.Chats.Pidor.PidorStats;
 
 namespace WellBot.UseCases.Chats.HandleTelegramAction
 {
@@ -86,6 +87,11 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 "pidor" => mediator.Send(new PidorGameRunCommand
                 {
                     ChatId = chatId,
+                }),
+                "pidorstats" => mediator.Send(new PidorStatsCommand
+                {
+                    ChatId = chatId,
+                    Arguments = arguments
                 }),
                 _ => isDirectMessage
                     ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,6 +57,17 @@ namespace WellBot.UseCases.Chats.Pidor
             }
 
             return users;
+        }
+
+        /// <summary>
+        /// Get the current day of the game.
+        /// </summary>
+        /// <returns>Current game day.</returns>
+        public DateTime GetCurrentGameDay()
+        {
+            var moscowTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
+            var currentMoscowTime = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, moscowTimeZone);
+            return currentMoscowTime.Date;
         }
 
         private bool IsActiveUser(ChatMember chatMember) => chatMember.Status == ChatMemberStatus.Administrator
