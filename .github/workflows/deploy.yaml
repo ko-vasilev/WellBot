@@ -45,3 +45,4 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         privateKey: ${{ secrets.REMOTE_SSH_KEY }}
         passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
+        password: ${{ secrets.REMOTE_PASSWORD }}
