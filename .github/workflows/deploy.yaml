@@ -19,7 +19,12 @@ jobs:
         dotnet-version: '5.0.x'
 
     - name: Dotnet Publish
-      run: dotnet publish src -c Release -o deploy
+      run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --self-contained false --runtime ubuntu.20.04-x64
+
+    - name: Copy production config
+      run: echo $APPSETTINGS_FILE >> deploy/appsettings.Production.json
+      env:
+        APPSETTINGS_FILE : ${{ secrets.APPSETTING }}
 
     - name: Copy via ssh
       uses: garygrossgarten/github-action-scp@v0.5.3
@@ -30,6 +35,7 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         privateKey: ${{ secrets.REMOTE_SSH_KEY }}
         passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
+        rmRemote: true
 
     - name: Run SSH command
       uses: garygrossgarten/github-action-ssh@v0.3.0
