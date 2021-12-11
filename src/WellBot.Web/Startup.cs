@@ -136,6 +136,7 @@ namespace WellBot.Web
             });
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseHsts();
             app.UseEndpoints(endpoints =>
             {
                 var appSettings = endpoints.ServiceProvider.GetRequiredService<IOptions<AppSettings>>();
