@@ -29,6 +29,7 @@ jobs:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         privateKey: ${{ secrets.REMOTE_SSH_KEY }}
+        passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
 
     - name: Run SSH command
       uses: garygrossgarten/github-action-ssh@v0.3.0
@@ -37,3 +38,4 @@ jobs:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         privateKey: ${{ secrets.REMOTE_SSH_KEY }}
+        passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
