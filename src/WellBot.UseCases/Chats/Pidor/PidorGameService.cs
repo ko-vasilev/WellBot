@@ -65,8 +65,9 @@ namespace WellBot.UseCases.Chats.Pidor
         /// <returns>Current game day.</returns>
         public DateTime GetCurrentGameDay()
         {
-            var moscowTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
-            var currentMoscowTime = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, moscowTimeZone);
+            var resetTimeZone = NodaTime.DateTimeZoneProviders.Tzdb.GetZoneOrNull("Europe/Moscow") ?? NodaTime.DateTimeZone.Utc;
+            var offset = resetTimeZone.GetUtcOffset(NodaTime.Instant.FromDateTimeOffset(DateTimeOffset.UtcNow));
+            var currentMoscowTime = DateTime.UtcNow.AddTicks(offset.Ticks);
             return currentMoscowTime.Date;
         }
 
