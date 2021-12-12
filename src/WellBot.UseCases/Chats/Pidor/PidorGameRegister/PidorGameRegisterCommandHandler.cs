@@ -44,7 +44,8 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRegister
             var registration = new PidorRegistration()
             {
                 ChatId = currentChatService.ChatId,
-                TelegramUserId = request.TelegramUserId
+                TelegramUserId = request.TelegramUserId,
+                OriginalTelegramUserName = request.TelegramUserName
             };
             dbContext.PidorRegistrations.Add(registration);
             await dbContext.SaveChangesAsync(cancellationToken);

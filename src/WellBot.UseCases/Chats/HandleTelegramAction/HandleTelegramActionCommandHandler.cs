@@ -52,7 +52,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                         return;
                     }
 
-                    await HandleCommandAsync(command, arguments, isDirectMessage, chatId, request.Action.Message.From.Id);
+                    await HandleCommandAsync(command, arguments, isDirectMessage, chatId, request.Action.Message.From);
                 }
             }
             catch (Exception ex)
@@ -65,14 +65,16 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             }
         }
 
-        private async Task HandleCommandAsync(string command, string arguments, bool isDirectMessage, ChatId chatId, long senderId)
+        private async Task HandleCommandAsync(string command, string arguments, bool isDirectMessage, ChatId chatId, User sender)
         {
+            long senderId = sender.Id;
             Task action = command switch
             {
                 "pidoreg" => mediator.Send(new PidorGameRegisterCommand()
                 {
                     ChatId = chatId,
                     TelegramUserId = senderId,
+                    TelegramUserName = $"{sender.FirstName} {sender.LastName}"
                 }),
                 "pidorlist" => mediator.Send(new PidorListCommand
                 {

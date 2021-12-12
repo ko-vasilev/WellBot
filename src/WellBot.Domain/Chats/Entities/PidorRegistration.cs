@@ -41,5 +41,11 @@ namespace WellBot.Domain.Chats.Entities
         /// When the user has won the game with this registration.
         /// </summary>
         public IList<ChatPidor> Wins { get; set; } = new List<ChatPidor>();
+
+        /// <summary>
+        /// Name user had in telegram when he signed up for the game.
+        /// </summary>
+        [MaxLength(63)]
+        public string OriginalTelegramUserName { get; set; }
     }
 }

@@ -23,40 +23,6 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
         private readonly PidorGameService pidorGameService;
         private readonly CurrentChatService currentChatService;
 
-        private static readonly IList<IEnumerable<string>> pidorSelectionTemplates = new List<IEnumerable<string>>
-        {
-            new List<string>
-            {
-                "Пидор-бригада выехала...",
-                "Начинаем поиск",
-                "Опа, попался, {0}!"
-            },
-            new List<string>
-            {
-                "🤔",
-                "🗿",
-                "А сегодняшний пидор дня {0}!"
-            },
-            new List<string>
-            {
-                "Начинаем поиск...",
-                "Что вы наделали...",
-                "Пидором дня оказался {0}"
-            },
-            new List<string>
-            {
-                "Так-так-так",
-                "Опа Ф5, дамы и госпада!",
-                "А пидор дня-то {0}!"
-            },
-            new List<string>
-            {
-                "Зачем вы меня разбудили...",
-                "Сегодня в робота полезет",
-                "Пидор дня - {0}!"
-            }
-        };
-
         public PidorGameRunCommandHandler(ITelegramBotClient botClient, IAppDbContext dbContext, PidorGameService pidorGameService, CurrentChatService currentChatService)
         {
             this.botClient = botClient;
@@ -96,23 +62,96 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
             }
 
             var pidor = users.PickRandom();
+            var notification = await GetNotificationMessageAsync(pidor.User.Id, pidorGameDay);
             var pidorData = new ChatPidor
             {
                 ChatId = currentChatService.ChatId,
                 GameDay = pidorGameDay,
-                RegistrationId = pidor.PidorRegistration.Id
+                RegistrationId = pidor.PidorRegistration.Id,
+                UsedMessageId = notification.Id
             };
             dbContext.ChatPidors.Add(pidorData);
             await dbContext.SaveChangesAsync();
 
-            var notification = pidorSelectionTemplates.PickRandom();
             var pidorUsername = "@" + pidor.User.Username;
-            foreach (var text in notification)
+            foreach (var text in notification.Message)
             {
-                var message = string.Format(text, pidorUsername);
+                var message = text.Replace(PidorMessage.UsernamePlaceholder, pidorUsername);
                 await botClient.SendTextMessageAsync(request.ChatId, message, disableNotification: true);
-                await Task.Delay(TimeSpan.FromSeconds(0.5));
+                await Task.Delay(TimeSpan.FromSeconds(0.7));
             }
+        }
+
+        private async Task<(int Id, IEnumerable<string> Message)> GetNotificationMessageAsync(long winnerTelegramId, DateTime gameDay)
+        {
+            var previousWin = await dbContext.ChatPidors
+                .Where(p => p.ChatId == currentChatService.ChatId)
+                .OrderByDescending(p => p.GameDay)
+                .FirstOrDefaultAsync();
+
+            var availableMessages = dbContext.PidorResultMessages
+                .AsNoTracking()
+                .AsQueryable();
+            if (previousWin != null)
+            {
+                availableMessages = availableMessages.Where(m => m.Id != previousWin.Id);
+            }
+
+            var regularMessages = availableMessages.Where(m => m.GameDay == null && m.TelegramUserId == null);
+            var userMessages = availableMessages.Where(m => m.TelegramUserId == winnerTelegramId);
+            var dayMessages = availableMessages.Where(m => m.GameDay != null && m.GameDay.Value.Month == gameDay.Month && m.GameDay.Value.Day == gameDay.Day);
+
+            var messages = await regularMessages.Union(userMessages)
+                .Union(dayMessages)
+                .Select(m => new MessageData
+                {
+                    MessageRaw = m.MessageRaw,
+                    MessageWeight = m.Weight,
+                    Id = m.Id
+                })
+                .ToListAsync();
+
+            var randomMessage = PickRandom(messages);
+            return (randomMessage.Id, randomMessage.MessageRaw.Split(PidorMessage.MessagesSeparator));
+        }
+
+        private MessageData PickRandom(IEnumerable<MessageData> messages)
+        {
+            // Prepare a weighted list.
+            var weightedItems = messages.Select(m => (m, GetWeight(m.MessageWeight)))
+                .ToList();
+
+            var totalWeight = weightedItems.Sum(m => m.Item2);
+            var desiredWeight = EnumerableRandom.GetRandom(totalWeight);
+            var currentWeightSum = 0;
+            foreach (var item in weightedItems)
+            {
+                var currentWeightRange = currentWeightSum + item.Item2;
+                if (currentWeightSum <= desiredWeight && desiredWeight < currentWeightRange)
+                {
+                    return item.m;
+                }
+                currentWeightSum = currentWeightRange;
+            }
+
+            // Weird, shouldn't happen.
+            return weightedItems.Last().m;
+        }
+
+        private int GetWeight(MessageWeight weight) => weight switch
+            {
+                MessageWeight.Highest => 100,
+                MessageWeight.High => 10,
+                _ => 1
+            };
+
+        private class MessageData
+        {
+            public int Id { get; init; }
+
+            public string MessageRaw { get; init; }
+
+            public MessageWeight MessageWeight { get; init; }
         }
     }
 }

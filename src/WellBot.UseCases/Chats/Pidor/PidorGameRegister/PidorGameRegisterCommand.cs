@@ -17,5 +17,10 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRegister
         /// Id of the user who wants to sign up for the game.
         /// </summary>
         public long TelegramUserId { get; init; }
+
+        /// <summary>
+        /// Name of the person who sent the request.
+        /// </summary>
+        public string TelegramUserName { get; init; }
     }
 }

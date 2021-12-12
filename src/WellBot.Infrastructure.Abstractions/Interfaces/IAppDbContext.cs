@@ -36,6 +36,11 @@ namespace WellBot.Infrastructure.Abstractions.Interfaces
         /// </summary>
         DbSet<ChatPidor> ChatPidors { get; }
 
+        /// <summary>
+        /// Lis tof messages that can be used to notify about the game results.
+        /// </summary>
+        DbSet<PidorMessage> PidorResultMessages { get; }
+
         #endregion
     }
 }

@@ -40,5 +40,15 @@ namespace WellBot.Domain.Chats.Entities
         /// </summary>
         [Column(TypeName = "date")]
         public DateTime GameDay { get; set; }
+
+        /// <summary>
+        /// Id of the message used to notify about the game results.
+        /// </summary>
+        public int UsedMessageId { get; set; }
+
+        /// <summary>
+        /// Message used to notify about the game results.
+        /// </summary>
+        public PidorMessage UsedMessage { get; set; }
     }
 }

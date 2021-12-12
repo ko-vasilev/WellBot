@@ -32,5 +32,12 @@ namespace WellBot.UseCases.Common.Extensions
             int elementIndex = random.Next(source.Count);
             return source[elementIndex];
         }
+
+        /// <summary>
+        /// Get a random value from 0 to <paramref name="max"/>.
+        /// </summary>
+        /// <param name="max">Exclusive max value.</param>
+        /// <returns>Random value.</returns>
+        public static int GetRandom(int max) => random.Next(max);
     }
 }
