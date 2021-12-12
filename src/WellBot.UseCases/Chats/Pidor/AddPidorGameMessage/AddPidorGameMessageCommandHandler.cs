@@ -43,7 +43,8 @@ namespace WellBot.UseCases.Chats.Pidor.AddPidorGameMessage
                 MessageRaw = request.Message,
                 TelegramUserId = telegramUserId,
                 Weight = request.MessageWeight,
-                DayOfWeek = request.DayOfWeek
+                DayOfWeek = request.DayOfWeek,
+                IsActive = true
             };
             dbContext.PidorResultMessages.Add(message);
             await dbContext.SaveChangesAsync(cancellationToken);

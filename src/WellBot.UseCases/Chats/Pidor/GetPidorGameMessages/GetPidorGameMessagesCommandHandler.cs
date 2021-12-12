@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -25,7 +26,9 @@ namespace WellBot.UseCases.Chats.Pidor.GetPidorGameMessages
         /// <inheritdoc/>
         public async Task<IEnumerable<PidorGameMessageDto>> Handle(GetPidorGameMessagesCommand request, CancellationToken cancellationToken)
         {
-            return await mapper.ProjectTo<PidorGameMessageDto>(dbContext.PidorResultMessages)
+            var messages = dbContext.PidorResultMessages
+                .Where(m => m.IsActive);
+            return await mapper.ProjectTo<PidorGameMessageDto>(messages)
                 .ToListAsync(cancellationToken);
         }
     }

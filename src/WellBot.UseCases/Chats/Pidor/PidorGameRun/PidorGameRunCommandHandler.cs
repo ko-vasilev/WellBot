@@ -80,7 +80,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
                 await botClient.SendTextMessageAsync(request.ChatId,
                     message,
                     disableNotification: true,
-                    parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                    parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
                 await Task.Delay(TimeSpan.FromSeconds(0.7));
             }
         }
@@ -94,7 +94,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
 
             var availableMessages = dbContext.PidorResultMessages
                 .AsNoTracking()
-                .AsQueryable();
+                .Where(m => m.IsActive);
             if (previousWin != null)
             {
                 availableMessages = availableMessages.Where(m => m.Id != previousWin.Id);

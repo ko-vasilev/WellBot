@@ -57,5 +57,10 @@ namespace WellBot.Domain.Chats.Entities
         /// List of games played where this message was used for notification.
         /// </summary>
         public IList<ChatPidor> UsedWins { get; set; } = new List<ChatPidor>();
+
+        /// <summary>
+        /// Indicates if a message is active and can be used.
+        /// </summary>
+        public bool IsActive { get; set; } = true;
     }
 }
