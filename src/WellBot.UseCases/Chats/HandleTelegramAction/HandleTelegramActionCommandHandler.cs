@@ -38,6 +38,11 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
         /// <inheritdoc/>
         protected override async Task Handle(HandleTelegramActionCommand request, CancellationToken cancellationToken)
         {
+            var isMessage = request.Action.Message != null;
+            if (!isMessage)
+            {
+                return;
+            }
             var isDirectMessage = request.Action.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
             if (isDirectMessage)
             {
@@ -45,7 +50,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 return;
             }
 
-            var messageText = request.Action.Message?.Text;
+            var messageText = request.Action.Message.Text;
             ChatId chatId = null;
             try
             {
