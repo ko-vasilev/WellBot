@@ -38,6 +38,13 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
         /// <inheritdoc/>
         protected override async Task Handle(HandleTelegramActionCommand request, CancellationToken cancellationToken)
         {
+            var isDirectMessage = request.Action.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
+            if (isDirectMessage)
+            {
+                // Ignore direct messages.
+                return;
+            }
+
             var messageText = request.Action.Message?.Text;
             ChatId chatId = null;
             try
@@ -45,7 +52,6 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 if (!string.IsNullOrEmpty(messageText))
                 {
                     chatId = request.Action.Message.Chat.Id;
-                    var isDirectMessage = request.Action.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
                     var command = ParseCommand(messageText, out string arguments, ref isDirectMessage);
                     if (string.IsNullOrEmpty(command))
                     {
