@@ -100,12 +100,14 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
                 availableMessages = availableMessages.Where(m => m.Id != previousWin.Id);
             }
 
-            var regularMessages = availableMessages.Where(m => m.GameDay == null && m.TelegramUserId == null);
+            var regularMessages = availableMessages.Where(m => m.GameDay == null && m.TelegramUserId == null && m.DayOfWeek == null);
             var userMessages = availableMessages.Where(m => m.TelegramUserId == winnerTelegramId);
             var dayMessages = availableMessages.Where(m => m.GameDay != null && m.GameDay.Value.Month == gameDay.Month && m.GameDay.Value.Day == gameDay.Day);
+            var dayOfWeekMessages = availableMessages.Where(m => m.DayOfWeek == gameDay.DayOfWeek);
 
             var messages = await regularMessages.Union(userMessages)
                 .Union(dayMessages)
+                .Union(dayOfWeekMessages)
                 .Select(m => new MessageData
                 {
                     MessageRaw = m.MessageRaw,

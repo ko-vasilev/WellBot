@@ -49,6 +49,11 @@ namespace WellBot.Domain.Chats.Entities
         public DateTime? GameDay { get; set; }
 
         /// <summary>
+        /// Day of week this message should be triggered on.
+        /// </summary>
+        public DayOfWeek? DayOfWeek { get; set; }
+
+        /// <summary>
         /// List of games played where this message was used for notification.
         /// </summary>
         public IList<ChatPidor> UsedWins { get; set; } = new List<ChatPidor>();

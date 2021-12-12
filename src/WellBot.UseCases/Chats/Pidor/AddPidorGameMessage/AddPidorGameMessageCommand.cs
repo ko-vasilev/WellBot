@@ -29,5 +29,10 @@ namespace WellBot.UseCases.Chats.Pidor.AddPidorGameMessage
         /// Message weight.
         /// </summary>
         public MessageWeight MessageWeight { get; init; }
+
+        /// <summary>
+        /// Optional, on which day of week this message should be used.
+        /// </summary>
+        public DayOfWeek? DayOfWeek { get; init; }
     }
 }
