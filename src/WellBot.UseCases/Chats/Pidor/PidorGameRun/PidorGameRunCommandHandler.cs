@@ -77,7 +77,10 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
             foreach (var text in notification.Message)
             {
                 var message = text.Replace(PidorMessage.UsernamePlaceholder, pidorUsername);
-                await botClient.SendTextMessageAsync(request.ChatId, message, disableNotification: true);
+                await botClient.SendTextMessageAsync(request.ChatId,
+                    message,
+                    disableNotification: true,
+                    parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
                 await Task.Delay(TimeSpan.FromSeconds(0.7));
             }
         }
