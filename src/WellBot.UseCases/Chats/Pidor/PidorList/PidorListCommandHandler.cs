@@ -57,7 +57,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
 
                 if (deleteUser == null)
                 {
-                    await botClient.SendTextMessageAsync(request.ChatId, "Пользователь не зарегистрирован в игре.", Telegram.Bot.Types.Enums.ParseMode.Markdown);
+                    await botClient.SendTextMessageAsync(request.ChatId, "Пользователь не зарегистрирован в игре.");
                     return;
                 }
 
@@ -77,7 +77,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
             {
                 reply = "Пока никто не зарегистрировался на игру.";
             }
-            await botClient.SendTextMessageAsync(request.ChatId, reply, Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            await botClient.SendTextMessageAsync(request.ChatId, reply, Telegram.Bot.Types.Enums.ParseMode.Html);
         }
 
         private string FormatUserName(User user)
@@ -85,7 +85,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
             var userName = $"{user.FirstName} {user.LastName}";
             if (!string.IsNullOrEmpty(user.Username))
             {
-                userName += $" (*{user.Username}*)";
+                userName += $" (<b>{user.Username}</b>)";
             }
             return userName;
         }
