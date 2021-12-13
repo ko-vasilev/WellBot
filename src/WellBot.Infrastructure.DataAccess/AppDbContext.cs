@@ -27,6 +27,11 @@ namespace WellBot.Infrastructure.DataAccess
         /// <inheritdoc />
         public DbSet<PidorMessage> PidorResultMessages { get; protected set; }
 
+        /// <summary>
+        /// List of stored chat data.
+        /// </summary>
+        public DbSet<ChatData> ChatDatas { get; protected set; }
+
         #endregion
 
         /// <summary>
@@ -65,6 +70,12 @@ namespace WellBot.Infrastructure.DataAccess
             modelBuilder.Entity<ChatPidor>()
                 .HasOne(p => p.UsedMessage)
                 .WithMany(m => m.UsedWins);
+
+            modelBuilder.Entity<ChatData>()
+                .HasOne(d => d.Chat)
+                .WithMany(c => c.Data);
+            modelBuilder.Entity<ChatData>()
+                .HasIndex(d => d.Key);
         }
 
         private static void RestrictCascadeDelete(ModelBuilder modelBuilder)

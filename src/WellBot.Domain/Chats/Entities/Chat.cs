@@ -29,5 +29,10 @@ namespace WellBot.Domain.Chats.Entities
         /// List of chat pidor winners.
         /// </summary>
         public IList<ChatPidor> Pidors { get; set; } = new List<ChatPidor>();
+
+        /// <summary>
+        /// Associated chat data.
+        /// </summary>
+        public IList<ChatData> Data { get; set; } = new List<ChatData>();
     }
 }

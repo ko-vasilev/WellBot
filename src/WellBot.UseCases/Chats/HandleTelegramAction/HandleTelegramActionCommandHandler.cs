@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using WellBot.Infrastructure.Abstractions.Interfaces;
+using WellBot.UseCases.Chats.Data.SetChatData;
 using WellBot.UseCases.Chats.Pidor.PidorGameRegister;
 using WellBot.UseCases.Chats.Pidor.PidorGameRun;
 using WellBot.UseCases.Chats.Pidor.PidorList;
@@ -50,7 +51,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 return;
             }
 
-            var messageText = request.Action.Message.Text;
+            var messageText = request.Action.Message.Text ?? request.Action.Message.Caption;
             ChatId chatId = null;
             try
             {
@@ -63,7 +64,8 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                         return;
                     }
 
-                    await HandleCommandAsync(command, arguments, isDirectMessage, chatId, request.Action.Message.From);
+                    await botClient.SendChatActionAsync(request.Action.Message.Chat.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
+                    await HandleCommandAsync(command, arguments, isDirectMessage, chatId, request.Action.Message.From, request.Action.Message);
                 }
             }
             catch (Exception ex)
@@ -76,7 +78,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             }
         }
 
-        private async Task HandleCommandAsync(string command, string arguments, bool isDirectMessage, ChatId chatId, User sender)
+        private async Task HandleCommandAsync(string command, string arguments, bool isDirectMessage, ChatId chatId, User sender, Message message)
         {
             long senderId = sender.Id;
             Task action = command switch
@@ -105,6 +107,12 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 {
                     ChatId = chatId,
                     Arguments = arguments
+                }),
+                "set" => mediator.Send(new SetChatDataCommand
+                {
+                    ChatId = chatId,
+                    Arguments = arguments,
+                    Message = message
                 }),
                 _ => isDirectMessage
                     ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")
