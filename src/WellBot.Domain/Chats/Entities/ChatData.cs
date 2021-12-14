@@ -26,6 +26,7 @@ namespace WellBot.Domain.Chats.Entities
 
         /// <summary>
         /// Key of this data.
+        /// In lower case.
         /// </summary>
         public string Key { get; set; }
 

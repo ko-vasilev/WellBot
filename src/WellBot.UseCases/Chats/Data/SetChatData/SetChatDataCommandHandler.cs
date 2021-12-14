@@ -44,7 +44,8 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
                 return;
             }
 
-            var existingItem = await dbContext.ChatDatas.FirstOrDefaultAsync(d => d.ChatId == currentChatService.ChatId && d.Key == key);
+            var storeKey = key.ToLowerInvariant();
+            var existingItem = await dbContext.ChatDatas.FirstOrDefaultAsync(d => d.ChatId == currentChatService.ChatId && d.Key == storeKey);
             if (existingItem != null)
             {
                 dbContext.ChatDatas.Remove(existingItem);
@@ -61,7 +62,7 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
             {
                 ChatId = currentChatService.ChatId,
                 Text = saveText,
-                Key = key,
+                Key = storeKey,
                 DataType = DataType.Text,
             };
             if (message.Type != MessageType.Text)

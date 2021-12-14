@@ -29,7 +29,8 @@ namespace WellBot.UseCases.Chats.Data.DeleteChatData
         /// <inheritdoc/>
         protected override async Task Handle(DeleteChatDataCommand request, CancellationToken cancellationToken)
         {
-            var data = await dbContext.ChatDatas.FirstOrDefaultAsync(d => d.ChatId == currentChatService.ChatId && d.Key == request.Key, cancellationToken);
+            var key = (request.Key ?? string.Empty).ToLowerInvariant();
+            var data = await dbContext.ChatDatas.FirstOrDefaultAsync(d => d.ChatId == currentChatService.ChatId && d.Key == key, cancellationToken);
             if (data == null)
             {
                 await botClient.SendTextMessageAsync(request.ChatId, "Не могу найти данных по этому ключу", replyToMessageId: request.MessageId);
