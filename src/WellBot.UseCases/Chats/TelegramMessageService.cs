@@ -86,6 +86,11 @@ namespace WellBot.UseCases.Chats
             }
 
             var text = message.Text;
+            if (message.Entities == null)
+            {
+                return text;
+            }
+
             var previousOffset = int.MaxValue;
             void AddTextMarkup(string format, int startPosition, int length)
             {
