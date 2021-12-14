@@ -82,7 +82,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
 
         private string FormatUserName(User user)
         {
-            var userName = $"{user.FirstName} {user.LastName}";
+            var userName = replyService.GetUserFullName(user);
             if (!string.IsNullOrEmpty(user.Username))
             {
                 userName += $" (<b>{user.Username}</b>)";
