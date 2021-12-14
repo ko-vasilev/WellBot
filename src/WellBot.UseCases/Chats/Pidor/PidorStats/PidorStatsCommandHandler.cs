@@ -19,16 +19,18 @@ namespace WellBot.UseCases.Chats.Pidor.PidorStats
         private readonly IAppDbContext dbContext;
         private readonly CurrentChatService currentChatService;
         private readonly PidorGameService pidorGameService;
+        private readonly ReplyService replyService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PidorStatsCommandHandler(PidorGameService pidorGameService, CurrentChatService currentChatService, IAppDbContext dbContext, ITelegramBotClient botClient)
+        public PidorStatsCommandHandler(PidorGameService pidorGameService, CurrentChatService currentChatService, IAppDbContext dbContext, ITelegramBotClient botClient, ReplyService replyService)
         {
             this.pidorGameService = pidorGameService;
             this.currentChatService = currentChatService;
             this.dbContext = dbContext;
             this.botClient = botClient;
+            this.replyService = replyService;
         }
 
         /// <inheritdoc/>
@@ -59,7 +61,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorStats
                 Victories = user.VictoriesCount,
                 User = gameParticipants.First(p => p.PidorRegistration.TelegramUserId == user.TelegramUserId)
             });
-            message += "\n" + string.Join('\n', statsData.Select((u, index) => $"#{index + 1} - {u.User.User.FirstName} {u.User.User.LastName} ({u.Victories}-кратный пидор)"));
+            message += "\n" + string.Join('\n', statsData.Select((u, index) => $"#{index + 1} - {replyService.GetUserFullName(u.User.User)} ({u.Victories}-кратный пидор)"));
 
             await botClient.SendTextMessageAsync(request.ChatId, message);
         }

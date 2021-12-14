@@ -23,16 +23,18 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
         private readonly ITelegramBotSettings telegramBotSettings;
         private readonly IMediator mediator;
         private readonly ILogger<HandleTelegramActionCommandHandler> logger;
+        private readonly ReplyService replyService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public HandleTelegramActionCommandHandler(ITelegramBotClient botClient, ITelegramBotSettings telegramBotSettings, IMediator mediator, ILogger<HandleTelegramActionCommandHandler> logger)
+        public HandleTelegramActionCommandHandler(ITelegramBotClient botClient, ITelegramBotSettings telegramBotSettings, IMediator mediator, ILogger<HandleTelegramActionCommandHandler> logger, ReplyService replyService)
         {
             this.botClient = botClient;
             this.telegramBotSettings = telegramBotSettings;
             this.mediator = mediator;
             this.logger = logger;
+            this.replyService = replyService;
         }
 
         /// <inheritdoc/>
@@ -85,7 +87,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 {
                     ChatId = chatId,
                     TelegramUserId = senderId,
-                    TelegramUserName = $"{sender.FirstName} {sender.LastName}"
+                    TelegramUserName = replyService.GetUserFullName(sender)
                 }),
                 "pidorlist" => mediator.Send(new PidorListCommand
                 {
