@@ -48,6 +48,13 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
                 dbContext.ChatDatas.Remove(existingItem);
             }
 
+            var message = request.Message;
+            if (message.ReplyToMessage != null)
+            {
+                message = message.ReplyToMessage;
+                remainder = message.Text ?? message.Caption;
+            }
+
             var data = new ChatData
             {
                 ChatId = currentChatService.ChatId,
@@ -55,9 +62,9 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
                 Key = key,
                 DataType = DataType.Text,
             };
-            if (request.Message.Type != MessageType.Text)
+            if (message.Type != MessageType.Text)
             {
-                var dataType = GetFile(request.Message, out var attachedDocument);
+                var dataType = GetFile(message, out var attachedDocument);
                 if (dataType == null)
                 {
                     await botClient.SendTextMessageAsync(request.ChatId, $"Не поддерживаемый формат сообщения");
@@ -68,7 +75,7 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
             }
             dbContext.ChatDatas.Add(data);
             await dbContext.SaveChangesAsync();
-            await botClient.SendTextMessageAsync(request.ChatId, $"Сохранил как <b>{HttpUtility.HtmlEncode(key)}</b>", Telegram.Bot.Types.Enums.ParseMode.Html);
+            await botClient.SendTextMessageAsync(request.ChatId, $"Сохранил как <b>{HttpUtility.HtmlEncode(key)}</b>", ParseMode.Html);
         }
 
         private bool TryParseKey(string arguments, out string key, out string remainder)
