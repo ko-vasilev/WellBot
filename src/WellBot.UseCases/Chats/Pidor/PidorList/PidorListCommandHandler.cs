@@ -20,18 +20,18 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
         private readonly IAppDbContext dbContext;
         private readonly CurrentChatService currentChatService;
         private readonly PidorGameService pidorGameService;
-        private readonly ReplyService replyService;
+        private readonly TelegramMessageService telegramMessageService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PidorListCommandHandler(ITelegramBotClient botClient, IAppDbContext dbContext, CurrentChatService currentChatService, PidorGameService pidorGameService, ReplyService replyService)
+        public PidorListCommandHandler(ITelegramBotClient botClient, IAppDbContext dbContext, CurrentChatService currentChatService, PidorGameService pidorGameService, TelegramMessageService telegramMessageService)
         {
             this.botClient = botClient;
             this.dbContext = dbContext;
             this.currentChatService = currentChatService;
             this.pidorGameService = pidorGameService;
-            this.replyService = replyService;
+            this.telegramMessageService = telegramMessageService;
         }
 
         /// <inheritdoc/>
@@ -64,7 +64,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
                 var user = await dbContext.PidorRegistrations.FirstOrDefaultAsync(u => u.TelegramUserId == deleteUser.User.Id);
                 dbContext.PidorRegistrations.Remove(user);
                 await dbContext.SaveChangesAsync();
-                await replyService.SendSuccessAsync(request.ChatId);
+                await telegramMessageService.SendSuccessAsync(request.ChatId);
                 return;
             }
 
@@ -82,7 +82,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorList
 
         private string FormatUserName(User user)
         {
-            var userName = replyService.GetUserFullName(user);
+            var userName = telegramMessageService.GetUserFullName(user);
             if (!string.IsNullOrEmpty(user.Username))
             {
                 userName += $" (<b>{user.Username}</b>)";

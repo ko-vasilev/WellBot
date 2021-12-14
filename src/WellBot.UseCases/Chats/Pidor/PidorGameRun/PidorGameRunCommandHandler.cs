@@ -22,15 +22,15 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
         private readonly IAppDbContext dbContext;
         private readonly PidorGameService pidorGameService;
         private readonly CurrentChatService currentChatService;
-        private readonly ReplyService replyService;
+        private readonly TelegramMessageService telegramMessageService;
 
-        public PidorGameRunCommandHandler(ITelegramBotClient botClient, IAppDbContext dbContext, PidorGameService pidorGameService, CurrentChatService currentChatService, ReplyService replyService)
+        public PidorGameRunCommandHandler(ITelegramBotClient botClient, IAppDbContext dbContext, PidorGameService pidorGameService, CurrentChatService currentChatService, TelegramMessageService telegramMessageService)
         {
             this.botClient = botClient;
             this.dbContext = dbContext;
             this.pidorGameService = pidorGameService;
             this.currentChatService = currentChatService;
-            this.replyService = replyService;
+            this.telegramMessageService = telegramMessageService;
         }
 
         /// <inheritdoc/>
@@ -52,7 +52,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
                     return;
                 }
 
-                var userTag = replyService.GetPersonMentionHtml(user.User);
+                var userTag = telegramMessageService.GetPersonMentionHtml(user.User);
                 await botClient.SendTextMessageAsync(request.ChatId, $"По моей информации пидор дня — {userTag}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: true);
                 return;
             }
@@ -76,7 +76,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
             dbContext.ChatPidors.Add(pidorData);
             await dbContext.SaveChangesAsync();
 
-            var pidorUsername = replyService.GetPersonMentionHtml(pidor.User);
+            var pidorUsername = telegramMessageService.GetPersonMentionHtml(pidor.User);
             foreach (var text in notification.Message)
             {
                 var message = text.Replace(PidorMessage.UsernamePlaceholder, pidorUsername);

@@ -41,6 +41,11 @@ namespace WellBot.Infrastructure.Abstractions.Interfaces
         /// </summary>
         DbSet<PidorMessage> PidorResultMessages { get; }
 
+        /// <summary>
+        /// List of saved chat key data.
+        /// </summary>
+        DbSet<ChatData> ChatDatas { get; }
+
         #endregion
     }
 }
