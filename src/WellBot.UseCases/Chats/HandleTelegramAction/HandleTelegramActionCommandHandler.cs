@@ -24,18 +24,18 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
         private readonly ITelegramBotSettings telegramBotSettings;
         private readonly IMediator mediator;
         private readonly ILogger<HandleTelegramActionCommandHandler> logger;
-        private readonly ReplyService replyService;
+        private readonly TelegramMessageService telegramMessageService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public HandleTelegramActionCommandHandler(ITelegramBotClient botClient, ITelegramBotSettings telegramBotSettings, IMediator mediator, ILogger<HandleTelegramActionCommandHandler> logger, ReplyService replyService)
+        public HandleTelegramActionCommandHandler(ITelegramBotClient botClient, ITelegramBotSettings telegramBotSettings, IMediator mediator, ILogger<HandleTelegramActionCommandHandler> logger, TelegramMessageService telegramMessageService)
         {
             this.botClient = botClient;
             this.telegramBotSettings = telegramBotSettings;
             this.mediator = mediator;
             this.logger = logger;
-            this.replyService = replyService;
+            this.telegramMessageService = telegramMessageService;
         }
 
         /// <inheritdoc/>
@@ -53,7 +53,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 return;
             }
 
-            var messageText = request.Action.Message.Text ?? request.Action.Message.Caption;
+            var messageText = telegramMessageService.GetMessageTextHtml(request.Action.Message);
             ChatId chatId = null;
             try
             {
@@ -89,7 +89,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 {
                     ChatId = chatId,
                     TelegramUserId = senderId,
-                    TelegramUserName = replyService.GetUserFullName(sender)
+                    TelegramUserName = telegramMessageService.GetUserFullName(sender)
                 }),
                 "pidorlist" => mediator.Send(new PidorListCommand
                 {

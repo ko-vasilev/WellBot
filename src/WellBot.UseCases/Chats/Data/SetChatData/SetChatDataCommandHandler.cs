@@ -22,21 +22,23 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
         private readonly IAppDbContext dbContext;
         private readonly ITelegramBotClient botClient;
         private readonly CurrentChatService currentChatService;
+        private readonly TelegramMessageService telegramMessageService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public SetChatDataCommandHandler(IAppDbContext dbContext, ITelegramBotClient botClient, CurrentChatService currentChatService)
+        public SetChatDataCommandHandler(IAppDbContext dbContext, ITelegramBotClient botClient, CurrentChatService currentChatService, TelegramMessageService telegramMessageService)
         {
             this.dbContext = dbContext;
             this.botClient = botClient;
             this.currentChatService = currentChatService;
+            this.telegramMessageService = telegramMessageService;
         }
 
         /// <inheritdoc/>
         protected override async Task Handle(SetChatDataCommand request, CancellationToken cancellationToken)
         {
-            if (!TryParseKey(request.Arguments, out var key, out var remainder))
+            if (!TryParseKey(request.Arguments, out var key, out var saveText))
             {
                 await botClient.SendTextMessageAsync(request.ChatId, "Укажите ключ для сохранения");
                 return;
@@ -52,13 +54,13 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
             if (message.ReplyToMessage != null)
             {
                 message = message.ReplyToMessage;
-                remainder = message.Text ?? message.Caption;
+                saveText = telegramMessageService.GetMessageTextHtml(message);
             }
 
             var data = new ChatData
             {
                 ChatId = currentChatService.ChatId,
-                Text = remainder,
+                Text = saveText,
                 Key = key,
                 DataType = DataType.Text,
             };

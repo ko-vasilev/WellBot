@@ -21,7 +21,7 @@ namespace WellBot.Web.Infrastructure.DependencyInjection
 #pragma warning restore CA1801 // Review unused parameters
         {
             services.AddScoped<CurrentChatService>();
-            services.AddTransient<ReplyService>();
+            services.AddTransient<TelegramMessageService>();
             services.AddTransient<PidorGameService>();
         }
     }
