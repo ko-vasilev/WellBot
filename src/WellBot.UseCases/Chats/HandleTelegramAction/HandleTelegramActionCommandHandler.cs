@@ -8,6 +8,7 @@ using Telegram.Bot.Types;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.Data.SetChatData;
 using WellBot.UseCases.Chats.Data.ShowData;
+using WellBot.UseCases.Chats.Data.ShowKeys;
 using WellBot.UseCases.Chats.Pidor.PidorGameRegister;
 using WellBot.UseCases.Chats.Pidor.PidorGameRun;
 using WellBot.UseCases.Chats.Pidor.PidorList;
@@ -122,6 +123,10 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     ChatId = chatId,
                     Arguments = arguments,
                     MessageId = message.MessageId
+                }),
+                "getall" => mediator.Send(new ShowKeysCommand
+                {
+                    ChatId = chatId,
                 }),
                 _ => isDirectMessage
                     ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")
