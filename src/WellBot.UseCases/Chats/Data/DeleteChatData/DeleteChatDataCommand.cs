@@ -1,12 +1,12 @@
 ﻿using MediatR;
 using Telegram.Bot.Types;
 
-namespace WellBot.UseCases.Chats.Data.ShowData
+namespace WellBot.UseCases.Chats.Data.DeleteChatData
 {
     /// <summary>
-    /// Output a stored data by key <see cref="Key"/> to a chat.
+    /// Delete a data by key from chat.
     /// </summary>
-    public class ShowDataCommand : IRequest, IChatInfo
+    public record DeleteChatDataCommand : IRequest, IChatInfo
     {
         /// <summary>
         /// Id of the associated chat.
@@ -14,7 +14,7 @@ namespace WellBot.UseCases.Chats.Data.ShowData
         public ChatId ChatId { get; init; }
 
         /// <summary>
-        /// Data key.
+        /// Data key to delete.
         /// </summary>
         public string Key { get; init; }
 

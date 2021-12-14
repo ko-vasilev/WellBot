@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using WellBot.Infrastructure.Abstractions.Interfaces;
+using WellBot.UseCases.Chats.Data.DeleteChatData;
 using WellBot.UseCases.Chats.Data.SetChatData;
 using WellBot.UseCases.Chats.Data.ShowData;
 using WellBot.UseCases.Chats.Data.ShowKeys;
@@ -121,12 +122,18 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 "get" => mediator.Send(new ShowDataCommand
                 {
                     ChatId = chatId,
-                    Arguments = arguments,
+                    Key = arguments,
                     MessageId = message.MessageId
                 }),
                 "getall" => mediator.Send(new ShowKeysCommand
                 {
                     ChatId = chatId,
+                }),
+                "del" => mediator.Send(new DeleteChatDataCommand
+                {
+                    ChatId = chatId,
+                    Key = arguments,
+                    MessageId = message.MessageId
                 }),
                 _ => isDirectMessage
                     ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")
