@@ -86,6 +86,7 @@ namespace WellBot.UseCases.Chats
             }
 
             var text = message.Text;
+            var previousOffset = int.MaxValue;
             void AddTextMarkup(string format, int startPosition, int length)
             {
                 var textPart = text.Substring(startPosition, length);
@@ -97,6 +98,14 @@ namespace WellBot.UseCases.Chats
             }
             foreach (var formatEntity in message.Entities.Reverse())
             {
+                // To fix the bug when there are multiple subsequent tags like <b><i></i></b>
+                // We will display only the first encountered one.
+                if (previousOffset == formatEntity.Offset)
+                {
+                    continue;
+                }
+                previousOffset = formatEntity.Offset;
+
                 if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.Bold)
                 {
                     AddTextMarkup("<b>{0}</b>", formatEntity.Offset, formatEntity.Length);
