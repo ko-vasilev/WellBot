@@ -78,7 +78,7 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
             }
             dbContext.ChatDatas.Add(data);
             await dbContext.SaveChangesAsync();
-            await botClient.SendTextMessageAsync(request.ChatId, $"Сохранил как <b>{HttpUtility.HtmlEncode(key)}</b>", ParseMode.Html);
+            await botClient.SendTextMessageAsync(request.ChatId, $"Сохранил как \"{key}\"");
         }
 
         private bool TryParseKey(string arguments, out string key, out string remainder)
