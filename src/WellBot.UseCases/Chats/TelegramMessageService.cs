@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Telegram.Bot;
@@ -82,11 +83,15 @@ namespace WellBot.UseCases.Chats
         {
             if (message.Text == null)
             {
-                return message.Caption;
+                return ApplyTextModifiers(message.Caption, message.CaptionEntities);
             }
 
-            var text = message.Text;
-            if (message.Entities == null)
+            return ApplyTextModifiers(message.Text, message.Entities);
+        }
+
+        private string ApplyTextModifiers(string text, IEnumerable<MessageEntity> entities)
+        {
+            if (entities == null)
             {
                 return text;
             }
@@ -101,7 +106,8 @@ namespace WellBot.UseCases.Chats
                     + newText
                     + text.Substring(startPosition + length);
             }
-            foreach (var formatEntity in message.Entities.Reverse())
+            // Start from last entities to first to simplify the string replacement
+            foreach (var formatEntity in entities.Reverse())
             {
                 // To fix the bug when there are multiple subsequent tags like <b><i></i></b>
                 // We will display only the first encountered one.
