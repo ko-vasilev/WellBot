@@ -62,7 +62,12 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
                 Text = saveText,
                 Key = storeKey,
                 DataType = DataType.Text,
+                HasUserMention = false
             };
+            if (message.Entities != null)
+            {
+                data.HasUserMention = message.Entities.Any(e => e.Type == MessageEntityType.Mention || e.Type == MessageEntityType.TextMention);
+            }
             if (message.Type != MessageType.Text)
             {
                 var dataType = GetFile(message, out var attachedDocument);

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace WellBot.UseCases.Common.Extensions
+namespace WellBot.UseCases.Common.Collections
 {
     /// <summary>
     /// Contains extension methods for accessing collections in a random way.

@@ -9,7 +9,7 @@ using Telegram.Bot;
 using WellBot.Domain.Chats.Entities;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
-using WellBot.UseCases.Common.Extensions;
+using WellBot.UseCases.Common.Collections;
 
 namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
 {

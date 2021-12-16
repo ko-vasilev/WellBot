@@ -45,5 +45,10 @@ namespace WellBot.Domain.Chats.Entities
         /// Any additional text.
         /// </summary>
         public string Text { get; set; }
+
+        /// <summary>
+        /// Indicates if the message in this data contains mention of a user.
+        /// </summary>
+        public bool HasUserMention { get; set; }
     }
 }

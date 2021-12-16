@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using WellBot.UseCases.Common.Extensions;
+using WellBot.UseCases.Common.Collections;
 
 namespace WellBot.UseCases.Chats
 {
