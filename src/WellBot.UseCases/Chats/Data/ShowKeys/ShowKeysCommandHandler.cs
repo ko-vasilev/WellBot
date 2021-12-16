@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
@@ -43,8 +42,8 @@ namespace WellBot.UseCases.Chats.Data.ShowKeys
                 return;
             }
 
-            var keysSummary = string.Join(", ", items.Select(key => $"<code>{HttpUtility.HtmlEncode(key)}</code>"));
-            await botClient.SendTextMessageAsync(request.ChatId, keysSummary, Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: true);
+            var keysSummary = string.Join(", ", items);
+            await botClient.SendTextMessageAsync(request.ChatId, keysSummary, disableNotification: true);
         }
     }
 }

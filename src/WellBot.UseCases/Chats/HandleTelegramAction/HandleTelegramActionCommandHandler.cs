@@ -56,26 +56,27 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 return;
             }
 
-            var messageText = telegramMessageService.GetMessageTextHtml(request.Action.Message);
+            var plainMessageText = request.Action.Message.Text ?? request.Action.Message.Caption;
+            var textFormatted = telegramMessageService.GetMessageTextHtml(request.Action.Message);
             ChatId chatId = null;
             try
             {
-                if (!string.IsNullOrEmpty(messageText))
+                if (!string.IsNullOrEmpty(plainMessageText))
                 {
                     chatId = request.Action.Message.Chat.Id;
-                    var command = ParseCommand(messageText, out string arguments, ref isDirectMessage);
+                    var command = ParseCommand(plainMessageText, textFormatted, out string arguments, out string argumentsHtml, ref isDirectMessage);
                     if (string.IsNullOrEmpty(command))
                     {
                         return;
                     }
 
                     await botClient.SendChatActionAsync(request.Action.Message.Chat.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
-                    await HandleCommandAsync(command, arguments, isDirectMessage, chatId, request.Action.Message.From, request.Action.Message);
+                    await HandleCommandAsync(command, arguments, argumentsHtml, isDirectMessage, chatId, request.Action.Message.From, request.Action.Message);
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error handling command {text}", messageText);
+                logger.LogError(ex, "Error handling command {text}", textFormatted);
                 if (chatId != null)
                 {
                     await botClient.SendTextMessageAsync(chatId, "Что-то пошло не так.");
@@ -83,7 +84,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             }
         }
 
-        private async Task HandleCommandAsync(string command, string arguments, bool isDirectMessage, ChatId chatId, User sender, Message message)
+        private async Task HandleCommandAsync(string command, string arguments, string argumentsHtml, bool isDirectMessage, ChatId chatId, User sender, Message message)
         {
             long senderId = sender.Id;
             Task action = command switch
@@ -116,7 +117,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 "set" => mediator.Send(new SetChatDataCommand
                 {
                     ChatId = chatId,
-                    Arguments = arguments,
+                    Arguments = argumentsHtml,
                     Message = message
                 }),
                 "get" => mediator.Send(new ShowDataCommand
@@ -143,15 +144,18 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             await action;
         }
 
-        private string ParseCommand(string text, out string arguments, ref bool isDirectMessage)
+        private string ParseCommand(string text, string textFormatted, out string arguments, out string argumentsFormatted, ref bool isDirectMessage)
         {
             if (!text.StartsWith('/'))
             {
                 arguments = text;
+                argumentsFormatted = textFormatted;
                 return string.Empty;
             }
 
-            var command = SplitCommandText(text, out arguments);
+            var command = SplitCommandText(text, out var argumentsStartIndex);
+            arguments = text.Substring(argumentsStartIndex);
+            argumentsFormatted = textFormatted.Substring(argumentsStartIndex);
             string botUsername = telegramBotSettings?.TelegramBotUsername;
             if (command.EndsWith(botUsername))
             {
@@ -164,16 +168,16 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             return command;
         }
 
-        private string SplitCommandText(string text, out string commandArguments)
+        private string SplitCommandText(string text, out int argumentsStartIndex)
         {
             var command = text;
-            commandArguments = string.Empty;
+            argumentsStartIndex = 0;
             var commandNamePart = text.IndexOf(' ');
             if (commandNamePart >= 0)
             {
                 command = text.Substring(0, commandNamePart);
-                // Parse arguments and ignore the space delimiter
-                commandArguments = text.Substring(commandNamePart + 1);
+                // Ignore the space delimiter
+                argumentsStartIndex = commandNamePart + 1;
             }
 
             return command;
