@@ -27,5 +27,10 @@ namespace WellBot.UseCases.Chats.Data.ShowData
         /// Id of the user who sent the request to show the value.
         /// </summary>
         public long SenderUserId { get; init; }
+
+        /// <summary>
+        /// Id of the message the current message was sent as a reply for.
+        /// </summary>
+        public int? ReplyMessageId { get; init; }
     }
 }

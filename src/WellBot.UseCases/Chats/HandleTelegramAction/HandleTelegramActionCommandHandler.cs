@@ -125,7 +125,8 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     ChatId = chatId,
                     Key = arguments,
                     MessageId = message.MessageId,
-                    SenderUserId = senderId
+                    SenderUserId = senderId,
+                    ReplyMessageId = message.ReplyToMessage?.MessageId
                 }),
                 "getall" => mediator.Send(new ShowKeysCommand
                 {
