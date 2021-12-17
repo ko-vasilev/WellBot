@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.InlineQueryResults;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.Data.DeleteChatData;
+using WellBot.UseCases.Chats.Data.SearchData;
 using WellBot.UseCases.Chats.Data.SetChatData;
 using WellBot.UseCases.Chats.Data.ShowData;
 using WellBot.UseCases.Chats.Data.ShowKeys;
@@ -44,6 +47,11 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
         /// <inheritdoc/>
         protected override async Task Handle(HandleTelegramActionCommand request, CancellationToken cancellationToken)
         {
+            if (await HandleInlineQueryAsync(request.Action.InlineQuery, cancellationToken))
+            {
+                return;
+            }
+
             var isMessage = request.Action.Message != null;
             if (!isMessage)
             {
@@ -183,6 +191,62 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             }
 
             return command;
+        }
+
+        private async Task<bool> HandleInlineQueryAsync(InlineQuery inlineQuery, CancellationToken cancellationToken)
+        {
+            if (inlineQuery == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                var dataItems = await mediator.Send(new SearchDataQuery
+                {
+                    SearchText = inlineQuery.Query
+                }, cancellationToken);
+
+                var inlineResults = dataItems.Select(item => MapQueryResult(item))
+                    .Where(res => res != null);
+                await botClient.AnswerInlineQueryAsync(inlineQuery.Id, inlineResults, cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error handling inline query {text}");
+            }
+
+            return true;
+        }
+
+        private InlineQueryResult MapQueryResult(DataItem data)
+        {
+            var uniqueId = data.Id.ToString();
+            switch (data.DataType)
+            {
+                case Domain.Chats.Entities.DataType.Audio:
+                    return new InlineQueryResultCachedAudio(uniqueId, data.FileId);
+                case Domain.Chats.Entities.DataType.Document:
+                    return new InlineQueryResultCachedDocument(uniqueId, data.FileId, data.Key);
+                case Domain.Chats.Entities.DataType.Photo:
+                    return new InlineQueryResultCachedPhoto(uniqueId, data.FileId);
+                case Domain.Chats.Entities.DataType.Sticker:
+                    return new InlineQueryResultCachedSticker(uniqueId, data.FileId);
+                case Domain.Chats.Entities.DataType.Text:
+                    {
+                        var content = new InputTextMessageContent(data.Text)
+                        {
+                            ParseMode = Telegram.Bot.Types.Enums.ParseMode.Html
+                        };
+                        return new InlineQueryResultArticle(uniqueId, data.Key, content);
+                    }
+                case Domain.Chats.Entities.DataType.Video:
+                    return new InlineQueryResultCachedVideo(uniqueId, data.FileId, data.Key);
+                case Domain.Chats.Entities.DataType.Voice:
+                    return new InlineQueryResultCachedVoice(uniqueId, data.FileId, data.Key);
+                default:
+                    return null;
+            }
         }
     }
 }

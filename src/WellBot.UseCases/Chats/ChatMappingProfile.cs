@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using WellBot.Domain.Chats.Entities;
+using WellBot.UseCases.Chats.Data.SearchData;
 using WellBot.UseCases.Chats.Pidor.GetPidorGameMessages;
 
 namespace WellBot.UseCases.Chats
@@ -15,6 +16,7 @@ namespace WellBot.UseCases.Chats
         public ChatMappingProfile()
         {
             CreateMap<PidorMessage, PidorGameMessageDto>();
+            CreateMap<ChatData, DataItem>();
         }
     }
 }
