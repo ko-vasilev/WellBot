@@ -50,7 +50,7 @@ namespace WellBot.UseCases.Chats
         public T PickWeighted<T>(IReadOnlyCollection<T> items) where T : IWeighted
         {
             // Prepare a weighted list.
-            var weightedItems = items.Select(m => (m, GetWeight(m.Weight, items.Count)))
+            var weightedItems = items.Select(m => (m, GetWeight(m.Weight)))
                 .ToList();
 
             var totalWeight = weightedItems.Sum(m => m.Item2);
@@ -70,10 +70,10 @@ namespace WellBot.UseCases.Chats
             return weightedItems.Last().m;
         }
 
-        private int GetWeight(MessageWeight weight, int itemsCount) => weight switch
+        private int GetWeight(MessageWeight weight) => weight switch
         {
-            MessageWeight.Highest => itemsCount * 10,
-            MessageWeight.High => itemsCount * 2,
+            MessageWeight.Highest => 100,
+            MessageWeight.High => 12,
             _ => 1
         };
 
