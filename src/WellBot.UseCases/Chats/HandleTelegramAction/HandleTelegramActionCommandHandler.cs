@@ -147,7 +147,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     Key = arguments,
                     MessageId = message.MessageId
                 }),
-                "шлёп" => mediator.Send(new SlapCommand
+                "шлёп" or "slap" => mediator.Send(new SlapCommand
                 {
                     ChatId = chatId,
                     MessageId = message.MessageId
