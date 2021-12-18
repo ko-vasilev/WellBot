@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using WellBot.UseCases.Common.Collections;
+using WellBot.UseCases.Chats.Dtos;
 
 namespace WellBot.UseCases.Chats
 {
@@ -14,11 +14,16 @@ namespace WellBot.UseCases.Chats
     public class TelegramMessageService
     {
         private readonly ITelegramBotClient botClient;
+        private readonly RandomService randomService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public TelegramMessageService(ITelegramBotClient botClient) => this.botClient = botClient;
+        public TelegramMessageService(ITelegramBotClient botClient, RandomService randomService)
+        {
+            this.botClient = botClient;
+            this.randomService = randomService;
+        }
 
         private static readonly string[] successReplies = new string[]
         {
@@ -33,7 +38,7 @@ namespace WellBot.UseCases.Chats
         /// </summary>
         public async Task SendSuccessAsync(ChatId chatId)
         {
-            var reply = successReplies.PickRandom();
+            var reply = randomService.PickRandom(successReplies);
             await botClient.SendTextMessageAsync(chatId, reply);
         }
 
@@ -72,6 +77,54 @@ namespace WellBot.UseCases.Chats
 
             var userFullName = GetUserFullName(user);
             return $"<a href=\"tg://user?id={user.Id}\">{HttpUtility.HtmlEncode(userFullName)}</a>";
+        }
+
+        /// <summary>
+        /// Send a generic message to a chat.
+        /// </summary>
+        /// <param name="message">Message data.</param>
+        /// <param name="chatId">Id of the chat.</param>
+        /// <param name="replyMessageId">Id of the message to reply to.</param>
+        public async Task SendMessageAsync(GenericMessage message, ChatId chatId, int? replyMessageId = null)
+        {
+            Telegram.Bot.Types.InputFiles.InputOnlineFile file = null;
+            if (message.FileId != null)
+            {
+                file = new Telegram.Bot.Types.InputFiles.InputOnlineFile(message.FileId);
+            }
+            switch (message.DataType)
+            {
+                case Domain.Chats.Entities.DataType.Animation:
+                    await botClient.SendAnimationAsync(chatId, file, replyToMessageId: replyMessageId);
+                    break;
+                case Domain.Chats.Entities.DataType.Audio:
+                    await botClient.SendAudioAsync(chatId, file, caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                    break;
+                case Domain.Chats.Entities.DataType.Document:
+                    await botClient.SendDocumentAsync(chatId, file, caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                    break;
+                case Domain.Chats.Entities.DataType.Photo:
+                    await botClient.SendPhotoAsync(chatId, file, caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                    break;
+                case Domain.Chats.Entities.DataType.Sticker:
+                    await botClient.SendStickerAsync(chatId, file, replyToMessageId: replyMessageId);
+                    break;
+                case Domain.Chats.Entities.DataType.Text:
+                    await botClient.SendTextMessageAsync(chatId, message.Text, Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: true, replyToMessageId: replyMessageId);
+                    break;
+                case Domain.Chats.Entities.DataType.Video:
+                    await botClient.SendVideoAsync(chatId, file, caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                    break;
+                case Domain.Chats.Entities.DataType.VideoNote:
+                    await botClient.SendVideoNoteAsync(chatId, file, replyToMessageId: replyMessageId);
+                    break;
+                case Domain.Chats.Entities.DataType.Voice:
+                    await botClient.SendVoiceAsync(chatId, file, caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                    break;
+                default:
+                    await botClient.SendTextMessageAsync(chatId, "Неожиданный формат файла " + message.DataType);
+                    break;
+            }
         }
 
         /// <summary>

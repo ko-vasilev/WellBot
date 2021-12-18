@@ -24,6 +24,7 @@ namespace WellBot.Web.Infrastructure.DependencyInjection
             services.AddTransient<TelegramMessageService>();
             services.AddTransient<PidorGameService>();
             services.AddSingleton<MessageRateLimitingService>();
+            services.AddSingleton<RandomService>();
         }
     }
 }

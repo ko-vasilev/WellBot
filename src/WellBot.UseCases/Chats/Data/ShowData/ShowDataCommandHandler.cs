@@ -18,16 +18,18 @@ namespace WellBot.UseCases.Chats.Data.ShowData
         private readonly ITelegramBotClient botClient;
         private readonly CurrentChatService currentChatService;
         private readonly MessageRateLimitingService messageRateLimitingService;
+        private readonly TelegramMessageService telegramMessageService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ShowDataCommandHandler(IAppDbContext dbContext, ITelegramBotClient botClient, CurrentChatService currentChatService, MessageRateLimitingService messageRateLimitingService)
+        public ShowDataCommandHandler(IAppDbContext dbContext, ITelegramBotClient botClient, CurrentChatService currentChatService, MessageRateLimitingService messageRateLimitingService, TelegramMessageService telegramMessageService)
         {
             this.dbContext = dbContext;
             this.botClient = botClient;
             this.currentChatService = currentChatService;
             this.messageRateLimitingService = messageRateLimitingService;
+            this.telegramMessageService = telegramMessageService;
         }
 
         /// <inheritdoc/>
@@ -57,44 +59,14 @@ namespace WellBot.UseCases.Chats.Data.ShowData
                 }
             }
 
-            Telegram.Bot.Types.InputFiles.InputOnlineFile file = null;
-            if (data.FileId != null)
+            await telegramMessageService.SendMessageAsync(new Dtos.GenericMessage
             {
-                file = new Telegram.Bot.Types.InputFiles.InputOnlineFile(data.FileId);
-            }
-            switch (data.DataType)
-            {
-                case Domain.Chats.Entities.DataType.Animation:
-                    await botClient.SendAnimationAsync(request.ChatId, file, replyToMessageId: request.ReplyMessageId);
-                    break;
-                case Domain.Chats.Entities.DataType.Audio:
-                    await botClient.SendAudioAsync(request.ChatId, file, caption: data.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: request.ReplyMessageId);
-                    break;
-                case Domain.Chats.Entities.DataType.Document:
-                    await botClient.SendDocumentAsync(request.ChatId, file, caption: data.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: request.ReplyMessageId);
-                    break;
-                case Domain.Chats.Entities.DataType.Photo:
-                    await botClient.SendPhotoAsync(request.ChatId, file, caption: data.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: request.ReplyMessageId);
-                    break;
-                case Domain.Chats.Entities.DataType.Sticker:
-                    await botClient.SendStickerAsync(request.ChatId, file, replyToMessageId: request.ReplyMessageId);
-                    break;
-                case Domain.Chats.Entities.DataType.Text:
-                    await botClient.SendTextMessageAsync(request.ChatId, data.Text, Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: true, replyToMessageId: request.ReplyMessageId);
-                    break;
-                case Domain.Chats.Entities.DataType.Video:
-                    await botClient.SendVideoAsync(request.ChatId, file, caption: data.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: request.ReplyMessageId);
-                    break;
-                case Domain.Chats.Entities.DataType.VideoNote:
-                    await botClient.SendVideoNoteAsync(request.ChatId, file, replyToMessageId: request.ReplyMessageId);
-                    break;
-                case Domain.Chats.Entities.DataType.Voice:
-                    await botClient.SendVoiceAsync(request.ChatId, file, caption: data.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: request.ReplyMessageId);
-                    break;
-                default:
-                    await botClient.SendTextMessageAsync(request.ChatId, "Неожиданный формат файла " + data.DataType);
-                    break;
-            }
+                DataType = data.DataType,
+                FileId = data.FileId,
+                Text = data.Text
+            },
+            request.ChatId,
+            request.ReplyMessageId);
 
             if (rateLimit)
             {

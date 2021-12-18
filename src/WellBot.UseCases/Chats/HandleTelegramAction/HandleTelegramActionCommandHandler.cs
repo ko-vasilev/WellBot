@@ -18,6 +18,7 @@ using WellBot.UseCases.Chats.Pidor.PidorGameRun;
 using WellBot.UseCases.Chats.Pidor.PidorList;
 using WellBot.UseCases.Chats.Pidor.PidorRules;
 using WellBot.UseCases.Chats.Pidor.PidorStats;
+using WellBot.UseCases.Chats.Slap;
 
 namespace WellBot.UseCases.Chats.HandleTelegramAction
 {
@@ -144,6 +145,11 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 {
                     ChatId = chatId,
                     Key = arguments,
+                    MessageId = message.MessageId
+                }),
+                "шлёп" => mediator.Send(new SlapCommand
+                {
+                    ChatId = chatId,
                     MessageId = message.MessageId
                 }),
                 _ => isDirectMessage

@@ -9,7 +9,6 @@ using Telegram.Bot;
 using WellBot.Domain.Chats.Entities;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
-using WellBot.UseCases.Common.Collections;
 
 namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
 {
@@ -23,14 +22,16 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
         private readonly PidorGameService pidorGameService;
         private readonly CurrentChatService currentChatService;
         private readonly TelegramMessageService telegramMessageService;
+        private readonly RandomService randomService;
 
-        public PidorGameRunCommandHandler(ITelegramBotClient botClient, IAppDbContext dbContext, PidorGameService pidorGameService, CurrentChatService currentChatService, TelegramMessageService telegramMessageService)
+        public PidorGameRunCommandHandler(ITelegramBotClient botClient, IAppDbContext dbContext, PidorGameService pidorGameService, CurrentChatService currentChatService, TelegramMessageService telegramMessageService, RandomService randomService)
         {
             this.botClient = botClient;
             this.dbContext = dbContext;
             this.pidorGameService = pidorGameService;
             this.currentChatService = currentChatService;
             this.telegramMessageService = telegramMessageService;
+            this.randomService = randomService;
         }
 
         /// <inheritdoc/>
@@ -64,7 +65,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
                 return;
             }
 
-            var pidor = users.PickRandom();
+            var pidor = randomService.PickRandom(users);
             var notification = await GetNotificationMessageAsync(pidor.User.Id, pidorGameDay);
             var pidorData = new ChatPidor
             {
@@ -114,52 +115,22 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
                 .Select(m => new MessageData
                 {
                     MessageRaw = m.MessageRaw,
-                    MessageWeight = m.Weight,
+                    Weight = m.Weight,
                     Id = m.Id
                 })
                 .ToListAsync();
 
-            var randomMessage = PickRandom(messages);
+            var randomMessage = randomService.PickWeighted(messages);
             return (randomMessage.Id, randomMessage.MessageRaw.Split(PidorMessage.MessagesSeparator));
         }
 
-        private MessageData PickRandom(IEnumerable<MessageData> messages)
-        {
-            // Prepare a weighted list.
-            var weightedItems = messages.Select(m => (m, GetWeight(m.MessageWeight)))
-                .ToList();
-
-            var totalWeight = weightedItems.Sum(m => m.Item2);
-            var desiredWeight = EnumerableRandom.GetRandom(totalWeight);
-            var currentWeightSum = 0;
-            foreach (var item in weightedItems)
-            {
-                var currentWeightRange = currentWeightSum + item.Item2;
-                if (currentWeightSum <= desiredWeight && desiredWeight < currentWeightRange)
-                {
-                    return item.m;
-                }
-                currentWeightSum = currentWeightRange;
-            }
-
-            // Weird, shouldn't happen.
-            return weightedItems.Last().m;
-        }
-
-        private int GetWeight(MessageWeight weight) => weight switch
-            {
-                MessageWeight.Highest => 100,
-                MessageWeight.High => 10,
-                _ => 1
-            };
-
-        private class MessageData
+        private class MessageData : RandomService.IWeighted
         {
             public int Id { get; init; }
 
             public string MessageRaw { get; init; }
 
-            public MessageWeight MessageWeight { get; init; }
+            public MessageWeight Weight { get; init; }
         }
     }
 }
