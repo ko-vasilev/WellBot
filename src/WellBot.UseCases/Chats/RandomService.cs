@@ -47,27 +47,45 @@ namespace WellBot.UseCases.Chats
         /// <typeparam name="T">Type of items.</typeparam>
         /// <param name="items">Item collection.</param>
         /// <returns>Randomly selected item.</returns>
+        public T PickWeightedRaw<T>(IReadOnlyCollection<T> items) where T : IWeightedRaw
+        {
+            // Prepare a weighted list.
+            var weightedItems = items.Select(m => new WeightedItem<T>(m, m.Weight))
+                .ToList();
+            return PickWeightedInternal(weightedItems);
+        }
+
+        /// <summary>
+        /// Pick a random item with a certain weight.
+        /// </summary>
+        /// <typeparam name="T">Type of items.</typeparam>
+        /// <param name="items">Item collection.</param>
+        /// <returns>Randomly selected item.</returns>
         public T PickWeighted<T>(IReadOnlyCollection<T> items) where T : IWeighted
         {
             // Prepare a weighted list.
-            var weightedItems = items.Select(m => (m, GetWeight(m.Weight)))
+            var weightedItems = items.Select(m => new WeightedItem<T>(m, GetWeight(m.Weight)))
                 .ToList();
+            return PickWeightedInternal(weightedItems);
+        }
 
-            var totalWeight = weightedItems.Sum(m => m.Item2);
+        private T PickWeightedInternal<T>(IReadOnlyCollection<WeightedItem<T>> items)
+        {
+            var totalWeight = items.Sum(m => m.Weight);
             var desiredWeight = GetRandom(totalWeight);
             var currentWeightSum = 0;
-            foreach (var item in weightedItems)
+            foreach (var item in items)
             {
-                var currentWeightRange = currentWeightSum + item.Item2;
+                var currentWeightRange = currentWeightSum + item.Weight;
                 if (currentWeightSum <= desiredWeight && desiredWeight < currentWeightRange)
                 {
-                    return item.m;
+                    return item.Item;
                 }
                 currentWeightSum = currentWeightRange;
             }
 
             // Weird, shouldn't happen.
-            return weightedItems.Last().m;
+            return items.Last().Item;
         }
 
         private int GetWeight(MessageWeight weight) => weight switch
@@ -80,12 +98,36 @@ namespace WellBot.UseCases.Chats
         /// <summary>
         /// Tells that an entity has a certain weight associated with it.
         /// </summary>
+        public interface IWeightedRaw
+        {
+            /// <summary>
+            /// Weight of the item. The higher is weight the more likely it is for an option to be chosen.
+            /// </summary>
+            int Weight { get; }
+        }
+
+        /// <summary>
+        /// Tells that an entity has a certain weight associated with it.
+        /// </summary>
         public interface IWeighted
         {
             /// <summary>
             /// Weight of the item.
             /// </summary>
             MessageWeight Weight { get; }
+        }
+
+        private class WeightedItem<T>
+        {
+            public WeightedItem(T item, int weight)
+            {
+                Item = item;
+                Weight = weight;
+            }
+
+            public T Item { get; init; }
+
+            public int Weight { get; init; }
         }
     }
 }

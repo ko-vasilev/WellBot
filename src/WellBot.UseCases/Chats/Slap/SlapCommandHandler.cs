@@ -18,12 +18,16 @@ namespace WellBot.UseCases.Chats.Slap
     {
         private static readonly IReadOnlyCollection<SlapReplyOption> replies = new List<SlapReplyOption>
         {
-            new SlapReplyOption(MessageWeight.High, "Нихуя себе блять"),
-            new SlapReplyOption(MessageWeight.High, "Нихуя соби блять", "Уебал..."),
-            new SlapReplyOption(MessageWeight.Normal, "Нихуя себе блять", "Ты въебал мне 😥"),
-            new SlapReplyOption(MessageWeight.Normal, "👊")
+            new SlapReplyOption(3, "Нихуя себе блять"),
+            new SlapReplyOption(3, "Нихуя соби блять", "Уебал..."),
+            new SlapReplyOption(2, "Нихуя себе блять", "Ты въебал мне 😥"),
+            new SlapReplyOption(1, "👊")
             {
                 ShouldReply = true
+            },
+            new SlapReplyOption(1)
+            {
+                IsAnimation = true
             },
         };
 
@@ -44,12 +48,24 @@ namespace WellBot.UseCases.Chats.Slap
         /// <inheritdoc/>
         protected override async Task Handle(SlapCommand request, CancellationToken cancellationToken)
         {
-            var animationOptions = await dbContext.SlapOptions.ToListAsync(cancellationToken);
-            var allOptions = animationOptions.Select(opt => SlapReplyOption.FromAnimation(MessageWeight.Normal, opt.FileId))
-                .ToList();
-            allOptions.AddRange(replies);
+            var replyOption = randomService.PickWeightedRaw(replies);
 
-            var replyOption = randomService.PickWeighted(allOptions);
+            if (replyOption.IsAnimation)
+            {
+                var animationOptions = await dbContext.SlapOptions.ToListAsync(cancellationToken);
+                if (animationOptions.Count > 0)
+                {
+                    var animation = randomService.PickRandom(animationOptions);
+                    await telegramMessageService.SendMessageAsync(new GenericMessage
+                    {
+                        DataType = DataType.Animation,
+                        FileId = animation.FileId,
+                    },
+                    request.ChatId);
+                    return;
+                }
+            }
+
             var replyMessageId = default(int?);
             if (replyOption.ShouldReply)
             {
@@ -63,9 +79,9 @@ namespace WellBot.UseCases.Chats.Slap
             }
         }
 
-        private class SlapReplyOption : RandomService.IWeighted
+        private class SlapReplyOption : RandomService.IWeightedRaw
         {
-            public SlapReplyOption(MessageWeight weight, params string[] replies) : this(weight)
+            public SlapReplyOption(int weight, params string[] replies) : this(weight)
             {
                 Messages = replies.Select(message => new GenericMessage
                 {
@@ -75,30 +91,18 @@ namespace WellBot.UseCases.Chats.Slap
                     .ToList();
             }
 
-            public SlapReplyOption(MessageWeight weight)
+            public SlapReplyOption(int weight)
             {
                 Weight = weight;
             }
 
-            public static SlapReplyOption FromAnimation(MessageWeight weight, string fileId, bool isReply = false) =>
-                new SlapReplyOption(weight)
-                {
-                    Messages = new List<GenericMessage>
-                    {
-                        new GenericMessage
-                        {
-                            DataType = DataType.Animation,
-                            FileId = fileId
-                        }
-                    },
-                    ShouldReply = isReply
-                };
-
-            public MessageWeight Weight { get; init; }
+            public int Weight { get; init; }
 
             public IEnumerable<GenericMessage> Messages { get; init; }
 
             public bool ShouldReply { get; init; }
+
+            public bool IsAnimation { get; init; }
         }
     }
 }
