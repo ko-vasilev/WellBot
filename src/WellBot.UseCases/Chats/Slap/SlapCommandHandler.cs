@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using WellBot.Domain.Chats.Entities;
+using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.Dtos;
 
 namespace WellBot.UseCases.Chats.Slap
@@ -23,31 +25,31 @@ namespace WellBot.UseCases.Chats.Slap
             {
                 ShouldReply = true
             },
-            SlapReplyOption.FromAnimation(MessageWeight.Normal, "CgACAgIAAx0CXXsy7AAD52G9owHWTIwekhpiN7lGOFy_evF1AAKmBAACQFygS6s18RHFx_BFIwQ"),
-            SlapReplyOption.FromAnimation(MessageWeight.Normal, "CgACAgIAAx0CXXsy7AAD6GG9o5lGsp9V4H2KDjWRB7o5MfO5AAIUBwACgTVYSbul7RqQrg2MIwQ"),
-            SlapReplyOption.FromAnimation(MessageWeight.Normal, "CgACAgIAAx0CXXsy7AAD6WG9o8UrTkq4-_9xg93abgynkUXIAAJHBAACIS54SonLR5pDRvz1IwQ"),
-            SlapReplyOption.FromAnimation(MessageWeight.Normal, "CgACAgQAAx0CXXsy7AAD6mG9pDk0grma7Rah3_5RpYcF_UtaAAKOAgACiXlNUfB23c3XNxiUIwQ"),
-            SlapReplyOption.FromAnimation(MessageWeight.Normal, "CgACAgQAAx0CXXsy7AAD7GG9pH0QGT2z4LDKrr8ndbvZlI2wAALHAgACnbUUUYW9K1XdO5tjIwQ", true),
-            SlapReplyOption.FromAnimation(MessageWeight.Normal, "CgACAgQAAx0CXXsy7AAD7WG9pMD4CYIVCNBrKP6J2AmtzVI0AAJlAgACXoudUqu9IG82XNr0IwQ"),
-            SlapReplyOption.FromAnimation(MessageWeight.Normal, "CgACAgIAAx0CXXsy7AAD7mG9pR9V-VPaNQZ-XU6xa8agG9EoAAKuEgACYnZ5SOZrkhwFC0BqIwQ"),
         };
 
         private readonly TelegramMessageService telegramMessageService;
         private readonly RandomService randomService;
+        private readonly IAppDbContext dbContext;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public SlapCommandHandler(TelegramMessageService telegramMessageService, RandomService randomService)
+        public SlapCommandHandler(TelegramMessageService telegramMessageService, RandomService randomService, IAppDbContext dbContext)
         {
             this.telegramMessageService = telegramMessageService;
             this.randomService = randomService;
+            this.dbContext = dbContext;
         }
 
         /// <inheritdoc/>
         protected override async Task Handle(SlapCommand request, CancellationToken cancellationToken)
         {
-            var replyOption = randomService.PickWeighted(replies);
+            var animationOptions = await dbContext.SlapOptions.ToListAsync(cancellationToken);
+            var allOptions = animationOptions.Select(opt => SlapReplyOption.FromAnimation(MessageWeight.Normal, opt.FileId))
+                .ToList();
+            allOptions.AddRange(replies);
+
+            var replyOption = randomService.PickWeighted(allOptions);
             var replyMessageId = default(int?);
             if (replyOption.ShouldReply)
             {

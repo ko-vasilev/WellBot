@@ -46,6 +46,11 @@ namespace WellBot.Infrastructure.Abstractions.Interfaces
         /// </summary>
         DbSet<ChatData> ChatDatas { get; }
 
+        /// <summary>
+        /// Available options for Slap command reply.
+        /// </summary>
+        DbSet<SlapOption> SlapOptions { get; }
+
         #endregion
     }
 }

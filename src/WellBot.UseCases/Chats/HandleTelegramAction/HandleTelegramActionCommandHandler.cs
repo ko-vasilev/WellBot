@@ -8,6 +8,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InlineQueryResults;
 using WellBot.Infrastructure.Abstractions.Interfaces;
+using WellBot.UseCases.Chats.AdminControl;
 using WellBot.UseCases.Chats.Data.DeleteChatData;
 using WellBot.UseCases.Chats.Data.SearchData;
 using WellBot.UseCases.Chats.Data.SetChatData;
@@ -147,10 +148,15 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     Key = arguments,
                     MessageId = message.MessageId
                 }),
-                "шлёп" or "slap" => mediator.Send(new SlapCommand
+                "шлёп" or "шлеп" or "slap" => mediator.Send(new SlapCommand
                 {
                     ChatId = chatId,
                     MessageId = message.MessageId
+                }),
+                "admin" => mediator.Send(new AdminControlCommand
+                {
+                    Arguments = arguments,
+                    Message = message
                 }),
                 _ => isDirectMessage
                     ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")

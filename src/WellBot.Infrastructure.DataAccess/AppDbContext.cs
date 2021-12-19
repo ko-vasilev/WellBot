@@ -32,6 +32,9 @@ namespace WellBot.Infrastructure.DataAccess
         /// </summary>
         public DbSet<ChatData> ChatDatas { get; protected set; }
 
+        /// <inheritdoc />
+        public DbSet<SlapOption> SlapOptions { get; protected set; }
+
         #endregion
 
         /// <summary>
