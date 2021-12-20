@@ -45,12 +45,17 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
             }
 
             var maxRetriesCount = 5;
+            var allOptions = await dbContext.PassiveReplyOptions
+                .Select(opt => opt.Id)
+                .ToListAsync(cancellationToken);
             while (maxRetriesCount > 0)
             {
                 PassiveReplyOption replyOption = null;
                 try
                 {
-                    replyOption = await randomService.QueryRandomAsync(dbContext.PassiveReplyOptions.AsNoTracking(), cancellationToken);
+                    var optionId = randomService.PickRandom(allOptions);
+                    replyOption = await dbContext.PassiveReplyOptions
+                        .FirstAsync(opt => opt.Id == optionId, cancellationToken);
                     await telegramMessageService.SendMessageAsync(new Dtos.GenericMessage
                     {
                         Text = replyOption.Text,

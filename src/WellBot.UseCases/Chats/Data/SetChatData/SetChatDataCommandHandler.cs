@@ -70,7 +70,7 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
             }
             if (message.Type != MessageType.Text)
             {
-                var dataType = GetFile(message, out var attachedDocument);
+                var dataType = telegramMessageService.GetFile(message, out var attachedDocument);
                 if (dataType == null)
                 {
                     await botClient.SendTextMessageAsync(request.ChatId, $"Не поддерживаемый формат сообщения");
@@ -104,60 +104,6 @@ namespace WellBot.UseCases.Chats.Data.SetChatData
             key = arguments.Substring(0, spaceSymbol);
             remainder = arguments.Substring(spaceSymbol).Trim();
             return true;
-        }
-
-        private DataType? GetFile(Message message, out FileBase file)
-        {
-            if (message.Photo != null)
-            {
-                file = message.Photo.OrderByDescending(p => p.Height).First();
-                return DataType.Photo;
-            }
-
-            if (message.Audio != null)
-            {
-                file = message.Audio;
-                return DataType.Audio;
-            }
-
-            if (message.Animation != null)
-            {
-                file = message.Animation;
-                return DataType.Animation;
-            }
-
-            if (message.Sticker != null)
-            {
-                file = message.Sticker;
-                return DataType.Sticker;
-            }
-
-            if (message.Video != null)
-            {
-                file = message.Video;
-                return DataType.Video;
-            }
-
-            if (message.VideoNote != null)
-            {
-                file = message.VideoNote;
-                return DataType.VideoNote;
-            }
-
-            if (message.Voice != null)
-            {
-                file = message.Voice;
-                return DataType.Voice;
-            }
-
-            if (message.Document != null)
-            {
-                file = message.Document;
-                return DataType.Document;
-            }
-
-            file = null;
-            return null;
         }
     }
 }

@@ -38,6 +38,11 @@ namespace WellBot.UseCases.Chats.AdminControl
                     await AddSlapOptionAsync(request.Message);
                     return;
                 }
+                if (request.Arguments == "passive add")
+                {
+                    await AddPassiveReplyOptionAsync(request.Message);
+                    return;
+                }
             }
             catch (Exception ex)
             {
@@ -58,6 +63,36 @@ namespace WellBot.UseCases.Chats.AdminControl
                 FileId = replyMessage.Animation.FileId
             };
             appDbContext.SlapOptions.Add(slapOption);
+            await appDbContext.SaveChangesAsync();
+            await telegramMessageService.SendSuccessAsync(message.Chat.Id);
+        }
+
+        private async Task AddPassiveReplyOptionAsync(Message message)
+        {
+            var replyMessage = message.ReplyToMessage;
+            if (replyMessage == null)
+            {
+                return;
+            }
+
+            var text = telegramMessageService.GetMessageTextHtml(replyMessage);
+            var replyOption = new PassiveReplyOption
+            {
+                Text = text,
+                DataType = DataType.Text
+            };
+            if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+            {
+                var dataType = telegramMessageService.GetFile(message, out var attachedDocument);
+                if (dataType == null)
+                {
+                    return;
+                }
+                replyOption.DataType = dataType.Value;
+                replyOption.FileId = attachedDocument.FileId;
+            }
+
+            appDbContext.PassiveReplyOptions.Add(replyOption);
             await appDbContext.SaveChangesAsync();
             await telegramMessageService.SendSuccessAsync(message.Chat.Id);
         }

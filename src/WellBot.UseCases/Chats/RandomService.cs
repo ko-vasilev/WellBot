@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using WellBot.Domain.Chats.Entities;
 
 namespace WellBot.UseCases.Chats
@@ -43,20 +40,6 @@ namespace WellBot.UseCases.Chats
         /// <param name="max">Exclusive max value.</param>
         /// <returns>Random value.</returns>
         public int GetRandom(int max) => random.Next(max);
-
-        /// <summary>
-        /// Get a random element from a collection.
-        /// </summary>
-        /// <typeparam name="T">Type of items in the collection.</typeparam>
-        /// <param name="collection">Collection of data.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A random element.</returns>
-        public async Task<T> QueryRandomAsync<T>(IQueryable<T> collection, CancellationToken cancellationToken = default)
-        {
-            return await collection
-                .OrderBy(o => Guid.NewGuid())
-                .FirstOrDefaultAsync(cancellationToken);
-        }
 
         /// <summary>
         /// Pick a random item with a certain weight.
