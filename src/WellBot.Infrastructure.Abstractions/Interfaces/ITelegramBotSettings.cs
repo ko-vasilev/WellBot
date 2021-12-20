@@ -6,7 +6,7 @@
     public interface ITelegramBotSettings
     {
         /// <summary>
-        /// Username of the telegram bot.
+        /// Username of the telegram bot without the @ symbol.
         /// </summary>
         string TelegramBotUsername { get; }
     }

@@ -19,6 +19,7 @@ using WellBot.UseCases.Chats.Pidor.PidorGameRun;
 using WellBot.UseCases.Chats.Pidor.PidorList;
 using WellBot.UseCases.Chats.Pidor.PidorRules;
 using WellBot.UseCases.Chats.Pidor.PidorStats;
+using WellBot.UseCases.Chats.RegularMessageHandles;
 using WellBot.UseCases.Chats.Slap;
 
 namespace WellBot.UseCases.Chats.HandleTelegramAction
@@ -77,6 +78,10 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     var command = ParseCommand(plainMessageText, textFormatted, out string arguments, out string argumentsHtml, ref isDirectMessage);
                     if (string.IsNullOrEmpty(command))
                     {
+                        await mediator.Publish(new MessageNotification
+                        {
+                            Message = request.Action.Message
+                        }, cancellationToken);
                         return;
                     }
 
@@ -178,7 +183,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             var command = SplitCommandText(text, out var argumentsStartIndex);
             arguments = text.Substring(argumentsStartIndex);
             argumentsFormatted = textFormatted.Substring(argumentsStartIndex);
-            string botUsername = telegramBotSettings?.TelegramBotUsername;
+            string botUsername = "@" + telegramBotSettings?.TelegramBotUsername;
             if (command.EndsWith(botUsername))
             {
                 command = command.Substring(0, command.Length - botUsername.Length);

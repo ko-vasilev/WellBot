@@ -51,6 +51,11 @@ namespace WellBot.Infrastructure.Abstractions.Interfaces
         /// </summary>
         DbSet<SlapOption> SlapOptions { get; }
 
+        /// <summary>
+        /// Available options for passive replies in chat.
+        /// </summary>
+        DbSet<PassiveReplyOption> PassiveReplyOptions { get; }
+
         #endregion
     }
 }
