@@ -78,8 +78,7 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
 
         private bool ShouldReply(Message message)
         {
-            // By default reply 1 in 500 messages
-            var maxProbability = 500;
+            var maxProbability = telegramBotSettings.RegularPassiveRepliesProbability;
 
             var repliedToBot = message.ReplyToMessage != null && message.ReplyToMessage.From?.Username == telegramBotSettings.TelegramBotUsername;
             if (repliedToBot)
