@@ -28,5 +28,15 @@ namespace WellBot.Domain.Chats.Entities
         /// Any additional text.
         /// </summary>
         public string Text { get; set; }
+
+        /// <summary>
+        /// Indicates if this message should be sent for direct messages to bot (via mention or replies).
+        /// </summary>
+        public bool IsDirectMessage { get; set; }
+
+        /// <summary>
+        /// Indicates if this message should be sent for messages related to Dota.
+        /// </summary>
+        public bool IsDota { get; set; }
     }
 }

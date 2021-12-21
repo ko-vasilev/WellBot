@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -36,11 +37,16 @@ namespace WellBot.UseCases.Chats.AdminControl
                 if (request.Arguments == "add slap")
                 {
                     await AddSlapOptionAsync(request.Message);
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
                     return;
                 }
-                if (request.Arguments == "passive add")
+
+                const string PassiveAdd = "passive add";
+                if (request.Arguments.StartsWith(PassiveAdd))
                 {
-                    await AddPassiveReplyOptionAsync(request.Message);
+                    var arguments = request.Arguments.Substring(PassiveAdd.Length).Trim();
+                    await AddPassiveReplyOptionAsync(request.Message, arguments);
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
                     return;
                 }
             }
@@ -64,10 +70,9 @@ namespace WellBot.UseCases.Chats.AdminControl
             };
             appDbContext.SlapOptions.Add(slapOption);
             await appDbContext.SaveChangesAsync();
-            await telegramMessageService.SendSuccessAsync(message.Chat.Id);
         }
 
-        private async Task AddPassiveReplyOptionAsync(Message message)
+        private async Task AddPassiveReplyOptionAsync(Message message, string arguments)
         {
             var replyMessage = message.ReplyToMessage;
             if (replyMessage == null)
@@ -75,11 +80,35 @@ namespace WellBot.UseCases.Chats.AdminControl
                 return;
             }
 
+            var options = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            bool isDota = options.Contains("dota");
+            bool isDirect = options.Contains("direct");
+            bool isBatchMode = options.Contains("batch");
+
             var text = telegramMessageService.GetMessageTextHtml(replyMessage);
+            if (isBatchMode && replyMessage.Type == Telegram.Bot.Types.Enums.MessageType.Text)
+            {
+                foreach (var line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var lineOption = new PassiveReplyOption
+                    {
+                        Text = line,
+                        DataType = DataType.Text,
+                        IsDirectMessage = isDirect,
+                        IsDota = isDota
+                    };
+                    appDbContext.PassiveReplyOptions.Add(lineOption);
+                }
+                await appDbContext.SaveChangesAsync();
+                return;
+            }
+
             var replyOption = new PassiveReplyOption
             {
                 Text = text,
-                DataType = DataType.Text
+                DataType = DataType.Text,
+                IsDirectMessage = isDirect,
+                IsDota = isDota
             };
             if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
             {
@@ -94,7 +123,6 @@ namespace WellBot.UseCases.Chats.AdminControl
 
             appDbContext.PassiveReplyOptions.Add(replyOption);
             await appDbContext.SaveChangesAsync();
-            await telegramMessageService.SendSuccessAsync(message.Chat.Id);
         }
     }
 }
