@@ -19,5 +19,8 @@ namespace WellBot.Web.Infrastructure.Settings
 
         /// <inheritdoc />
         public string TelegramBotUsername { get; init; }
+
+        /// <inheritdoc />
+        public int RegularPassiveRepliesProbability { get; init; }
     }
 }

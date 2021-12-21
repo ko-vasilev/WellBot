@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WellBot.Infrastructure.DataAccess;
 
 namespace WellBot.Infrastructure.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211220144648_ReplyOptions")]
+    partial class ReplyOptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,12 +222,6 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .HasMaxLength(150)
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsDirectMessage")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsDota")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Text")
                         .IsUnicode(false)

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using WellBot.Domain.Chats.Entities;
 using WellBot.UseCases.Chats.Dtos;
 
 namespace WellBot.UseCases.Chats
@@ -227,6 +228,66 @@ namespace WellBot.UseCases.Chats
             }
 
             return text;
+        }
+
+        /// <summary>
+        /// Get a main file data from a message.
+        /// </summary>
+        /// <param name="message">Message data.</param>
+        /// <param name="file">Found file.</param>
+        /// <returns>Type of file data.</returns>
+        public DataType? GetFile(Message message, out FileBase file)
+        {
+            if (message.Photo != null)
+            {
+                file = message.Photo.OrderByDescending(p => p.Height).First();
+                return DataType.Photo;
+            }
+
+            if (message.Audio != null)
+            {
+                file = message.Audio;
+                return DataType.Audio;
+            }
+
+            if (message.Animation != null)
+            {
+                file = message.Animation;
+                return DataType.Animation;
+            }
+
+            if (message.Sticker != null)
+            {
+                file = message.Sticker;
+                return DataType.Sticker;
+            }
+
+            if (message.Video != null)
+            {
+                file = message.Video;
+                return DataType.Video;
+            }
+
+            if (message.VideoNote != null)
+            {
+                file = message.VideoNote;
+                return DataType.VideoNote;
+            }
+
+            if (message.Voice != null)
+            {
+                file = message.Voice;
+                return DataType.Voice;
+            }
+
+            if (message.Document != null)
+            {
+                file = message.Document;
+                return DataType.Document;
+            }
+
+            file = null;
+            return null;
         }
     }
 }
