@@ -19,7 +19,7 @@ namespace WellBot.UseCases.Chats
         /// <returns>Random element.</returns>
         public T PickRandom<T>(IEnumerable<T> source)
         {
-            int elementIndex = random.Next(source.Count());
+            int elementIndex = GetRandom(source.Count());
             return source.ElementAt(elementIndex);
         }
 
@@ -30,7 +30,7 @@ namespace WellBot.UseCases.Chats
         /// <returns>Random element.</returns>
         public T PickRandom<T>(IList<T> source)
         {
-            int elementIndex = random.Next(source.Count);
+            int elementIndex = GetRandom(source.Count);
             return source[elementIndex];
         }
 
@@ -39,7 +39,7 @@ namespace WellBot.UseCases.Chats
         /// </summary>
         /// <param name="max">Exclusive max value.</param>
         /// <returns>Random value.</returns>
-        public int GetRandom(int max) => random.Next(max);
+        public int GetRandom(int max) => MathNet.Numerics.Distributions.DiscreteUniform.Sample(random, 0, max - 1);
 
         /// <summary>
         /// Pick a random item with a certain weight.
