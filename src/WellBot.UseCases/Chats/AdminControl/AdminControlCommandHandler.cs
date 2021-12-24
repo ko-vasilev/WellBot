@@ -94,6 +94,7 @@ namespace WellBot.UseCases.Chats.AdminControl
             bool isDota = options.Contains("dota");
             bool isDirect = options.Contains("direct");
             bool isBatchMode = options.Contains("batch");
+            bool isMeme = options.Contains("meme");
 
             var text = telegramMessageService.GetMessageTextHtml(replyMessage);
             if (isBatchMode && replyMessage.Type == Telegram.Bot.Types.Enums.MessageType.Text)
@@ -105,7 +106,8 @@ namespace WellBot.UseCases.Chats.AdminControl
                         Text = line,
                         DataType = DataType.Text,
                         IsDirectMessage = isDirect,
-                        IsDota = isDota
+                        IsDota = isDota,
+                        IsMeme = isMeme
                     };
                     appDbContext.PassiveReplyOptions.Add(lineOption);
                 }
@@ -118,7 +120,8 @@ namespace WellBot.UseCases.Chats.AdminControl
                 Text = text,
                 DataType = DataType.Text,
                 IsDirectMessage = isDirect,
-                IsDota = isDota
+                IsDota = isDota,
+                IsMeme = isMeme
             };
             if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
             {

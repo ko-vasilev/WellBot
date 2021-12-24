@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using WellBot.Domain.Chats.Entities;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
@@ -40,26 +41,17 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
         public async Task Handle(MessageNotification notification, CancellationToken cancellationToken)
         {
             var message = notification.Message;
-            if (message == null || !ShouldReply(message, out var isDirect, out var isDota))
+            if (message == null || !ShouldReply(message, out var isDirect, out var isDota, out var isMeme))
             {
                 return;
             }
 
-            var maxRetriesCount = 5;
-            IQueryable<PassiveReplyOption> optionsQuery = dbContext.PassiveReplyOptions;
-            if (isDota)
-            {
-                optionsQuery = optionsQuery.Where(opt => opt.IsDota);
-            }
-            else
-            {
-                optionsQuery = optionsQuery.Where(opt => !opt.IsDota)
-                    .Where(opt => isDirect || !opt.IsDirectMessage);
-            }
+            var optionsQuery = GetOptions(isDota, isDirect, isMeme);
 
             var allOptions = await optionsQuery
                 .Select(opt => opt.Id)
                 .ToListAsync(cancellationToken);
+            var maxRetriesCount = 5;
             while (maxRetriesCount > 0)
             {
                 PassiveReplyOption replyOption = null;
@@ -88,19 +80,37 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
             }
         }
 
+        private IQueryable<PassiveReplyOption> GetOptions(bool isDota, bool isDirect, bool isMeme)
+        {
+            IQueryable<PassiveReplyOption> optionsQuery = dbContext.PassiveReplyOptions;
+            if (isDota)
+            {
+                return optionsQuery.Where(opt => opt.IsDota);
+            }
+
+            if (isMeme)
+            {
+                return optionsQuery.Where(opt => opt.IsMeme);
+            }
+
+            return optionsQuery.Where(opt => !opt.IsDota)
+                .Where(opt => isDirect || !opt.IsDirectMessage);
+        }
+
         private static readonly Regex IsDotaMessageRegex = new Regex(@"(\W|^)((дот)|(дотк)|(дотан))(а|е|у)?(\W|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        private bool ShouldReply(Message message, out bool isDirect, out bool isDota)
+        private bool ShouldReply(Message message, out bool isDirect, out bool isDota, out bool isMeme)
         {
-            var probability = ParseProbability(message, out isDirect, out isDota);
+            var probability = ParseProbability(message, out isDirect, out isDota, out isMeme);
 
             var randomVal = randomService.GetRandom(probability);
             var shouldReply = randomVal == 0;
             return shouldReply;
         }
 
-        private int ParseProbability(Message message, out bool isDirect, out bool isDota)
+        private int ParseProbability(Message message, out bool isDirect, out bool isDota, out bool isMeme)
         {
+            isMeme = false;
             isDirect = false;
             isDota = !string.IsNullOrEmpty(message.Text) && IsDotaMessageRegex.IsMatch(message.Text);
             if (isDota)
@@ -129,6 +139,12 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
             {
                 isDirect = true;
                 return 2;
+            }
+
+            if (message.ForwardFromMessageId == null && (message.Type == MessageType.Photo || message.Type == MessageType.Video))
+            {
+                isMeme = true;
+                return 10;
             }
 
             return telegramBotSettings.RegularPassiveRepliesProbability;

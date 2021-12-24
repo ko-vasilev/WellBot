@@ -38,5 +38,10 @@ namespace WellBot.Domain.Chats.Entities
         /// Indicates if this message should be sent for messages related to Dota.
         /// </summary>
         public bool IsDota { get; set; }
+
+        /// <summary>
+        /// Indicates if this message should be sent for memes.
+        /// </summary>
+        public bool IsMeme { get; set; }
     }
 }
