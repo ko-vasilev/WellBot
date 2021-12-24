@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -14,6 +15,7 @@ using WellBot.UseCases.Chats.Data.SearchData;
 using WellBot.UseCases.Chats.Data.SetChatData;
 using WellBot.UseCases.Chats.Data.ShowData;
 using WellBot.UseCases.Chats.Data.ShowKeys;
+using WellBot.UseCases.Chats.Ememe;
 using WellBot.UseCases.Chats.Pidor.PidorGameRegister;
 using WellBot.UseCases.Chats.Pidor.PidorGameRun;
 using WellBot.UseCases.Chats.Pidor.PidorList;
@@ -34,17 +36,28 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
         private readonly IMediator mediator;
         private readonly ILogger<HandleTelegramActionCommandHandler> logger;
         private readonly TelegramMessageService telegramMessageService;
+        private readonly MemeChannelService memeChannelService;
+        private readonly Lazy<IAppDbContext> dbContext;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public HandleTelegramActionCommandHandler(ITelegramBotClient botClient, ITelegramBotSettings telegramBotSettings, IMediator mediator, ILogger<HandleTelegramActionCommandHandler> logger, TelegramMessageService telegramMessageService)
+        public HandleTelegramActionCommandHandler(
+            ITelegramBotClient botClient,
+            ITelegramBotSettings telegramBotSettings,
+            IMediator mediator,
+            ILogger<HandleTelegramActionCommandHandler> logger,
+            TelegramMessageService telegramMessageService,
+            MemeChannelService memeChannelService,
+            Lazy<IAppDbContext> dbContext)
         {
             this.botClient = botClient;
             this.telegramBotSettings = telegramBotSettings;
             this.mediator = mediator;
             this.logger = logger;
             this.telegramMessageService = telegramMessageService;
+            this.memeChannelService = memeChannelService;
+            this.dbContext = dbContext;
         }
 
         /// <inheritdoc/>
@@ -64,6 +77,11 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             if (isDirectMessage)
             {
                 // Ignore direct messages.
+                return;
+            }
+
+            if (await HandleMemeChannelMessageAsync(request.Action.Message, cancellationToken))
+            {
                 return;
             }
 
@@ -163,6 +181,10 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     Arguments = arguments,
                     Message = message
                 }),
+                "ememe" => mediator.Send(new EmemeCommand
+                {
+                    ChatId = chatId
+                }),
                 _ => isDirectMessage
                     ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")
                     : Task.CompletedTask
@@ -233,6 +255,26 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 logger.LogError(ex, "Error handling inline query {text}");
             }
 
+            return true;
+        }
+
+        private async Task<bool> HandleMemeChannelMessageAsync(Message message, CancellationToken cancellationToken)
+        {
+            if (message == null)
+            {
+                return false;
+            }
+
+            if (message.Chat.Id != memeChannelService.CurrentMemeChatId)
+            {
+                return false;
+            }
+
+            var context = dbContext.Value;
+
+            var memeChannel = await context.MemeChannels.FirstAsync(cancellationToken);
+            memeChannel.LatestMessageId = message.MessageId;
+            await context.SaveChangesAsync(cancellationToken);
             return true;
         }
 

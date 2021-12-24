@@ -56,6 +56,11 @@ namespace WellBot.Infrastructure.Abstractions.Interfaces
         /// </summary>
         DbSet<PassiveReplyOption> PassiveReplyOptions { get; }
 
+        /// <summary>
+        /// Information about meme channels.
+        /// </summary>
+        DbSet<MemeChannelInfo> MemeChannels { get; }
+
         #endregion
     }
 }

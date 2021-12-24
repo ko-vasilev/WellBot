@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 using WellBot.Domain.Chats.Entities;
@@ -18,15 +19,17 @@ namespace WellBot.UseCases.Chats.AdminControl
         private readonly IAppDbContext appDbContext;
         private readonly TelegramMessageService telegramMessageService;
         private readonly ILogger<AdminControlCommandHandler> logger;
+        private readonly MemeChannelService memeChannelService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public AdminControlCommandHandler(IAppDbContext appDbContext, TelegramMessageService telegramMessageService, ILogger<AdminControlCommandHandler> logger)
+        public AdminControlCommandHandler(IAppDbContext appDbContext, TelegramMessageService telegramMessageService, ILogger<AdminControlCommandHandler> logger, MemeChannelService memeChannelService)
         {
             this.appDbContext = appDbContext;
             this.telegramMessageService = telegramMessageService;
             this.logger = logger;
+            this.memeChannelService = memeChannelService;
         }
 
         /// <inheritdoc/>
@@ -46,6 +49,13 @@ namespace WellBot.UseCases.Chats.AdminControl
                 {
                     var arguments = request.Arguments.Substring(PassiveAdd.Length).Trim();
                     await AddPassiveReplyOptionAsync(request.Message, arguments);
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                    return;
+                }
+
+                if (request.Arguments == "meme")
+                {
+                    await SetMemeChannelAsync(request.Message);
                     await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
                     return;
                 }
@@ -123,6 +133,32 @@ namespace WellBot.UseCases.Chats.AdminControl
 
             appDbContext.PassiveReplyOptions.Add(replyOption);
             await appDbContext.SaveChangesAsync();
+        }
+
+        private async Task SetMemeChannelAsync(Message message)
+        {
+            var replyMessage = message.ReplyToMessage;
+            if (replyMessage == null)
+            {
+                return;
+            }
+
+            if (replyMessage.ForwardFromChat == null)
+            {
+                return;
+            }
+
+            var currentChannelInfo = await appDbContext.MemeChannels.FirstOrDefaultAsync();
+            if (currentChannelInfo == null)
+            {
+                currentChannelInfo = new MemeChannelInfo();
+                appDbContext.MemeChannels.Add(currentChannelInfo);
+            }
+
+            currentChannelInfo.ChannelId = replyMessage.ForwardFromChat.Id;
+            currentChannelInfo.LatestMessageId = replyMessage.ForwardFromMessageId.Value;
+            await appDbContext.SaveChangesAsync();
+            memeChannelService.CurrentMemeChatId = currentChannelInfo.ChannelId;
         }
     }
 }

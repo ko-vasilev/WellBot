@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WellBot.DomainServices.Chats;
@@ -25,6 +26,22 @@ namespace WellBot.Web.Infrastructure.DependencyInjection
             services.AddTransient<PidorGameService>();
             services.AddSingleton<MessageRateLimitingService>();
             services.AddSingleton<RandomService>();
+            services.AddSingleton<MemeChannelService>();
+            services.AddTransient(typeof(Lazy<>), typeof(Lazier<>));
+        }
+
+        /// <summary>
+        /// DI implementation for resolving dependencies as Lazy.
+        /// </summary>
+        internal class Lazier<T> : Lazy<T> where T : class
+        {
+            /// <summary>
+            /// Constructor.
+            /// </summary>
+            public Lazier(IServiceProvider provider)
+                : base(() => provider.GetRequiredService<T>())
+            {
+            }
         }
     }
 }

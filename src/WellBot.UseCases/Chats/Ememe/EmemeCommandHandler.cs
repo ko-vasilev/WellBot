@@ -1,0 +1,55 @@
+﻿using System.Threading;
+using System.Threading.Tasks;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Telegram.Bot;
+using WellBot.Infrastructure.Abstractions.Interfaces;
+
+namespace WellBot.UseCases.Chats.Ememe
+{
+    /// <summary>
+    /// Handler for <see cref="EmemeCommand"/>.
+    /// </summary>
+    internal class EmemeCommandHandler : AsyncRequestHandler<EmemeCommand>
+    {
+        private readonly ITelegramBotClient botClient;
+        private readonly RandomService randomService;
+        private readonly IAppDbContext dbContext;
+
+        public EmemeCommandHandler(ITelegramBotClient botClient, RandomService randomService, IAppDbContext dbContext)
+        {
+            this.botClient = botClient;
+            this.randomService = randomService;
+            this.dbContext = dbContext;
+        }
+
+        /// <inheritdoc/>
+        protected override async Task Handle(EmemeCommand request, CancellationToken cancellationToken)
+        {
+            var memeChannel = await dbContext.MemeChannels.FirstOrDefaultAsync(cancellationToken);
+            if (memeChannel == null)
+            {
+                await botClient.SendTextMessageAsync(request.ChatId, "Не настроен канал с мемами :(");
+                return;
+            }
+
+            var attempts = 0;
+            // Try multiple times because some messages might not be available because they were deleted or it is special kinds of messages.
+            while (attempts < 3)
+            {
+                var messageId = randomService.GetRandom(memeChannel.LatestMessageId + 1);
+                try
+                {
+                    await botClient.ForwardMessageAsync(request.ChatId, new Telegram.Bot.Types.ChatId(memeChannel.ChannelId), messageId);
+                    return;
+                }
+                catch
+                {
+                    ++attempts;
+                }
+            }
+
+            await botClient.SendTextMessageAsync(request.ChatId, "Не сегодня");
+        }
+    }
+}

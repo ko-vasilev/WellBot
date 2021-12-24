@@ -38,6 +38,9 @@ namespace WellBot.Infrastructure.DataAccess
         /// <inheritdoc />
         public DbSet<PassiveReplyOption> PassiveReplyOptions { get; protected set; }
 
+        /// <inheritdoc />
+        public DbSet<MemeChannelInfo> MemeChannels { get; protected set; }
+
         #endregion
 
         /// <summary>
