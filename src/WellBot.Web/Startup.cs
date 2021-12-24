@@ -16,6 +16,7 @@ using WellBot.Web.Controllers;
 using WellBot.Web.Infrastructure.Middlewares;
 using WellBot.Web.Infrastructure.Settings;
 using WellBot.Web.Infrastructure.Startup;
+using WellBot.Web.Infrastructure.Telegram;
 
 namespace WellBot.Web
 {
@@ -93,10 +94,16 @@ namespace WellBot.Web
 
             // Application settings.
             services.Configure<AppSettings>(configuration.GetSection("Application"));
-            services.AddTransient<ITelegramBotSettings>(serviceProvider =>
+            services.AddSingleton(serviceProvider =>
             {
-                return serviceProvider.GetRequiredService<IOptionsSnapshot<AppSettings>>().Value;
+                var settings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
+                return new TelegramBotSettings
+                {
+                    RegularPassiveRepliesProbability = settings.RegularPassiveRepliesProbability,
+                    TelegramBotUsername = string.Empty
+                };
             });
+            services.AddSingleton<ITelegramBotSettings>(serviceProvider => serviceProvider.GetRequiredService<TelegramBotSettings>());
 
             // HTTP client.
             services.AddHttpClient();

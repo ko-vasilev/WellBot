@@ -18,6 +18,7 @@ namespace WellBot.Web.Infrastructure.Telegram
     {
         private readonly ILogger<TelegramWebhookInitializer> logger;
         private readonly IServiceProvider services;
+        private readonly TelegramBotSettings telegramBotSettings;
         private readonly AppSettings appSettings;
 
         /// <summary>
@@ -25,10 +26,12 @@ namespace WellBot.Web.Infrastructure.Telegram
         /// </summary>
         public TelegramWebhookInitializer(ILogger<TelegramWebhookInitializer> logger,
                                 IServiceProvider serviceProvider,
-                                IOptions<AppSettings> appSettings)
+                                IOptions<AppSettings> appSettings,
+                                TelegramBotSettings telegramBotSettings)
         {
             this.logger = logger;
             services = serviceProvider;
+            this.telegramBotSettings = telegramBotSettings;
             this.appSettings = appSettings.Value;
         }
 
@@ -37,6 +40,9 @@ namespace WellBot.Web.Infrastructure.Telegram
         {
             using var scope = services.CreateScope();
             var botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
+
+            var bot = await botClient.GetMeAsync(cancellationToken);
+            telegramBotSettings.TelegramBotUsername = bot.Username;
 
             // Configure custom endpoint per Telegram API recommendations:
             // https://core.telegram.org/bots/api#setwebhook

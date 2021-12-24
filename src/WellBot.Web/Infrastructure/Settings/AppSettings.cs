@@ -5,7 +5,7 @@ namespace WellBot.Web.Infrastructure.Settings
     /// <summary>
     /// Global application settings.
     /// </summary>
-    public class AppSettings : ITelegramBotSettings
+    public class AppSettings
     {
         /// <summary>
         /// Telegram bot API token.
@@ -16,9 +16,6 @@ namespace WellBot.Web.Infrastructure.Settings
         /// Address of the web application (in https://... format, without the trailing slash).
         /// </summary>
         public string HostAddress { get; init; }
-
-        /// <inheritdoc />
-        public string TelegramBotUsername { get; init; }
 
         /// <inheritdoc />
         public int RegularPassiveRepliesProbability { get; init; }
