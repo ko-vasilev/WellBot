@@ -144,7 +144,7 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
             if (message.ForwardFromMessageId == null && (message.Type == MessageType.Photo || message.Type == MessageType.Video))
             {
                 isMeme = true;
-                return 10;
+                return 9;
             }
 
             return telegramBotSettings.RegularPassiveRepliesProbability;

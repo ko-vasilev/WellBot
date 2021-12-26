@@ -37,7 +37,9 @@ namespace WellBot.UseCases.Chats.Ememe
             // Try multiple times because some messages might not be available because they were deleted or it is special kinds of messages.
             while (attempts < 3)
             {
-                var messageId = randomService.GetRandom(memeChannel.LatestMessageId + 1);
+                var messageId = randomService.GetRandom(memeChannel.LatestMessageId);
+                // Generated random starts from 0 so increase it by 1.
+                ++messageId;
                 try
                 {
                     await botClient.ForwardMessageAsync(request.ChatId, new Telegram.Bot.Types.ChatId(memeChannel.ChannelId), messageId);
