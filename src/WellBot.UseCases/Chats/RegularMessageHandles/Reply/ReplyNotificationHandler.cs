@@ -141,7 +141,7 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
                 return 2;
             }
 
-            if (message.ForwardFromMessageId == null && (message.Type == MessageType.Photo || message.Type == MessageType.Video))
+            if (message.Type == MessageType.Photo || message.Type == MessageType.Video)
             {
                 isMeme = true;
                 return 9;
