@@ -131,7 +131,7 @@ namespace WellBot.UseCases.Chats.AdminControl
             };
             if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
             {
-                var dataType = telegramMessageService.GetFile(message, out var attachedDocument);
+                var dataType = telegramMessageService.GetFile(replyMessage, out var attachedDocument);
                 if (dataType == null)
                 {
                     return false;
