@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace WellBot.Domain.Chats.Entities
 {
@@ -30,18 +31,8 @@ namespace WellBot.Domain.Chats.Entities
         public string Text { get; set; }
 
         /// <summary>
-        /// Indicates if this message should be sent for direct messages to bot (via mention or replies).
+        /// List of topics that should trigger this reply.
         /// </summary>
-        public bool IsDirectMessage { get; set; }
-
-        /// <summary>
-        /// Indicates if this message should be sent for messages related to Dota.
-        /// </summary>
-        public bool IsDota { get; set; }
-
-        /// <summary>
-        /// Indicates if this message should be sent for memes.
-        /// </summary>
-        public bool IsMeme { get; set; }
+        public ICollection<PassiveTopic> PassiveTopics { get; set; }
     }
 }

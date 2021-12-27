@@ -3,6 +3,7 @@ using Extensions.Hosting.AsyncInitialization;
 using Microsoft.EntityFrameworkCore;
 using WellBot.Infrastructure.DataAccess;
 using WellBot.UseCases.Chats;
+using WellBot.UseCases.Chats.RegularMessageHandles.Reply;
 
 namespace WellBot.Web.Infrastructure.Startup
 {
@@ -13,14 +14,16 @@ namespace WellBot.Web.Infrastructure.Startup
     {
         private readonly AppDbContext appDbContext;
         private readonly MemeChannelService memeChannelService;
+        private readonly PassiveTopicService passiveTopicService;
 
         /// <summary>
         /// Database initializer. Performs migration and data seed.
         /// </summary>
-        public DatabaseInitializer(AppDbContext appDbContext, MemeChannelService memeChannelService)
+        public DatabaseInitializer(AppDbContext appDbContext, MemeChannelService memeChannelService, PassiveTopicService passiveTopicService)
         {
             this.appDbContext = appDbContext;
             this.memeChannelService = memeChannelService;
+            this.passiveTopicService = passiveTopicService;
         }
 
         /// <inheritdoc />
@@ -35,6 +38,11 @@ namespace WellBot.Web.Infrastructure.Startup
             {
                 memeChannelService.CurrentMemeChatId = currentMemeChannel.ChannelId;
             }
+
+            var existingTopics = await appDbContext.PassiveTopics
+                .AsNoTracking()
+                .ToListAsync();
+            passiveTopicService.Update(existingTopics);
         }
     }
 }

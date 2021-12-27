@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 using WellBot.Domain.Chats.Entities;
 using WellBot.Infrastructure.Abstractions.Interfaces;
+using WellBot.UseCases.Chats.RegularMessageHandles.Reply;
 
 namespace WellBot.UseCases.Chats.AdminControl
 {
@@ -20,16 +21,18 @@ namespace WellBot.UseCases.Chats.AdminControl
         private readonly TelegramMessageService telegramMessageService;
         private readonly ILogger<AdminControlCommandHandler> logger;
         private readonly MemeChannelService memeChannelService;
+        private readonly Lazy<PassiveTopicService> passiveTopicService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public AdminControlCommandHandler(IAppDbContext appDbContext, TelegramMessageService telegramMessageService, ILogger<AdminControlCommandHandler> logger, MemeChannelService memeChannelService)
+        public AdminControlCommandHandler(IAppDbContext appDbContext, TelegramMessageService telegramMessageService, ILogger<AdminControlCommandHandler> logger, MemeChannelService memeChannelService, Lazy<PassiveTopicService> passiveTopicService)
         {
             this.appDbContext = appDbContext;
             this.telegramMessageService = telegramMessageService;
             this.logger = logger;
             this.memeChannelService = memeChannelService;
+            this.passiveTopicService = passiveTopicService;
         }
 
         /// <inheritdoc/>
@@ -48,8 +51,10 @@ namespace WellBot.UseCases.Chats.AdminControl
                 if (request.Arguments.StartsWith(PassiveAdd))
                 {
                     var arguments = request.Arguments.Substring(PassiveAdd.Length).Trim();
-                    await AddPassiveReplyOptionAsync(request.Message, arguments);
-                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                    if (await AddPassiveReplyOptionAsync(request.Message, arguments))
+                    {
+                        await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                    }
                     return;
                 }
 
@@ -82,19 +87,24 @@ namespace WellBot.UseCases.Chats.AdminControl
             await appDbContext.SaveChangesAsync();
         }
 
-        private async Task AddPassiveReplyOptionAsync(Message message, string arguments)
+        private async Task<bool> AddPassiveReplyOptionAsync(Message message, string arguments)
         {
             var replyMessage = message.ReplyToMessage;
             if (replyMessage == null)
             {
-                return;
+                return false;
             }
 
             var options = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            bool isDota = options.Contains("dota");
-            bool isDirect = options.Contains("direct");
+            var topicIds = passiveTopicService.Value.SearchTopics(options).ToList();
+            if (!topicIds.Any())
+            {
+                const string defaultTopic = "regular";
+                topicIds = passiveTopicService.Value.SearchTopics(new[] { defaultTopic }).ToList();
+            }
+            var topics = await appDbContext.PassiveTopics.Where(t => topicIds.Contains(t.Id))
+                .ToListAsync();
             bool isBatchMode = options.Contains("batch");
-            bool isMeme = options.Contains("meme");
 
             var text = telegramMessageService.GetMessageTextHtml(replyMessage);
             if (isBatchMode && replyMessage.Type == Telegram.Bot.Types.Enums.MessageType.Text)
@@ -105,30 +115,26 @@ namespace WellBot.UseCases.Chats.AdminControl
                     {
                         Text = line,
                         DataType = DataType.Text,
-                        IsDirectMessage = isDirect,
-                        IsDota = isDota,
-                        IsMeme = isMeme
+                        PassiveTopics = topics
                     };
                     appDbContext.PassiveReplyOptions.Add(lineOption);
                 }
                 await appDbContext.SaveChangesAsync();
-                return;
+                return true;
             }
 
             var replyOption = new PassiveReplyOption
             {
                 Text = text,
                 DataType = DataType.Text,
-                IsDirectMessage = isDirect,
-                IsDota = isDota,
-                IsMeme = isMeme
+                PassiveTopics = topics
             };
             if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
             {
                 var dataType = telegramMessageService.GetFile(message, out var attachedDocument);
                 if (dataType == null)
                 {
-                    return;
+                    return false;
                 }
                 replyOption.DataType = dataType.Value;
                 replyOption.FileId = attachedDocument.FileId;
@@ -136,6 +142,7 @@ namespace WellBot.UseCases.Chats.AdminControl
 
             appDbContext.PassiveReplyOptions.Add(replyOption);
             await appDbContext.SaveChangesAsync();
+            return true;
         }
 
         private async Task SetMemeChannelAsync(Message message)

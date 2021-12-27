@@ -94,18 +94,18 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 {
                     chatId = request.Action.Message.Chat.Id;
                     var command = ParseCommand(plainMessageText, textFormatted, out string arguments, out string argumentsHtml, ref isDirectMessage);
-                    if (string.IsNullOrEmpty(command))
+                    if (!string.IsNullOrEmpty(command))
                     {
-                        await mediator.Publish(new MessageNotification
-                        {
-                            Message = request.Action.Message
-                        }, cancellationToken);
+                        await botClient.SendChatActionAsync(request.Action.Message.Chat.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
+                        await HandleCommandAsync(command, arguments, argumentsHtml, isDirectMessage, chatId, request.Action.Message.From, request.Action.Message);
                         return;
                     }
-
-                    await botClient.SendChatActionAsync(request.Action.Message.Chat.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
-                    await HandleCommandAsync(command, arguments, argumentsHtml, isDirectMessage, chatId, request.Action.Message.From, request.Action.Message);
                 }
+
+                await mediator.Publish(new MessageNotification
+                {
+                    Message = request.Action.Message
+                }, cancellationToken);
             }
             catch (Exception ex)
             {

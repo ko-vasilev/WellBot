@@ -21,35 +21,37 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
     {
         private readonly RandomService randomService;
         private readonly IAppDbContext dbContext;
-        private readonly ITelegramBotSettings telegramBotSettings;
         private readonly ILogger<ReplyNotificationHandler> logger;
         private readonly TelegramMessageService telegramMessageService;
+        private readonly PassiveTopicService passiveTopicService;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ReplyNotificationHandler(RandomService randomService, IAppDbContext dbContext, ITelegramBotSettings telegramBotSettings, ILogger<ReplyNotificationHandler> logger, TelegramMessageService telegramMessageService)
+        public ReplyNotificationHandler(RandomService randomService, IAppDbContext dbContext, ILogger<ReplyNotificationHandler> logger, TelegramMessageService telegramMessageService, PassiveTopicService passiveTopicService)
         {
             this.randomService = randomService;
             this.dbContext = dbContext;
-            this.telegramBotSettings = telegramBotSettings;
             this.logger = logger;
             this.telegramMessageService = telegramMessageService;
+            this.passiveTopicService = passiveTopicService;
         }
 
         /// <inheritdoc />
         public async Task Handle(MessageNotification notification, CancellationToken cancellationToken)
         {
             var message = notification.Message;
-            if (message == null || !ShouldReply(message, out var isDirect, out var isDota, out var isMeme))
+            if (message == null || !ShouldReply(message, out var topics))
             {
                 return;
             }
 
-            var optionsQuery = GetOptions(isDota, isDirect, isMeme);
-
-            var allOptions = await optionsQuery
-                .Select(opt => opt.Id)
+            var topicIds = topics.ToList();
+            var allOptions = await dbContext.PassiveTopics
+                .Where(t => topicIds.Contains(t.Id))
+                .SelectMany(t => t.ReplyOptions)
+                .Distinct()
+                .Select(option => option.Id)
                 .ToListAsync(cancellationToken);
             var maxRetriesCount = 5;
             while (maxRetriesCount > 0)
@@ -80,81 +82,24 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
             }
         }
 
-        private IQueryable<PassiveReplyOption> GetOptions(bool isDota, bool isDirect, bool isMeme)
-        {
-            IQueryable<PassiveReplyOption> optionsQuery = dbContext.PassiveReplyOptions;
-            if (isDota)
-            {
-                return optionsQuery.Where(opt => opt.IsDota);
-            }
-
-            if (isMeme)
-            {
-                return optionsQuery.Where(opt => opt.IsMeme);
-            }
-
-            return optionsQuery.Where(opt => !opt.IsDota)
-                .Where(opt => isDirect || !opt.IsDirectMessage);
-        }
-
         private static readonly Regex IsDotaMessageRegex = new Regex(@"(\W|^)((дот)|(дотк)|(дотан))(а|е|у)?(\W|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        private bool ShouldReply(Message message, out bool isDirect, out bool isDota, out bool isMeme)
+        private bool ShouldReply(Message message, out IEnumerable<int> topicIds)
         {
-            var probability = ParseProbability(message, out isDirect, out isDota, out isMeme);
+            var topics = passiveTopicService.GetMatchingTopics(message);
+            topicIds = topics.Select(t => t.Id);
 
-            var randomVal = randomService.GetRandom(probability);
+            var highestProbabilityTopic = topics
+                .OrderBy(t => t.Probability)
+                .FirstOrDefault();
+            if (highestProbabilityTopic == null)
+            {
+                return false;
+            }
+
+            var randomVal = randomService.GetRandom(highestProbabilityTopic.Probability);
             var shouldReply = randomVal == 0;
             return shouldReply;
-        }
-
-        private int ParseProbability(Message message, out bool isDirect, out bool isDota, out bool isMeme)
-        {
-            isMeme = false;
-            isDirect = false;
-            isDota = !string.IsNullOrEmpty(message.Text) && IsDotaMessageRegex.IsMatch(message.Text);
-            if (isDota)
-            {
-                return 4;
-            }
-
-            var repliedToBot = message.ReplyToMessage != null && message.ReplyToMessage.From?.Username == telegramBotSettings.TelegramBotUsername;
-            if (repliedToBot)
-            {
-                isDirect = true;
-                return 4;
-            }
-
-            var mentionedBot = false;
-            if (message.Entities != null)
-            {
-                mentionedBot = ContainsBotMention(message.Text, message.Entities);
-            }
-            if (!mentionedBot && message.CaptionEntities != null)
-            {
-                mentionedBot = ContainsBotMention(message.Caption, message.CaptionEntities);
-            }
-
-            if (mentionedBot)
-            {
-                isDirect = true;
-                return 2;
-            }
-
-            if (message.Type == MessageType.Photo || message.Type == MessageType.Video)
-            {
-                isMeme = true;
-                return 9;
-            }
-
-            return telegramBotSettings.RegularPassiveRepliesProbability;
-        }
-
-        private bool ContainsBotMention(string text, IEnumerable<MessageEntity> messageEntities)
-        {
-            var botNickname = "@" + telegramBotSettings.TelegramBotUsername;
-            return text != null
-                && messageEntities.Any(e => e.Type == Telegram.Bot.Types.Enums.MessageEntityType.Mention && text.Substring(e.Offset, e.Length) == botNickname);
         }
     }
 }

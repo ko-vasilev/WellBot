@@ -27,9 +27,7 @@ namespace WellBot.Infrastructure.DataAccess
         /// <inheritdoc />
         public DbSet<PidorMessage> PidorResultMessages { get; protected set; }
 
-        /// <summary>
-        /// List of stored chat data.
-        /// </summary>
+        /// <inheritdoc />
         public DbSet<ChatData> ChatDatas { get; protected set; }
 
         /// <inheritdoc />
@@ -40,6 +38,9 @@ namespace WellBot.Infrastructure.DataAccess
 
         /// <inheritdoc />
         public DbSet<MemeChannelInfo> MemeChannels { get; protected set; }
+
+        /// <inheritdoc />
+        public DbSet<PassiveTopic> PassiveTopics { get; protected set; }
 
         #endregion
 

@@ -61,6 +61,11 @@ namespace WellBot.Infrastructure.Abstractions.Interfaces
         /// </summary>
         DbSet<MemeChannelInfo> MemeChannels { get; }
 
+        /// <summary>
+        /// List of topics that could trigger the conversation with bot.
+        /// </summary>
+        DbSet<PassiveTopic> PassiveTopics { get; }
+
         #endregion
     }
 }

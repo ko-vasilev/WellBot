@@ -27,6 +27,7 @@ namespace WellBot.Web.Infrastructure.DependencyInjection
             services.AddSingleton<MessageRateLimitingService>();
             services.AddSingleton<RandomService>();
             services.AddSingleton<MemeChannelService>();
+            services.AddSingleton<UseCases.Chats.RegularMessageHandles.Reply.PassiveTopicService>();
             services.AddTransient(typeof(Lazy<>), typeof(Lazier<>));
         }
 

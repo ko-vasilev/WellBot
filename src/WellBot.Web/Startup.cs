@@ -94,14 +94,9 @@ namespace WellBot.Web
 
             // Application settings.
             services.Configure<AppSettings>(configuration.GetSection("Application"));
-            services.AddSingleton(serviceProvider =>
+            services.AddSingleton(new TelegramBotSettings
             {
-                var settings = serviceProvider.GetRequiredService<IOptions<AppSettings>>().Value;
-                return new TelegramBotSettings
-                {
-                    RegularPassiveRepliesProbability = settings.RegularPassiveRepliesProbability,
-                    TelegramBotUsername = string.Empty
-                };
+                TelegramBotUsername = string.Empty
             });
             services.AddSingleton<ITelegramBotSettings>(serviceProvider => serviceProvider.GetRequiredService<TelegramBotSettings>());
 
