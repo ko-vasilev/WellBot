@@ -96,7 +96,7 @@ namespace WellBot.UseCases.Chats
             switch (message.DataType)
             {
                 case Domain.Chats.Entities.DataType.Animation:
-                    await botClient.SendAnimationAsync(chatId, file, replyToMessageId: replyMessageId);
+                    await botClient.SendAnimationAsync(chatId, file, caption: message.Text, replyToMessageId: replyMessageId);
                     break;
                 case Domain.Chats.Entities.DataType.Audio:
                     await botClient.SendAudioAsync(chatId, file, caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);

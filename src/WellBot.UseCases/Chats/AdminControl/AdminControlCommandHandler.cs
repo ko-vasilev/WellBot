@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 using WellBot.Domain.Chats.Entities;
 using WellBot.Infrastructure.Abstractions.Interfaces;
+using WellBot.UseCases.Chats.Dtos;
 using WellBot.UseCases.Chats.RegularMessageHandles.Reply;
 
 namespace WellBot.UseCases.Chats.AdminControl
@@ -62,6 +63,12 @@ namespace WellBot.UseCases.Chats.AdminControl
                 {
                     await SetMemeChannelAsync(request.Message);
                     await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                    return;
+                }
+
+                if (request.Arguments == "broadcast")
+                {
+                    await BroadcastMessageAsync(request.Message);
                     return;
                 }
             }
@@ -169,6 +176,47 @@ namespace WellBot.UseCases.Chats.AdminControl
             currentChannelInfo.LatestMessageId = replyMessage.ForwardFromMessageId.Value;
             await appDbContext.SaveChangesAsync();
             memeChannelService.CurrentMemeChatId = currentChannelInfo.ChannelId;
+        }
+
+        private async Task BroadcastMessageAsync(Message originalMessage)
+        {
+            var messageToSend = originalMessage.ReplyToMessage;
+            if (messageToSend == null)
+            {
+                return;
+            }
+
+            var chats = await appDbContext.Chats
+                .Select(c => c.TelegramId)
+                .ToListAsync();
+            var text = telegramMessageService.GetMessageTextHtml(messageToSend);
+            var messageData = new GenericMessage
+            {
+                Text = text,
+                DataType = DataType.Text
+            };
+            if (messageToSend.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+            {
+                var dataType = telegramMessageService.GetFile(messageToSend, out var attachedDocument);
+                if (dataType == null)
+                {
+                    return;
+                }
+                messageData.DataType = dataType.Value;
+                messageData.FileId = attachedDocument.FileId;
+            }
+
+            foreach (var chat in chats)
+            {
+                try
+                {
+                    await telegramMessageService.SendMessageAsync(messageData, new ChatId(chat));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error broadcasting to {chatId} chat", chat);
+                }
+            }
         }
     }
 }
