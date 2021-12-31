@@ -71,10 +71,10 @@ namespace WellBot.UseCases.Chats
         /// <returns>String to use for tagging a user.</returns>
         public string GetPersonMentionHtml(User user)
         {
-            if (!string.IsNullOrEmpty(user.Username))
-            {
-                return "@" + user.Username;
-            }
+            //if (!string.IsNullOrEmpty(user.Username))
+            //{
+            //    return "@" + user.Username;
+            //}
 
             var userFullName = GetUserFullName(user);
             return $"<a href=\"tg://user?id={user.Id}\">{HttpUtility.HtmlEncode(userFullName)}</a>";
