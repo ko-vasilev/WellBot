@@ -53,8 +53,8 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
                     return;
                 }
 
-                var userTag = telegramMessageService.GetPersonMentionHtml(user.User);
-                await botClient.SendTextMessageAsync(request.ChatId, $"По моей информации пидор дня — {userTag}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: true);
+                var username = telegramMessageService.GetPersonNameHtml(user.User, mention: false);
+                await botClient.SendTextMessageAsync(request.ChatId, $"По моей информации пидор дня — {username}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: true);
                 return;
             }
 
@@ -77,7 +77,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
             dbContext.ChatPidors.Add(pidorData);
             await dbContext.SaveChangesAsync();
 
-            var pidorUsername = telegramMessageService.GetPersonMentionHtml(pidor.User);
+            var pidorUsername = telegramMessageService.GetPersonNameHtml(pidor.User, mention: true);
             foreach (var text in notification.Message)
             {
                 var message = text.Replace(PidorMessage.UsernamePlaceholder, pidorUsername);

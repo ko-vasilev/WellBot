@@ -68,16 +68,25 @@ namespace WellBot.UseCases.Chats
         /// The resulting string can be used with <see cref="Telegram.Bot.Types.Enums.ParseMode.Html"/> format.
         /// </summary>
         /// <param name="user">User reference.</param>
+        /// <param name="mention">Indicates if user should be mentioned in the text.</param>
         /// <returns>String to use for tagging a user.</returns>
-        public string GetPersonMentionHtml(User user)
+        public string GetPersonNameHtml(User user, bool mention)
         {
-            //if (!string.IsNullOrEmpty(user.Username))
-            //{
-            //    return "@" + user.Username;
-            //}
+            if (!string.IsNullOrEmpty(user.Username))
+            {
+                if (mention)
+                {
+                    return "@" + user.Username;
+                }
+                return user.Username;
+            }
 
             var userFullName = GetUserFullName(user);
-            return $"<a href=\"tg://user?id={user.Id}\">{HttpUtility.HtmlEncode(userFullName)}</a>";
+            if (mention)
+            {
+                return $"<a href=\"tg://user?id={user.Id}\">{HttpUtility.HtmlEncode(userFullName)}</a>";
+            }
+            return userFullName;
         }
 
         /// <summary>
