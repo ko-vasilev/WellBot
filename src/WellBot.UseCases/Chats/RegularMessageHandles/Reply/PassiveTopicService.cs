@@ -61,6 +61,14 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
                 {
                     isMatch = false;
                 }
+                if (topic.IsAudio.HasValue)
+                {
+                    var isAudio = message.Type == MessageType.Audio;
+                    if (topic.IsAudio != isAudio)
+                    {
+                        isMatch = false;
+                    }
+                }
                 if (isMatch && topic.Regex != null)
                 {
                     if (message.Text == null || !topic.Regex.IsMatch(message.Text))
@@ -115,7 +123,8 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
                     Name = topic.Name,
                     Probability = topic.Probability,
                     Regex = string.IsNullOrEmpty(topic.Regex) ? null : new Regex(topic.Regex, RegexOptions.Compiled | RegexOptions.IgnoreCase),
-                    IsExclusive = topic.IsExclusive
+                    IsExclusive = topic.IsExclusive,
+                    IsAudio = topic.IsAudio
                 });
 
             topics.Clear();
@@ -154,6 +163,8 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
             public bool? IsDirect { get; init; }
 
             public bool? IsMeme { get; init; }
+
+            public bool? IsAudio { get; init; }
 
             public string Name { get; init; }
 

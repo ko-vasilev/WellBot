@@ -35,6 +35,11 @@ namespace WellBot.Domain.Chats.Entities
         public bool? IsMeme { get; set; }
 
         /// <summary>
+        /// Indicates if the topic should be triggered when a message is an "audio".
+        /// </summary>
+        public bool? IsAudio { get; set; }
+
+        /// <summary>
         /// Indicates if this topic is exclusive and no other topics should be used with it.
         /// </summary>
         public bool IsExclusive { get; set; }
