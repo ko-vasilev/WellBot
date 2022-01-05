@@ -59,6 +59,17 @@ namespace WellBot.UseCases.Chats.AdminControl
                     return;
                 }
 
+                const string PassiveProbability = "passive probability";
+                if (request.Arguments.StartsWith(PassiveProbability))
+                {
+                    var arguments = request.Arguments.Substring(PassiveProbability.Length).Trim();
+                    if (await SetTopicProbabilityAsync(arguments))
+                    {
+                        await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                    }
+                    return;
+                }
+
                 if (request.Arguments == "meme")
                 {
                     await SetMemeChannelAsync(request.Message);
@@ -217,6 +228,32 @@ namespace WellBot.UseCases.Chats.AdminControl
                     logger.LogError(ex, "Error broadcasting to {chatId} chat", chat);
                 }
             }
+        }
+
+        private async Task<bool> SetTopicProbabilityAsync(string arguments)
+        {
+            var parsedArguments = arguments.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            if (parsedArguments.Length != 2)
+            {
+                return false;
+            }
+
+            if (!int.TryParse(parsedArguments[1], out var probability))
+            {
+                return false;
+            }
+
+            var topicName = parsedArguments[0];
+            var topic = await appDbContext.PassiveTopics.FirstOrDefaultAsync(t => t.Name == topicName);
+            if (topic == null)
+            {
+                return false;
+            }
+
+            topic.Probability = probability;
+            await appDbContext.SaveChangesAsync();
+
+            return true;
         }
     }
 }
