@@ -253,6 +253,12 @@ namespace WellBot.UseCases.Chats.AdminControl
             topic.Probability = probability;
             await appDbContext.SaveChangesAsync();
 
+            // Reload topics cache.
+            var existingTopics = await appDbContext.PassiveTopics
+                .AsNoTracking()
+                .ToListAsync();
+            passiveTopicService.Value.Update(existingTopics);
+
             return true;
         }
     }

@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace WellBot.Domain.Chats.Entities
 {
+    /// <summary>
+    /// Specific conversation topic.
+    /// </summary>
     public class PassiveTopic
     {
         /// <summary>

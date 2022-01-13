@@ -82,8 +82,6 @@ namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
             }
         }
 
-        private static readonly Regex IsDotaMessageRegex = new Regex(@"(\W|^)((дот)|(дотк)|(дотан))(а|е|у)?(\W|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
         private bool ShouldReply(Message message, out IEnumerable<int> topicIds)
         {
             var topics = passiveTopicService.GetMatchingTopics(message);
