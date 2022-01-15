@@ -283,6 +283,8 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             var uniqueId = data.Id.ToString();
             switch (data.DataType)
             {
+                case Domain.Chats.Entities.DataType.Animation:
+                    return new InlineQueryResultCachedMpeg4Gif(uniqueId, data.FileId);
                 case Domain.Chats.Entities.DataType.Audio:
                     return new InlineQueryResultCachedAudio(uniqueId, data.FileId);
                 case Domain.Chats.Entities.DataType.Document:
