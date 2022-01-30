@@ -67,7 +67,7 @@ namespace WellBot.Web.Controllers
         /// Get list of existing passive topics and their settings.
         /// </summary>
         /// <returns>List of topics.</returns>
-        [HttpGet]
+        [HttpGet("Topics")]
         public async Task<IEnumerable<TopicDto>> Topics(CancellationToken cancellationToken)
         {
             return await mediator.Send(new GetTopicListQuery(), cancellationToken);
@@ -77,7 +77,7 @@ namespace WellBot.Web.Controllers
         /// Create or update a topic.
         /// </summary>
         /// <returns>Id of the topic.</returns>
-        [HttpPost]
+        [HttpPost("Topic")]
         public async Task<int> Topic(UpsertTopicCommand request, CancellationToken cancellationToken)
         {
             return await mediator.Send(request, cancellationToken);
