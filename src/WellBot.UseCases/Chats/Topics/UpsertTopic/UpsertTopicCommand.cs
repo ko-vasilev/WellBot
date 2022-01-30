@@ -11,6 +11,9 @@ namespace WellBot.UseCases.Chats.Topics.UpsertTopic
         /// <inheritdoc cref="PassiveTopic.Id"/>
         public int? Id { get; set; }
 
+        /// <inheritdoc cref="PassiveTopic.Name"/>
+        public string Name { get; set; }
+
         /// <inheritdoc cref="PassiveTopic.Regex"/>
         public string Regex { get; set; }
 
