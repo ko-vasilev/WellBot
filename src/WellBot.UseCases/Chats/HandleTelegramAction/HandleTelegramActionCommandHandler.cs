@@ -21,6 +21,7 @@ using WellBot.UseCases.Chats.Pidor.PidorGameRun;
 using WellBot.UseCases.Chats.Pidor.PidorList;
 using WellBot.UseCases.Chats.Pidor.PidorRules;
 using WellBot.UseCases.Chats.Pidor.PidorStats;
+using WellBot.UseCases.Chats.Prikol;
 using WellBot.UseCases.Chats.RegularMessageHandles;
 using WellBot.UseCases.Chats.Slap;
 
@@ -182,6 +183,10 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     Message = message
                 }),
                 "ememe" => mediator.Send(new EmemeCommand
+                {
+                    ChatId = chatId
+                }),
+                "prikol" => mediator.Send(new PrikolCommand
                 {
                     ChatId = chatId
                 }),
