@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using WellBot.UseCases.Chats.Pidor.AddPidorGameMessage;
 using WellBot.UseCases.Chats.Pidor.DeleteGameMessage;
 using WellBot.UseCases.Chats.Pidor.GetPidorGameMessages;
+using WellBot.UseCases.Chats.Topics.GetTopicList;
+using WellBot.UseCases.Chats.Topics.UpsertTopic;
 
 namespace WellBot.Web.Controllers
 {
@@ -59,6 +61,26 @@ namespace WellBot.Web.Controllers
         public async Task PidorMessage(DeleteGameMessageCommand command, CancellationToken cancellationToken)
         {
             await mediator.Send(command, cancellationToken);
+        }
+
+        /// <summary>
+        /// Get list of existing passive topics and their settings.
+        /// </summary>
+        /// <returns>List of topics.</returns>
+        [HttpGet]
+        public async Task<IEnumerable<TopicDto>> Topics(CancellationToken cancellationToken)
+        {
+            return await mediator.Send(new GetTopicListQuery(), cancellationToken);
+        }
+
+        /// <summary>
+        /// Create or update a topic.
+        /// </summary>
+        /// <returns>Id of the topic.</returns>
+        [HttpPost]
+        public async Task<int> Topic(UpsertTopicCommand request, CancellationToken cancellationToken)
+        {
+            return await mediator.Send(request, cancellationToken);
         }
     }
 }
