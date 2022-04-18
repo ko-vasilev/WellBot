@@ -44,8 +44,8 @@ namespace WellBot.UseCases.Chats.Pidor
             var users = new List<PidorParticipant>();
             await foreach (var registration in registrations)
             {
-                var telegramUser = await botClient.GetChatMemberAsync(telegramChatId, registration.TelegramUserId, cancellationToken);
-                if (!IsActiveUser(telegramUser))
+                var telegramUser = await GetPidorMemberAsync(telegramChatId, registration.TelegramUserId, cancellationToken);
+                if (telegramUser == null)
                 {
                     continue;
                 }
@@ -57,6 +57,33 @@ namespace WellBot.UseCases.Chats.Pidor
             }
 
             return users;
+        }
+
+        /// <summary>
+        /// Get information about an active user in a chat.
+        /// </summary>
+        /// <param name="telegramChatId">Id of the chat.</param>
+        /// <param name="telegramUserId">Id of the telegram user.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>User object or null if user is not found or not active.</returns>
+        public async Task<ChatMember> GetPidorMemberAsync(ChatId telegramChatId, long telegramUserId, CancellationToken cancellationToken)
+        {
+            ChatMember telegramUser;
+            try
+            {
+                telegramUser = await botClient.GetChatMemberAsync(telegramChatId, telegramUserId, cancellationToken);
+            }
+            catch (Telegram.Bot.Exceptions.ApiRequestException ex)
+            {
+                // User is not in the chat anymore.
+                return null;
+            }
+
+            if (!IsActiveUser(telegramUser))
+            {
+                return null;
+            }
+            return telegramUser;
         }
 
         /// <summary>

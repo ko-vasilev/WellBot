@@ -46,7 +46,7 @@ namespace WellBot.UseCases.Chats.Pidor.PidorGameRun
                 .FirstOrDefaultAsync(p => p.ChatId == currentChatService.ChatId);
             if (selectedPidor != null)
             {
-                var user = await botClient.GetChatMemberAsync(request.ChatId, selectedPidor.Registration.TelegramUserId);
+                var user = await pidorGameService.GetPidorMemberAsync(request.ChatId, selectedPidor.Registration.TelegramUserId, cancellationToken);
                 if (user == null)
                 {
                     await botClient.SendTextMessageAsync(request.ChatId, "Пидор дня вышел из чата :(");
