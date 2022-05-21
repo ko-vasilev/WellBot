@@ -44,6 +44,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WellBot.Infrastructure.DataAccess\WellBot.Infrastructure.DataAccess.csproj" />
+    <ProjectReference Include="..\WellBot.Infrastructure\WellBot.Infrastructure.csproj" />
     <ProjectReference Include="..\WellBot.UseCases\WellBot.UseCases.csproj" />
   </ItemGroup>
 

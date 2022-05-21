@@ -10,6 +10,9 @@
     "AppDatabase": "Server={{databaseHost}};Database={{database}};Uid={{databaseUser}};Pwd={{databasePassword}};"
   },
   "Application": {
+    "BotToken": "{{botToken}}",
+    "HostAddress": "{{hostAddress}}",
+    "SerpApiKey": "{{serpApiKey}}"
   },
   "Jwt": {
     "SecretKey": "{{jwtSecretKey}}",

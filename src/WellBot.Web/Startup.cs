@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using WellBot.Infrastructure;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.Infrastructure.DataAccess;
 using WellBot.Web.Controllers;
