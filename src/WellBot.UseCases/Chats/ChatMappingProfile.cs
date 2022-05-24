@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using WellBot.Domain.Chats.Entities;
+using WellBot.UseCases.Chats.AutomaticMessages.GetAutomaticMessages;
 using WellBot.UseCases.Chats.Data.SearchData;
 using WellBot.UseCases.Chats.Pidor.GetPidorGameMessages;
 using WellBot.UseCases.Chats.Topics.GetTopicList;
@@ -22,6 +23,8 @@ namespace WellBot.UseCases.Chats
             CreateMap<PassiveTopic, TopicDto>();
             CreateMap<UpsertTopicCommand, PassiveTopic>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<AutomaticMessageTemplate, AutomaticMessageDto>();
         }
     }
 }

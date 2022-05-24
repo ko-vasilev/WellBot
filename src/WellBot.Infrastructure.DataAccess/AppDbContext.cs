@@ -42,6 +42,9 @@ namespace WellBot.Infrastructure.DataAccess
         /// <inheritdoc />
         public DbSet<PassiveTopic> PassiveTopics { get; protected set; }
 
+        /// <inheritdoc />
+        public DbSet<AutomaticMessageTemplate> AutomaticMessageTemplates { get; protected set; }
+
         #endregion
 
         /// <summary>
