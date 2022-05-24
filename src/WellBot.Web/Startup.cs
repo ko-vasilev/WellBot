@@ -10,11 +10,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using WellBot.Infrastructure;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.Infrastructure.DataAccess;
 using WellBot.Web.Controllers;
 using WellBot.Web.Infrastructure.Middlewares;
+using WellBot.Web.Infrastructure.RecurringJobs;
 using WellBot.Web.Infrastructure.Settings;
 using WellBot.Web.Infrastructure.Startup;
 using WellBot.Web.Infrastructure.Telegram;
@@ -89,6 +89,7 @@ namespace WellBot.Web
             services.AddDbContext<AppDbContext>(
                 new DbContextOptionsSetup(configuration.GetConnectionString("AppDatabase")).Setup);
             services.AddAsyncInitializer<DatabaseInitializer>();
+            services.AddAsyncInitializer<RecurringJobInitializer>();
 
             // Logging.
             services.AddLogging(new LoggingOptionsSetup(configuration, environment).Setup);
