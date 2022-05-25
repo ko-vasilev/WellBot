@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using WellBot.UseCases.Chats.AutomaticMessages.SendAutomaticMessages;
 
 namespace WellBot.Web.Infrastructure.RecurringJobs
@@ -12,13 +13,15 @@ namespace WellBot.Web.Infrastructure.RecurringJobs
     public class SendAutomaticMessages
     {
         private readonly IMediator mediator;
+        private readonly ILogger<SendAutomaticMessages> logger;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public SendAutomaticMessages(IMediator mediator)
+        public SendAutomaticMessages(IMediator mediator, ILogger<SendAutomaticMessages> logger)
         {
             this.mediator = mediator;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -31,10 +34,12 @@ namespace WellBot.Web.Infrastructure.RecurringJobs
             const int startTimeHour = 9 - 4;
             const int endTimeHour = 22 - 4;
 
-            var shouldTrySend = DateTime.UtcNow.Hour >= startTimeHour
-                && DateTime.UtcNow.Hour < endTimeHour;
+            var currentHour = DateTime.UtcNow.Hour;
+            var shouldTrySend = currentHour >= startTimeHour
+                && currentHour < endTimeHour;
             if (!shouldTrySend)
             {
+                logger.LogInformation("Skipping automatic messages send, current hour is {hour}", currentHour);
                 return;
             }
 

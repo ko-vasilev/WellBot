@@ -45,6 +45,7 @@ namespace WellBot.UseCases.Chats.AutomaticMessages.SendAutomaticMessages
                 .Where(m => m.LastTriggeredDate.Date < currentDay)
                 .ToListAsync(cancellationToken);
 
+            logger.LogDebug("{count} potential messages to be processed", messagesToHandle.Count);
             foreach (var messageTemplate in messagesToHandle)
             {
                 var interval = Cronos.CronExpression.Parse(messageTemplate.CronInterval);
@@ -53,9 +54,11 @@ namespace WellBot.UseCases.Chats.AutomaticMessages.SendAutomaticMessages
                 var nextOccurrence = interval.GetNextOccurrence(lastTriggeredDateUtc);
                 if (nextOccurrence > now)
                 {
+                    logger.LogDebug("Next occurrence should be on {nextDate}, skipping", nextOccurrence);
                     continue;
                 }
 
+                logger.LogInformation("Starting sending messages for template {templateId}", messageTemplate.Id);
                 await SendMessageAsync(messageTemplate, cancellationToken);
 
                 // Save the fact that we have sent the message right away
