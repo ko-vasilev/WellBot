@@ -17,6 +17,8 @@
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
     <PackageReference Include="Bogus" Version="33.1.1" />
     <PackageReference Include="Extensions.Hosting.AsyncInitialization" Version="1.0.0" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.29" />
+    <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.1.0" />
     <PackageReference Include="McMaster.Extensions.Hosting.CommandLine" Version="3.1.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
@@ -44,6 +46,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WellBot.Infrastructure.DataAccess\WellBot.Infrastructure.DataAccess.csproj" />
+    <ProjectReference Include="..\WellBot.Infrastructure\WellBot.Infrastructure.csproj" />
     <ProjectReference Include="..\WellBot.UseCases\WellBot.UseCases.csproj" />
   </ItemGroup>
 

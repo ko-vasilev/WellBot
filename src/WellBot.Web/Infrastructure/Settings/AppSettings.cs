@@ -1,6 +1,4 @@
-﻿using WellBot.Infrastructure.Abstractions.Interfaces;
-
-namespace WellBot.Web.Infrastructure.Settings
+﻿namespace WellBot.Web.Infrastructure.Settings
 {
     /// <summary>
     /// Global application settings.
@@ -19,5 +17,10 @@ namespace WellBot.Web.Infrastructure.Settings
 
         /// <inheritdoc />
         public int RegularPassiveRepliesProbability { get; init; }
+
+        /// <summary>
+        /// API key for the SerpApi service.
+        /// </summary>
+        public string SerpApiKey { get; set; }
     }
 }

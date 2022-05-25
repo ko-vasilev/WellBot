@@ -66,6 +66,11 @@ namespace WellBot.Infrastructure.Abstractions.Interfaces
         /// </summary>
         DbSet<PassiveTopic> PassiveTopics { get; }
 
+        /// <summary>
+        /// Message templates that should be sent automatically.
+        /// </summary>
+        DbSet<AutomaticMessageTemplate> AutomaticMessageTemplates { get; }
+
         #endregion
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28922.388
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WellBot.Web", "WellBot.Web\WellBot.Web.csproj", "{6C6191EC-1B95-4DC8-9337-F088883FFA34}"
 EndProject
@@ -32,6 +32,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		..\tools\Saritasa.ruleset = ..\tools\Saritasa.ruleset
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WellBot.Infrastructure", "WellBot.Infrastructure\WellBot.Infrastructure.csproj", "{18BD0654-A70E-4765-B941-2F411A8298DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +73,10 @@ Global
 		{B87930A4-EDC4-406D-98C4-A7BF6D51937D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B87930A4-EDC4-406D-98C4-A7BF6D51937D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B87930A4-EDC4-406D-98C4-A7BF6D51937D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18BD0654-A70E-4765-B941-2F411A8298DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18BD0654-A70E-4765-B941-2F411A8298DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18BD0654-A70E-4765-B941-2F411A8298DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18BD0654-A70E-4765-B941-2F411A8298DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -84,6 +90,7 @@ Global
 		{BA8C190E-6B6B-4F21-AD82-6CAF7B594D47} = {21047DCA-64CC-4BC4-8552-8AE58285CCB1}
 		{30B19478-60CF-4A1E-8FD7-85D44E88584C} = {21047DCA-64CC-4BC4-8552-8AE58285CCB1}
 		{B87930A4-EDC4-406D-98C4-A7BF6D51937D} = {BA4CB6D2-CEB4-4110-B2CF-410C91B6669F}
+		{18BD0654-A70E-4765-B941-2F411A8298DE} = {E7349FE4-516E-473E-97A7-A9AEF627BE2D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AD26F89F-7744-4A57-885E-864E7B7BA0F1}
