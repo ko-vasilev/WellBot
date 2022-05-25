@@ -30,8 +30,8 @@ namespace WellBot.Web.Infrastructure.RecurringJobs
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task SendAsync(CancellationToken cancellationToken)
         {
-            // Send messages only from 9:00 through 21:00 in GMT+4
-            const int startTimeHour = 9 - 4;
+            // Send messages only from 10:00 through 21:00 in GMT+4
+            const int startTimeHour = 10 - 4;
             const int endTimeHour = 22 - 4;
 
             var currentHour = DateTime.UtcNow.Hour;
