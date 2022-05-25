@@ -28,7 +28,7 @@ namespace WellBot.Web.Infrastructure.RecurringJobs
         /// <inheritdoc />
         public async Task InitializeAsync()
         {
-            recurringJobManager.AddOrUpdate<SendAutomaticMessages>(SendAutomaticMessagesJobId, job => job.SendAsync(CancellationToken.None), Cron.Minutely);
+            recurringJobManager.AddOrUpdate<SendAutomaticMessages>(SendAutomaticMessagesJobId, job => job.SendAsync(CancellationToken.None), Cron.Hourly);
 
             recurringJobManager.Trigger(SendAutomaticMessagesJobId);
         }

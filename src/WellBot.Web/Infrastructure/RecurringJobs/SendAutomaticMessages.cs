@@ -1,7 +1,8 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Types;
+using MediatR;
+using WellBot.UseCases.Chats.AutomaticMessages.SendAutomaticMessages;
 
 namespace WellBot.Web.Infrastructure.RecurringJobs
 {
@@ -10,12 +11,15 @@ namespace WellBot.Web.Infrastructure.RecurringJobs
     /// </summary>
     public class SendAutomaticMessages
     {
-        private readonly ITelegramBotClient telegramBotClient;
+        private readonly IMediator mediator;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public SendAutomaticMessages(ITelegramBotClient telegramBotClient) => this.telegramBotClient = telegramBotClient;
+        public SendAutomaticMessages(IMediator mediator)
+        {
+            this.mediator = mediator;
+        }
 
         /// <summary>
         /// Send messages.
@@ -23,7 +27,18 @@ namespace WellBot.Web.Infrastructure.RecurringJobs
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task SendAsync(CancellationToken cancellationToken)
         {
-            await telegramBotClient.SendTextMessageAsync(new ChatId(-1001568355052), "test", cancellationToken: cancellationToken);
+            // Send messages only from 9:00 through 21:00 in GMT+4
+            const int startTimeHour = 9 - 4;
+            const int endTimeHour = 22 - 4;
+
+            var shouldTrySend = DateTime.UtcNow.Hour >= startTimeHour
+                && DateTime.UtcNow.Hour < endTimeHour;
+            if (!shouldTrySend)
+            {
+                return;
+            }
+
+            await mediator.Send(new SendAutomaticMessagesCommand(), cancellationToken);
         }
     }
 }

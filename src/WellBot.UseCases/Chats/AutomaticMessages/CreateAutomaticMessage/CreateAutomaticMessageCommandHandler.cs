@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Saritasa.Tools.Domain.Exceptions;
 using WellBot.Domain.Chats.Entities;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
@@ -25,12 +26,22 @@ namespace WellBot.UseCases.Chats.AutomaticMessages.CreateAutomaticMessage
         /// <inheritdoc/>
         public async Task<int> Handle(CreateAutomaticMessageCommand request, CancellationToken cancellationToken)
         {
+            // Validate the Cron format
+            try
+            {
+                Cronos.CronExpression.Parse(request.CronInterval);
+            }
+            catch (Cronos.CronFormatException ex)
+            {
+                throw new ValidationException($"Invalid Cron format in field {nameof(request.CronInterval)}", ex);
+            }
+
             var messageTemplate = new AutomaticMessageTemplate()
             {
                 ChatId = request.ChatId,
                 CronInterval = request.CronInterval,
                 ImageSearchQuery = request.ImageSearchQuery,
-                LastTriggeredDate = DateTime.MinValue,
+                LastTriggeredDate = request.RunFrom,
                 Message = request.Message,
             };
             dbContext.AutomaticMessageTemplates.Add(messageTemplate);

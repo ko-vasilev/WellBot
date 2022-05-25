@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using System;
+using MediatR;
 using WellBot.Domain.Chats.Entities;
 
 namespace WellBot.UseCases.Chats.AutomaticMessages.CreateAutomaticMessage
@@ -19,5 +20,10 @@ namespace WellBot.UseCases.Chats.AutomaticMessages.CreateAutomaticMessage
 
         /// <inheritdoc cref="AutomaticMessageTemplate.CronInterval"/>
         public string CronInterval { get; set; }
+
+        /// <summary>
+        /// Time after which the job should start running.
+        /// </summary>
+        public DateTime RunFrom { get; set; }
     }
 }

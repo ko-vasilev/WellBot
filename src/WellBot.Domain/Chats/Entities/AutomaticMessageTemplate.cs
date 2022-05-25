@@ -40,6 +40,6 @@ namespace WellBot.Domain.Chats.Entities
         /// <summary>
         /// When the last time this message was sent.
         /// </summary>
-        public DateTime LastTriggeredDate { get; set; } = DateTime.MinValue;
+        public DateTime LastTriggeredDate { get; set; }
     }
 }
