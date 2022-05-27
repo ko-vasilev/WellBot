@@ -52,7 +52,7 @@ namespace WellBot.UseCases.Chats.AutomaticMessages.SendAutomaticMessages
                 // Check if the job should have run between the last time it ran and current day.
                 var lastTriggeredDateUtc = new DateTime(messageTemplate.LastTriggeredDate.Ticks, DateTimeKind.Utc);
                 var nextOccurrence = interval.GetNextOccurrence(lastTriggeredDateUtc);
-                if (nextOccurrence > now)
+                if (nextOccurrence == null || nextOccurrence > now)
                 {
                     logger.LogDebug("Next occurrence should be on {nextDate}, skipping", nextOccurrence);
                     continue;
@@ -63,7 +63,7 @@ namespace WellBot.UseCases.Chats.AutomaticMessages.SendAutomaticMessages
 
                 // Save the fact that we have sent the message right away
                 // In case if there are errors in sending next messages
-                messageTemplate.LastTriggeredDate = DateTime.UtcNow;
+                messageTemplate.LastTriggeredDate = now;
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
         }
