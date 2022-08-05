@@ -103,10 +103,16 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     }
                 }
 
-                await mediator.Publish(new MessageNotification
+                // Fire and forget for the notification.
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                Task.Run(() =>
                 {
-                    Message = request.Action.Message
+                    mediator.Publish(new MessageNotification
+                    {
+                        Message = request.Action.Message
+                    }, cancellationToken);
                 }, cancellationToken);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
             catch (Exception ex)
             {

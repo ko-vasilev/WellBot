@@ -28,6 +28,7 @@ namespace WellBot.Web.Infrastructure.DependencyInjection
             services.AddScoped<ILoggedUserAccessor, LoggedUserAccessor>();
 
             services.AddScoped<IImageSearcher, GoogleImageSearcher>();
+            services.AddTransient<IVideoConverter, VideoConverter>();
             services.AddTransient<GoogleImageSearcherSettings>(serviceProvider =>
             {
                 var settings = serviceProvider.GetRequiredService<IOptions<AppSettings>>();

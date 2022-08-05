@@ -90,6 +90,7 @@ namespace WellBot.Web
                 new DbContextOptionsSetup(configuration.GetConnectionString("AppDatabase")).Setup);
             services.AddAsyncInitializer<DatabaseInitializer>();
             services.AddAsyncInitializer<RecurringJobInitializer>();
+            services.AddAsyncInitializer<VideoConversionInitializer>();
 
             // Logging.
             services.AddLogging(new LoggingOptionsSetup(configuration, environment).Setup);
