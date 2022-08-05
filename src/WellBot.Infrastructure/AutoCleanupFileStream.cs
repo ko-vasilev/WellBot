@@ -54,6 +54,7 @@ namespace WellBot.Infrastructure
             base.Dispose(disposing);
             if (disposing)
             {
+                fileStream.Dispose();
                 File.Delete(filePath);
             }
         }
