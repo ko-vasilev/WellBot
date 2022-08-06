@@ -42,7 +42,7 @@ namespace WellBot.Infrastructure
 
                 logger.LogInformation("Starting conversion");
                 var conversion = await FFmpeg.Conversions.FromSnippet.ToMp4(mediaFilePath, mp4FilePath);
-                conversion.OnProgress += (sender, args) => logger.LogInformation("Conversion progress {percent}%", args.Percent);
+                conversion.OnProgress += (sender, args) => logger.LogDebug("Conversion progress {percent}%", args.Percent);
                 var result = await conversion.Start(cancellationToken);
                 logger.LogInformation("Finished conversion in {duration}", result.Duration);
 
