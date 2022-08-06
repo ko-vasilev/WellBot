@@ -103,16 +103,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                     }
                 }
 
-                // Fire and forget for the notification.
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                Task.Run(() =>
-                {
-                    mediator.Publish(new MessageNotification
-                    {
-                        Message = request.Action.Message
-                    }, cancellationToken);
-                }, cancellationToken);
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                HandleMessageNotification(request.Action.Message);
             }
             catch (Exception ex)
             {
@@ -319,6 +310,25 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
                 default:
                     return null;
             }
+        }
+
+        private void HandleMessageNotification(Message message)
+        {
+            // Fire and forget for the notification.
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await mediator.Publish(new MessageNotification
+                    {
+                        Message = message
+                    });
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error sending message notification");
+                }
+            });
         }
     }
 }
