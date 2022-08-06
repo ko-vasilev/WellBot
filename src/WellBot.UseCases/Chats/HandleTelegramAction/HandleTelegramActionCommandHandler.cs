@@ -52,7 +52,8 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             ILogger<HandleTelegramActionCommandHandler> logger,
             TelegramMessageService telegramMessageService,
             MemeChannelService memeChannelService,
-            Lazy<IAppDbContext> dbContext)
+            Lazy<IAppDbContext> dbContext,
+            IServiceScopeFactory serviceScopeFactory)
         {
             this.botClient = botClient;
             this.telegramBotSettings = telegramBotSettings;
@@ -61,6 +62,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
             this.telegramMessageService = telegramMessageService;
             this.memeChannelService = memeChannelService;
             this.dbContext = dbContext;
+            this.serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <inheritdoc/>
