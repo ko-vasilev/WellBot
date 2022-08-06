@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -39,6 +40,7 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
         private readonly TelegramMessageService telegramMessageService;
         private readonly MemeChannelService memeChannelService;
         private readonly Lazy<IAppDbContext> dbContext;
+        private readonly IServiceScopeFactory serviceScopeFactory;
 
         /// <summary>
         /// Constructor.
@@ -314,19 +316,26 @@ namespace WellBot.UseCases.Chats.HandleTelegramAction
 
         private void HandleMessageNotification(Message message)
         {
+            // TODO: ideally this logic should be encapsulated in a separate class.
             // Fire and forget for the notification.
+            var serviceScope = serviceScopeFactory.CreateScope();
             Task.Run(async () =>
             {
-                try
+                using (serviceScope)
                 {
-                    await mediator.Publish(new MessageNotification
+                    var mediator = serviceScope.ServiceProvider.GetRequiredService<IMediator>();
+                    var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<HandleTelegramActionCommandHandler>>();
+                    try
                     {
-                        Message = message
-                    });
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Error sending message notification");
+                        await mediator.Publish(new MessageNotification
+                        {
+                            Message = message
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Error sending message notification");
+                    }
                 }
             });
         }
