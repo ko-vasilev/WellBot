@@ -216,7 +216,12 @@ namespace WellBot.UseCases.Chats
 
                 if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.TextLink)
                 {
-                    var link = formatEntity.Url ?? "{0}";
+                    var link = "{0}";
+                    if (formatEntity.Url != null)
+                    {
+                        // Escape curly braces to avoid string.Format exception
+                        link = formatEntity.Url.Replace("{", "{{").Replace("}", "}}");
+                    }
                     AddTextMarkup($"<a href=\"{link}\">{{0}}</a>", formatEntity.Offset, formatEntity.Length);
                     continue;
                 }
