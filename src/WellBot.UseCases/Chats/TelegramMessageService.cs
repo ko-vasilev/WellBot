@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using WellBot.Domain.Chats.Entities;
@@ -16,14 +17,16 @@ namespace WellBot.UseCases.Chats
     {
         private readonly ITelegramBotClient botClient;
         private readonly RandomService randomService;
+        private readonly ILogger<TelegramMessageService> logger;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public TelegramMessageService(ITelegramBotClient botClient, RandomService randomService)
+        public TelegramMessageService(ITelegramBotClient botClient, RandomService randomService, ILogger<TelegramMessageService> logger)
         {
             this.botClient = botClient;
             this.randomService = randomService;
+            this.logger = logger;
         }
 
         private static readonly string[] successReplies = new string[]
@@ -163,6 +166,7 @@ namespace WellBot.UseCases.Chats
             void AddTextMarkup(string format, int startPosition, int length)
             {
                 var textPart = text.Substring(startPosition, length);
+                logger.LogDebug("Applying markup {0} to text {1}", format, textPart);
                 var newText = string.Format(format, HttpUtility.HtmlEncode(textPart));
 
                 text = text.Substring(0, startPosition)
