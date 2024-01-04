@@ -51,52 +51,56 @@ namespace WellBot.UseCases.Chats.Pidor.PidorStats
                 return;
             }
 
-            string message = "Топ за текущий год:";
-            if (stats.IsAll)
-            {
-                message = "Топ за всё время:";
-            }
+            string message = stats.IntroMessage;
             var statsData = topUsers.Select(user => new
             {
                 Victories = user.VictoriesCount,
                 User = gameParticipants.First(p => p.PidorRegistration.TelegramUserId == user.TelegramUserId)
             });
-            message += "\n" + string.Join('\n', statsData.Select((u, index) => $"#{index + 1} - {telegramMessageService.GetUserFullName(u.User.User)} ({u.Victories}-кратный пидор)"));
+            message += "\n"
+                + string.Join('\n', statsData.Select((u, index) =>
+                {
+                    var userName = telegramMessageService.GetUserFullName(u.User.User);
+                    return $"#{index + 1} - {userName} ({u.Victories}-кратный пидор)";
+                }));
 
             await botClient.SendTextMessageAsync(request.ChatId, message);
         }
 
-        private async Task<(IEnumerable<UserGameStats> Stats, bool IsAll)> GetUserStats(IList<long> telegramUserIds, string argument, CancellationToken cancellationToken)
+        private async Task<(IEnumerable<UserGameStats> Stats, string IntroMessage)> GetUserStats(IList<long> telegramUserIds, string argument, CancellationToken cancellationToken)
         {
-            bool getAllStats = string.Equals(argument, "all", System.StringComparison.InvariantCultureIgnoreCase);
+            argument = (argument ?? string.Empty).Trim();
             var filteredUsers = dbContext.PidorRegistrations
                 .Where(r => r.ChatId == currentChatService.ChatId)
                 .Where(r => telegramUserIds.Contains(r.TelegramUserId));
-            IEnumerable<UserGameStats> stats;
-            if (getAllStats)
+            if (argument.Equals("all", System.StringComparison.InvariantCultureIgnoreCase))
             {
-                stats = await filteredUsers.Select(u => new UserGameStats
+                var globalStats = await filteredUsers.Select(u => new UserGameStats
                 {
                     TelegramUserId = u.TelegramUserId,
                     VictoriesCount = u.Wins.Count
                 })
                     .ToListAsync(cancellationToken);
+                return (globalStats, "Топ за всё время:");
             }
-            else
+
+            var year = pidorGameService.GetCurrentGameDay().Year;
+            var introMessage = "Топ за текущий год:";
+            if (int.TryParse(argument, out var paramYear))
             {
-
-                var currentDay = pidorGameService.GetCurrentGameDay();
-                stats = await filteredUsers.Select(u => new UserGameStats
-                {
-                    TelegramUserId = u.TelegramUserId,
-                    VictoriesCount = u.Wins
-                        .Where(w => w.GameDay.Year == currentDay.Year)
-                        .Count()
-                })
-                    .ToListAsync(cancellationToken);
+                year = paramYear;
+                introMessage = $"Топ за {year} год:";
             }
+            var stats = await filteredUsers.Select(u => new UserGameStats
+            {
+                TelegramUserId = u.TelegramUserId,
+                VictoriesCount = u.Wins
+                    .Where(w => w.GameDay.Year == year)
+                    .Count()
+            })
+                .ToListAsync(cancellationToken);
 
-            return (stats, getAllStats);
+            return (stats, introMessage);
         }
 
         private class UserGameStats
