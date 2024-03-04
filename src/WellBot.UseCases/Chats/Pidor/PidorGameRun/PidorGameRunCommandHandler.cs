@@ -41,7 +41,7 @@ internal class PidorGameRunCommandHandler : AsyncRequestHandler<PidorGameRunComm
             .FirstOrDefaultAsync(p => p.ChatId == currentChatService.ChatId);
         if (selectedPidor != null)
         {
-            var user = await pidorGameService.GetPidorMemberAsync(request.ChatId, selectedPidor.Registration.TelegramUserId, cancellationToken);
+            var user = await pidorGameService.GetPidorMemberAsync(request.ChatId, selectedPidor.Registration!.TelegramUserId, cancellationToken);
             if (user == null)
             {
                 await botClient.SendTextMessageAsync(request.ChatId, "Пидор дня вышел из чата :(");
@@ -123,7 +123,7 @@ internal class PidorGameRunCommandHandler : AsyncRequestHandler<PidorGameRunComm
     {
         public int Id { get; init; }
 
-        public string MessageRaw { get; init; }
+        public required string MessageRaw { get; init; }
 
         public MessageWeight Weight { get; init; }
     }

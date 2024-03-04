@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,52 +6,55 @@ using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.RegularMessageHandles.Reply;
 
-namespace WellBot.UseCases.Chats.Topics.UpsertTopic
+namespace WellBot.UseCases.Chats.Topics.UpsertTopic;
+
+/// <summary>
+/// Handler for <see cref="UpsertTopicCommand"/>.
+/// </summary>
+internal class UpsertTopicCommandHandler : IRequestHandler<UpsertTopicCommand, int>
 {
-    /// <summary>
-    /// Handler for <see cref="UpsertTopicCommand"/>.
-    /// </summary>
-    internal class UpsertTopicCommandHandler : IRequestHandler<UpsertTopicCommand, int>
+    private readonly IAppDbContext dbContext;
+    private readonly IMapper mapper;
+    private readonly PassiveTopicService passiveTopicService;
+
+    public UpsertTopicCommandHandler(IAppDbContext dbContext, IMapper mapper, PassiveTopicService passiveTopicService)
     {
-        private readonly IAppDbContext dbContext;
-        private readonly IMapper mapper;
-        private readonly PassiveTopicService passiveTopicService;
+        this.dbContext = dbContext;
+        this.mapper = mapper;
+        this.passiveTopicService = passiveTopicService;
+    }
 
-        public UpsertTopicCommandHandler(IAppDbContext dbContext, IMapper mapper, PassiveTopicService passiveTopicService)
+    /// <inheritdoc/>
+    public async Task<int> Handle(UpsertTopicCommand request, CancellationToken cancellationToken)
+    {
+        PassiveTopic? topic;
+        if (request.Id != null)
         {
-            this.dbContext = dbContext;
-            this.mapper = mapper;
-            this.passiveTopicService = passiveTopicService;
+            topic = await dbContext.PassiveTopics.FirstOrDefaultAsync(t => t.Id == request.Id.Value, cancellationToken);
+            if (topic == null)
+            {
+                throw new NotFoundException();
+            }
+        }
+        else
+        {
+            topic = new PassiveTopic()
+            {
+                Name = request.Name,
+                Regex = request.Regex
+            };
+            dbContext.PassiveTopics.Add(topic);
         }
 
-        /// <inheritdoc/>
-        public async Task<int> Handle(UpsertTopicCommand request, CancellationToken cancellationToken)
-        {
-            PassiveTopic topic;
-            if (request.Id != null)
-            {
-                topic = await dbContext.PassiveTopics.FirstOrDefaultAsync(t => t.Id == request.Id.Value, cancellationToken);
-                if (topic == null)
-                {
-                    throw new NotFoundException();
-                }
-            }
-            else
-            {
-                topic = new PassiveTopic();
-                dbContext.PassiveTopics.Add(topic);
-            }
+        mapper.Map(request, topic);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-            mapper.Map(request, topic);
-            await dbContext.SaveChangesAsync(cancellationToken);
+        // Update topics cache.
+        var allTopics = await dbContext.PassiveTopics
+            .AsNoTracking()
+            .ToListAsync();
+        passiveTopicService.Update(allTopics);
 
-            // Update topics cache.
-            var allTopics = await dbContext.PassiveTopics
-                .AsNoTracking()
-                .ToListAsync();
-            passiveTopicService.Update(allTopics);
-
-            return topic.Id;
-        }
+        return topic.Id;
     }
 }

@@ -1,80 +1,80 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Saritasa.Tools.Domain.Exceptions;
 using WellBot.Domain.Users;
 
-namespace WellBot.UseCases.Users.AuthenticateUser
+namespace WellBot.UseCases.Users.AuthenticateUser;
+
+/// <summary>
+/// Handler for <see cref="LoginUserCommand" />.
+/// </summary>
+internal class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginUserCommandResult>
 {
+    private readonly SignInManager<User> signInManager;
+    private readonly IAuthenticationTokenService tokenService;
+    private readonly ILogger<LoginUserCommandHandler> logger;
+
     /// <summary>
-    /// Handler for <see cref="LoginUserCommand" />.
+    /// Constructor.
     /// </summary>
-    internal class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginUserCommandResult>
+    /// <param name="signInManager">Sign in manager.</param>
+    /// <param name="tokenService">Token service.</param>
+    /// <param name="logger">Logger.</param>
+    public LoginUserCommandHandler(
+        SignInManager<User> signInManager,
+        IAuthenticationTokenService tokenService,
+        ILogger<LoginUserCommandHandler> logger)
     {
-        private readonly SignInManager<User> signInManager;
-        private readonly IAuthenticationTokenService tokenService;
-        private readonly ILogger<LoginUserCommandHandler> logger;
+        this.signInManager = signInManager;
+        this.tokenService = tokenService;
+        this.logger = logger;
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="signInManager">Sign in manager.</param>
-        /// <param name="tokenService">Token service.</param>
-        /// <param name="logger">Logger.</param>
-        public LoginUserCommandHandler(
-            SignInManager<User> signInManager,
-            IAuthenticationTokenService tokenService,
-            ILogger<LoginUserCommandHandler> logger)
+    /// <inheritdoc />
+    public async Task<LoginUserCommandResult> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+    {
+        // Password sign in.
+        var result = await signInManager.PasswordSignInAsync(request.Email, request.Password,
+            lockoutOnFailure: false, isPersistent: request.RememberMe);
+        ValidateSignInResult(result, request.Email);
+
+        // Get user and log.
+        var user = await signInManager.UserManager.FindByEmailAsync(request.Email);
+        if (user == null)
         {
-            this.signInManager = signInManager;
-            this.tokenService = tokenService;
-            this.logger = logger;
+            throw new NotFoundException($"User with email {request.Email} not found.");
         }
+        logger.LogInformation("User with email {email} has logged in.", user.Email);
 
-        /// <inheritdoc />
-        public async Task<LoginUserCommandResult> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+        // Update last login date.
+        user.LastLogin = DateTime.UtcNow;
+        await signInManager.UserManager.UpdateAsync(user);
+
+        // Combine refresh token with user id.
+        var principal = await signInManager.CreateUserPrincipalAsync(user);
+
+        // Give token.
+        return new LoginUserCommandResult
         {
-            // Password sign in.
-            var result = await signInManager.PasswordSignInAsync(request.Email, request.Password,
-                lockoutOnFailure: false, isPersistent: request.RememberMe);
-            ValidateSignInResult(result, request.Email);
+            UserId = user.Id,
+            TokenModel = TokenModelGenerator.Generate(tokenService, principal.Claims)
+        };
+    }
 
-            // Get user and log.
-            var user = await signInManager.UserManager.FindByEmailAsync(request.Email);
-            logger.LogInformation("User with email {email} has logged in.", user.Email);
-
-            // Update last login date.
-            user.LastLogin = DateTime.UtcNow;
-            await signInManager.UserManager.UpdateAsync(user);
-
-            // Combine refresh token with user id.
-            var principal = await signInManager.CreateUserPrincipalAsync(user);
-
-            // Give token.
-            return new LoginUserCommandResult
-            {
-                UserId = user.Id,
-                TokenModel = TokenModelGenerator.Generate(tokenService, principal.Claims)
-            };
-        }
-
-        private void ValidateSignInResult(SignInResult signInResult, string email)
+    private void ValidateSignInResult(SignInResult signInResult, string email)
+    {
+        if (!signInResult.Succeeded)
         {
-            if (!signInResult.Succeeded)
+            if (signInResult.IsNotAllowed)
             {
-                if (signInResult.IsNotAllowed)
-                {
-                    throw new DomainException($"User {email} is not allowed to Sign In.");
-                }
-                if (signInResult.IsLockedOut)
-                {
-                    throw new DomainException($"User {email} is locked out.");
-                }
-                throw new DomainException("Email or password is incorrect.");
+                throw new DomainException($"User {email} is not allowed to Sign In.");
             }
+            if (signInResult.IsLockedOut)
+            {
+                throw new DomainException($"User {email} is locked out.");
+            }
+            throw new DomainException("Email or password is incorrect.");
         }
     }
 }

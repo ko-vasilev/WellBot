@@ -67,7 +67,7 @@ internal class SetChatDataCommandHandler : AsyncRequestHandler<SetChatDataComman
         if (message.Type != MessageType.Text)
         {
             var dataType = telegramMessageService.GetFile(message, out var attachedDocument);
-            if (dataType == null)
+            if (dataType == null || attachedDocument == null)
             {
                 await botClient.SendTextMessageAsync(request.ChatId, $"Не поддерживаемый формат сообщения");
                 return;
@@ -84,8 +84,8 @@ internal class SetChatDataCommandHandler : AsyncRequestHandler<SetChatDataComman
     {
         if (string.IsNullOrWhiteSpace(arguments))
         {
-            key = null;
-            remainder = null;
+            key = string.Empty;
+            remainder = string.Empty;
             return false;
         }
 

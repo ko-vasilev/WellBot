@@ -12,12 +12,12 @@ public record AddPidorGameMessageCommand : IRequest<Unit>
     /// Message to show. Separated by <see cref="PidorMessage.MessagesSeparator"/>.
     /// Use <see cref="PidorMessage.UsernamePlaceholder"/> where you want to mention the chosen pidor user.
     /// </summary>
-    public string Message { get; init; }
+    public required string Message { get; init; }
 
     /// <summary>
     /// Optional name of the user. The message will only be used when this user is chosen as a pidor.
     /// </summary>
-    public string TelegramUserName { get; init; }
+    public required string TelegramUserName { get; init; }
 
     /// <summary>
     /// Optional date. Will be used only when on this month/day.

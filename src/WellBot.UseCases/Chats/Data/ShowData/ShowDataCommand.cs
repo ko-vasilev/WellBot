@@ -11,12 +11,12 @@ public class ShowDataCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the associated chat.
     /// </summary>
-    public ChatId ChatId { get; init; }
+    public required ChatId ChatId { get; init; }
 
     /// <summary>
     /// Data key.
     /// </summary>
-    public string Key { get; init; }
+    public required string Key { get; init; }
 
     /// <summary>
     /// Id of the message sent by user.

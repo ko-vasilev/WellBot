@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-using MediatR;
+﻿using MediatR;
 
-namespace WellBot.UseCases.Chats.Pidor.GetPidorGameMessages
+namespace WellBot.UseCases.Chats.Pidor.GetPidorGameMessages;
+
+/// <summary>
+/// Get list of all pidor game messages.
+/// </summary>
+public class GetPidorGameMessagesCommand : IRequest<IEnumerable<PidorGameMessageDto>>
 {
-    /// <summary>
-    /// Get list of all pidor game messages.
-    /// </summary>
-    public class GetPidorGameMessagesCommand : IRequest<IEnumerable<PidorGameMessageDto>>
-    {
-    }
 }

@@ -58,8 +58,11 @@ internal class PidorListCommandHandler : AsyncRequestHandler<PidorListCommand>
             }
 
             var user = await dbContext.PidorRegistrations.FirstOrDefaultAsync(u => u.TelegramUserId == deleteUser.User.Id);
-            dbContext.PidorRegistrations.Remove(user);
-            await dbContext.SaveChangesAsync();
+            if (user != null)
+            {
+                dbContext.PidorRegistrations.Remove(user);
+                await dbContext.SaveChangesAsync();
+            }
             await telegramMessageService.SendSuccessAsync(request.ChatId);
             return;
         }
@@ -88,7 +91,7 @@ internal class PidorListCommandHandler : AsyncRequestHandler<PidorListCommand>
 
     private bool IsDeleteRequest(string arguments, out string deleteUsername)
     {
-        deleteUsername = null;
+        deleteUsername = string.Empty;
 
         if (string.IsNullOrEmpty(arguments))
         {

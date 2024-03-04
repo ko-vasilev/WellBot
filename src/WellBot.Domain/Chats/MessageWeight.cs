@@ -1,23 +1,22 @@
-﻿namespace WellBot.Domain.Chats
+﻿namespace WellBot.Domain.Chats;
+
+/// <summary>
+/// Weight of a single message to pick random message.
+/// </summary>
+public enum MessageWeight
 {
     /// <summary>
-    /// Weight of a single message to pick random message.
+    /// Normal weight.
     /// </summary>
-    public enum MessageWeight
-    {
-        /// <summary>
-        /// Normal weight.
-        /// </summary>
-        Normal = 0,
+    Normal = 0,
 
-        /// <summary>
-        /// High priority.
-        /// </summary>
-        High = 1,
+    /// <summary>
+    /// High priority.
+    /// </summary>
+    High = 1,
 
-        /// <summary>
-        /// Highest priority.
-        /// </summary>
-        Highest = 2
-    }
+    /// <summary>
+    /// Highest priority.
+    /// </summary>
+    Highest = 2
 }

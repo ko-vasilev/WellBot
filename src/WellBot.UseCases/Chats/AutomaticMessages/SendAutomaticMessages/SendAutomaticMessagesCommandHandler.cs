@@ -87,7 +87,7 @@ internal class SendAutomaticMessagesCommandHandler : AsyncRequestHandler<SendAut
             availableImages.Remove(image);
             try
             {
-                await botClient.SendPhotoAsync(messageTemplate.Chat.TelegramId,
+                await botClient.SendPhotoAsync(messageTemplate.Chat!.TelegramId,
                     new Telegram.Bot.Types.InputFiles.InputOnlineFile(image),
                     messageTemplate.Message,
                     Telegram.Bot.Types.Enums.ParseMode.Html,
@@ -105,7 +105,7 @@ internal class SendAutomaticMessagesCommandHandler : AsyncRequestHandler<SendAut
 
     private async Task SendTextMessageAsync(AutomaticMessageTemplate messageTemplate, CancellationToken cancellationToken)
     {
-        await botClient.SendTextMessageAsync(messageTemplate.Chat.TelegramId,
+        await botClient.SendTextMessageAsync(messageTemplate.Chat!.TelegramId,
             messageTemplate.Message,
             Telegram.Bot.Types.Enums.ParseMode.Html,
             cancellationToken: cancellationToken);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using Saritasa.Tools.Domain.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using WellBot.Web.Infrastructure.Settings;
@@ -36,7 +37,7 @@ public class TelegramWebhookInitializer : IHostedService
         var botClient = scope.ServiceProvider.GetRequiredService<ITelegramBotClient>();
 
         var bot = await botClient.GetMeAsync(cancellationToken);
-        telegramBotSettings.TelegramBotUsername = bot.Username;
+        telegramBotSettings.TelegramBotUsername = bot.Username ?? throw new DomainException("Cannot determine bot username");
 
         // Configure custom endpoint per Telegram API recommendations:
         // https://core.telegram.org/bots/api#setwebhook

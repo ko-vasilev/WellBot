@@ -11,10 +11,10 @@ public record AdminControlCommand : IRequest<Unit>
     /// <summary>
     /// Command arguments.
     /// </summary>
-    public string Arguments { get; init; }
+    public required string Arguments { get; init; }
 
     /// <summary>
     /// Telegram message.
     /// </summary>
-    public Message Message { get; init; }
+    public required Message Message { get; init; }
 }

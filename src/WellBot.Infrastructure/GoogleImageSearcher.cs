@@ -12,7 +12,7 @@ public class GoogleImageSearcherSettings
     /// <summary>
     /// API key for the SerpApi service.
     /// </summary>
-    public string ApiKey { get; set; }
+    public required string ApiKey { get; set; }
 }
 
 /// <summary>
@@ -60,15 +60,24 @@ public class GoogleImageSearcher : IImageSearcher
         var json = await result.Content.ReadAsStringAsync(cancellationToken);
 
         var images = System.Text.Json.JsonSerializer.Deserialize<SerpApiImageResponseDto>(json);
+        if (images?.Images == null)
+        {
+            return new ImagesSearchResult
+            {
+                Images = Enumerable.Empty<ImageData>()
+            };
+        }
 
         return new ImagesSearchResult
         {
-            Images = images.Images.Select(image => new ImageData
-            {
-                Source = image.Source,
-                Title = image.Title,
-                Url = image.Original
-            })
+            Images = images.Images
+                .Where(image => image.Original != null && image.Title != null)
+                .Select(image => new ImageData
+                {
+                    Source = image.Source,
+                    Title = image.Title!,
+                    Url = image.Original!
+                })
         };
     }
 }

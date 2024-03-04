@@ -20,14 +20,14 @@ public class CreateUser
     /// </summary>
     [Option("--email", Description = "User email for login.")]
     [Required]
-    public string Email { get; }
+    public required string Email { get; set; }
 
     /// <summary>
     /// Password.
     /// </summary>
     [Option("--password", Description = "Password.")]
     [Required]
-    public string Password { get; set; }
+    public required string Password { get; set; }
 
     /// <summary>
     /// Constructor.

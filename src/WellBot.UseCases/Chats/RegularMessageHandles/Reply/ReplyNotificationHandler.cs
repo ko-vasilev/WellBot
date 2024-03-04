@@ -1,103 +1,95 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
-namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply
-{
-    /// <summary>
-    /// Randomly replies to incoming messages.
-    /// </summary>
-    internal class ReplyNotificationHandler : INotificationHandler<MessageNotification>
-    {
-        private readonly RandomService randomService;
-        private readonly IAppDbContext dbContext;
-        private readonly ILogger<ReplyNotificationHandler> logger;
-        private readonly TelegramMessageService telegramMessageService;
-        private readonly PassiveTopicService passiveTopicService;
+namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply;
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public ReplyNotificationHandler(RandomService randomService, IAppDbContext dbContext, ILogger<ReplyNotificationHandler> logger, TelegramMessageService telegramMessageService, PassiveTopicService passiveTopicService)
+/// <summary>
+/// Randomly replies to incoming messages.
+/// </summary>
+internal class ReplyNotificationHandler : INotificationHandler<MessageNotification>
+{
+    private readonly RandomService randomService;
+    private readonly IAppDbContext dbContext;
+    private readonly ILogger<ReplyNotificationHandler> logger;
+    private readonly TelegramMessageService telegramMessageService;
+    private readonly PassiveTopicService passiveTopicService;
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public ReplyNotificationHandler(RandomService randomService, IAppDbContext dbContext, ILogger<ReplyNotificationHandler> logger, TelegramMessageService telegramMessageService, PassiveTopicService passiveTopicService)
+    {
+        this.randomService = randomService;
+        this.dbContext = dbContext;
+        this.logger = logger;
+        this.telegramMessageService = telegramMessageService;
+        this.passiveTopicService = passiveTopicService;
+    }
+
+    /// <inheritdoc />
+    public async Task Handle(MessageNotification notification, CancellationToken cancellationToken)
+    {
+        var message = notification.Message;
+        if (message == null || !ShouldReply(message, out var topics))
         {
-            this.randomService = randomService;
-            this.dbContext = dbContext;
-            this.logger = logger;
-            this.telegramMessageService = telegramMessageService;
-            this.passiveTopicService = passiveTopicService;
+            return;
         }
 
-        /// <inheritdoc />
-        public async Task Handle(MessageNotification notification, CancellationToken cancellationToken)
+        var topicIds = topics.ToList();
+        var allOptions = await dbContext.PassiveTopics
+            .Where(t => topicIds.Contains(t.Id))
+            .SelectMany(t => t.ReplyOptions)
+            .Distinct()
+            .Select(option => option.Id)
+            .ToListAsync(cancellationToken);
+        var maxRetriesCount = 5;
+        while (maxRetriesCount > 0)
         {
-            var message = notification.Message;
-            if (message == null || !ShouldReply(message, out var topics))
+            PassiveReplyOption? replyOption = null;
+            try
             {
+                var optionId = randomService.PickRandom(allOptions);
+                replyOption = await dbContext.PassiveReplyOptions
+                    .FirstAsync(opt => opt.Id == optionId, cancellationToken);
+                await telegramMessageService.SendMessageAsync(new Dtos.GenericMessage
+                {
+                    Text = replyOption.Text,
+                    FileId = replyOption.FileId,
+                    DataType = replyOption.DataType
+                },
+                message.Chat.Id,
+                message.MessageId);
+
                 return;
             }
-
-            var topicIds = topics.ToList();
-            var allOptions = await dbContext.PassiveTopics
-                .Where(t => topicIds.Contains(t.Id))
-                .SelectMany(t => t.ReplyOptions)
-                .Distinct()
-                .Select(option => option.Id)
-                .ToListAsync(cancellationToken);
-            var maxRetriesCount = 5;
-            while (maxRetriesCount > 0)
+            catch (Exception ex)
             {
-                PassiveReplyOption replyOption = null;
-                try
-                {
-                    var optionId = randomService.PickRandom(allOptions);
-                    replyOption = await dbContext.PassiveReplyOptions
-                        .FirstAsync(opt => opt.Id == optionId, cancellationToken);
-                    await telegramMessageService.SendMessageAsync(new Dtos.GenericMessage
-                    {
-                        Text = replyOption.Text,
-                        FileId = replyOption.FileId,
-                        DataType = replyOption.DataType
-                    },
-                    message.Chat.Id,
-                    message.MessageId);
-
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Error replying with message {reply}", replyOption);
-                }
-
-                --maxRetriesCount;
+                logger.LogWarning(ex, "Error replying with message {reply}", replyOption);
             }
-        }
 
-        private bool ShouldReply(Message message, out IEnumerable<int> topicIds)
+            --maxRetriesCount;
+        }
+    }
+
+    private bool ShouldReply(Message message, out IEnumerable<int> topicIds)
+    {
+        var topics = passiveTopicService.GetMatchingTopics(message);
+        topicIds = topics.Select(t => t.Id);
+
+        var highestProbabilityTopic = topics
+            .OrderBy(t => t.Probability)
+            .FirstOrDefault();
+        if (highestProbabilityTopic == null)
         {
-            var topics = passiveTopicService.GetMatchingTopics(message);
-            topicIds = topics.Select(t => t.Id);
-
-            var highestProbabilityTopic = topics
-                .OrderBy(t => t.Probability)
-                .FirstOrDefault();
-            if (highestProbabilityTopic == null)
-            {
-                return false;
-            }
-
-            var randomVal = randomService.GetRandom(highestProbabilityTopic.Probability);
-            var shouldReply = randomVal == 0;
-            return shouldReply;
+            return false;
         }
+
+        var randomVal = randomService.GetRandom(highestProbabilityTopic.Probability);
+        var shouldReply = randomVal == 0;
+        return shouldReply;
     }
 }

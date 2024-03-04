@@ -11,5 +11,5 @@ public record PidorGameRunCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the chat for which the game should be run.
     /// </summary>
-    public ChatId ChatId { get; init; }
+    public required ChatId ChatId { get; init; }
 }

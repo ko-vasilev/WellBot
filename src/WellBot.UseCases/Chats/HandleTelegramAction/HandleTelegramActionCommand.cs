@@ -11,5 +11,5 @@ public record HandleTelegramActionCommand : IRequest<Unit>
     /// <summary>
     /// Description of an action.
     /// </summary>
-    public Update Action { get; init; }
+    public required Update Action { get; init; }
 }

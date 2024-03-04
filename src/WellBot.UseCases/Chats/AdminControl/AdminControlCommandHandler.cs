@@ -148,7 +148,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
         {
             var dataType = telegramMessageService.GetFile(replyMessage, out var attachedDocument);
-            if (dataType == null)
+            if (dataType == null || attachedDocument == null)
             {
                 return false;
             }
@@ -169,7 +169,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             return;
         }
 
-        if (replyMessage.ForwardFromChat == null)
+        if (replyMessage.ForwardFromChat == null || replyMessage.ForwardFromMessageId == null)
         {
             return;
         }
@@ -207,7 +207,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         if (messageToSend.Type != Telegram.Bot.Types.Enums.MessageType.Text)
         {
             var dataType = telegramMessageService.GetFile(messageToSend, out var attachedDocument);
-            if (dataType == null)
+            if (dataType == null || attachedDocument == null)
             {
                 return;
             }

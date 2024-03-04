@@ -11,5 +11,5 @@ public class PrikolCommand : IRequest<Unit>
     /// <summary>
     /// Id of the chat.
     /// </summary>
-    public ChatId ChatId { get; init; }
+    public required ChatId ChatId { get; init; }
 }

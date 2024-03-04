@@ -11,5 +11,5 @@ public class ShowKeysCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the current chat.
     /// </summary>
-    public ChatId ChatId { get; init; }
+    public required ChatId ChatId { get; init; }
 }

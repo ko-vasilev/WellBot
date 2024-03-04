@@ -8,5 +8,5 @@ namespace WellBot.Web.Infrastructure.Telegram;
 public class TelegramBotSettings : ITelegramBotSettings
 {
     /// <inheritdoc />
-    public string TelegramBotUsername { get; set; }
+    public required string TelegramBotUsername { get; set; }
 }

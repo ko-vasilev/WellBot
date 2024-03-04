@@ -11,10 +11,10 @@ public record PidorStatsCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Telegram chat id.
     /// </summary>
-    public ChatId ChatId { get; init; }
+    public required ChatId ChatId { get; init; }
 
     /// <summary>
     /// Command arguments.
     /// </summary>
-    public string Arguments { get; init; }
+    public required string Arguments { get; init; }
 }

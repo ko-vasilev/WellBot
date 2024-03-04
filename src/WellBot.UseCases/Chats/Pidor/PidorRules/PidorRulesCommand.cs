@@ -11,5 +11,5 @@ public record PidorRulesCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the telegram chat.
     /// </summary>
-    public ChatId ChatId { get; init; }
+    public required ChatId ChatId { get; init; }
 }

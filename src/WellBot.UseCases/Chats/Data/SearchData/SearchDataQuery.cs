@@ -1,22 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using MediatR;
+﻿using MediatR;
 
-namespace WellBot.UseCases.Chats.Data.SearchData
+namespace WellBot.UseCases.Chats.Data.SearchData;
+
+/// <summary>
+/// Search for data.
+/// </summary>
+public record SearchDataQuery : IRequest<IEnumerable<DataItem>>
 {
     /// <summary>
-    /// Search for data.
+    /// Query to search items by.
     /// </summary>
-    public record SearchDataQuery : IRequest<IEnumerable<DataItem>>
-    {
-        /// <summary>
-        /// Query to search items by.
-        /// </summary>
-        public string SearchText { get; init; }
+    public required string SearchText { get; init; }
 
-        /// <summary>
-        /// Max number of items to retrieve.
-        /// </summary>
-        public int Limit { get; init; } = 20;
-    }
+    /// <summary>
+    /// Max number of items to retrieve.
+    /// </summary>
+    public int Limit { get; init; } = 20;
 }

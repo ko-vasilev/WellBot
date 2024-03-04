@@ -11,15 +11,15 @@ public record SetChatDataCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the associated chat.
     /// </summary>
-    public ChatId ChatId { get; init; }
+    public required ChatId ChatId { get; init; }
 
     /// <summary>
     /// Command arguments.
     /// </summary>
-    public string Arguments { get; init; }
+    public required string Arguments { get; init; }
 
     /// <summary>
     /// Telegram message.
     /// </summary>
-    public Message Message { get; init; }
+    public required Message Message { get; init; }
 }

@@ -2,19 +2,18 @@ using AutoMapper;
 using WellBot.Domain.Users;
 using WellBot.UseCases.Users.Common.Dtos;
 
-namespace WellBot.UseCases.Users
+namespace WellBot.UseCases.Users;
+
+/// <summary>
+/// User mapping profile.
+/// </summary>
+public class UserMappingProfile : Profile
 {
     /// <summary>
-    /// User mapping profile.
+    /// Constructor.
     /// </summary>
-    public class UserMappingProfile : Profile
+    public UserMappingProfile()
     {
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public UserMappingProfile()
-        {
-            CreateMap<User, UserDto>();
-        }
+        CreateMap<User, UserDto>();
     }
 }

@@ -61,7 +61,7 @@ public class PidorGameService
     /// <param name="telegramUserId">Id of the telegram user.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>User object or null if user is not found or not active.</returns>
-    public async Task<ChatMember> GetPidorMemberAsync(ChatId telegramChatId, long telegramUserId, CancellationToken cancellationToken)
+    public async Task<ChatMember?> GetPidorMemberAsync(ChatId telegramChatId, long telegramUserId, CancellationToken cancellationToken)
     {
         ChatMember telegramUser;
         try

@@ -89,6 +89,7 @@ internal class SlapCommandHandler : AsyncRequestHandler<SlapCommand>
         public SlapReplyOption(int weight)
         {
             Weight = weight;
+            Messages = Enumerable.Empty<GenericMessage>();
         }
 
         public int Weight { get; init; }

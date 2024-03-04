@@ -11,7 +11,7 @@ public record PidorGameRegisterCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the chat.
     /// </summary>
-    public ChatId ChatId { get; init; }
+    public required ChatId ChatId { get; init; }
 
     /// <summary>
     /// Id of the user who wants to sign up for the game.
@@ -21,5 +21,5 @@ public record PidorGameRegisterCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Name of the person who sent the request.
     /// </summary>
-    public string TelegramUserName { get; init; }
+    public required string TelegramUserName { get; init; }
 }

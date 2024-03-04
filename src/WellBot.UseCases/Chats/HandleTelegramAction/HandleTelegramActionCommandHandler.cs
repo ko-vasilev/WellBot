@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Saritasa.Tools.Domain.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InlineQueryResults;
@@ -70,8 +71,8 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
             return;
         }
 
-        var isMessage = request.Action.Message != null;
-        if (!isMessage)
+        // Check if this is a message.
+        if (request.Action.Message == null)
         {
             return;
         }
@@ -89,7 +90,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
 
         var plainMessageText = request.Action.Message.Text ?? request.Action.Message.Caption;
         var textFormatted = telegramMessageService.GetMessageTextHtml(request.Action.Message);
-        ChatId chatId = null;
+        ChatId? chatId = null;
         try
         {
             if (!string.IsNullOrEmpty(plainMessageText))
@@ -109,28 +110,35 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling command {text}", textFormatted);
-            if (chatId != null)
+            if (chatId is not null)
             {
                 await botClient.SendTextMessageAsync(chatId, "Что-то пошло не так.");
             }
         }
     }
 
-    private async Task HandleCommandAsync(string command, string arguments, string argumentsHtml, bool isDirectMessage, ChatId chatId, User sender, Message message)
+    private async Task HandleCommandAsync(string command, string arguments, string argumentsHtml, bool isDirectMessage, ChatId chatId, User? sender, Message message)
     {
-        long senderId = sender.Id;
+        long GetSenderId()
+        {
+            if (sender == null)
+            {
+                throw new DomainException("Sender is not specified");
+            }
+            return sender.Id;
+        }
         Task action = command switch
         {
             "pidoreg" => mediator.Send(new PidorGameRegisterCommand()
             {
                 ChatId = chatId,
-                TelegramUserId = senderId,
+                TelegramUserId = GetSenderId(),
                 TelegramUserName = telegramMessageService.GetUserFullName(sender)
             }),
             "pidorlist" => mediator.Send(new PidorListCommand
             {
                 ChatId = chatId,
-                TelegramUserId = senderId,
+                TelegramUserId = GetSenderId(),
                 Arguments = arguments,
             }),
             "pidorules" => mediator.Send(new PidorRulesCommand
@@ -157,7 +165,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
                 ChatId = chatId,
                 Key = arguments,
                 MessageId = message.MessageId,
-                SenderUserId = senderId,
+                SenderUserId = GetSenderId(),
                 ReplyMessageId = message.ReplyToMessage?.MessageId
             }),
             "getall" => mediator.Send(new ShowKeysCommand
@@ -235,7 +243,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         return command;
     }
 
-    private async Task<bool> HandleInlineQueryAsync(InlineQuery inlineQuery, CancellationToken cancellationToken)
+    private async Task<bool> HandleInlineQueryAsync(InlineQuery? inlineQuery, CancellationToken cancellationToken)
     {
         if (inlineQuery == null)
         {
@@ -250,7 +258,8 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
             }, cancellationToken);
 
             var inlineResults = dataItems.Select(item => MapQueryResult(item))
-                .Where(res => res != null);
+                .Where(res => res != null)
+                .Cast<InlineQueryResult>();
             await botClient.AnswerInlineQueryAsync(inlineQuery.Id, inlineResults, cancellationToken: cancellationToken);
         }
         catch (Exception ex)
@@ -281,7 +290,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         return true;
     }
 
-    private InlineQueryResult MapQueryResult(DataItem data)
+    private InlineQueryResult? MapQueryResult(DataItem data)
     {
         var uniqueId = data.Id.ToString();
         switch (data.DataType)
