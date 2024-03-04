@@ -1,5 +1,5 @@
 using AutoMapper;
-using WellBot.Domain.Users.Entities;
+using WellBot.Domain.Users;
 using WellBot.UseCases.Users.Common.Dtos;
 
 namespace WellBot.UseCases.Users

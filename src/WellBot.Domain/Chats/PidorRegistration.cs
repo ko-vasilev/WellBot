@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WellBot.Domain.Chats.Entities
+namespace WellBot.Domain.Chats
 {
     /// <summary>
     /// Contains a registration information for Daily Pidor game.

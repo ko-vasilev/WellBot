@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
-using WellBot.Domain.Chats.Entities;
-using WellBot.Domain.Users.Entities;
+using WellBot.Domain.Chats;
+using WellBot.Domain.Users;
 
 namespace WellBot.Infrastructure.Abstractions.Interfaces
 {

@@ -1,35 +1,32 @@
-using System.Threading;
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Saritasa.Tools.Domain.Exceptions;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
-namespace WellBot.UseCases.Chats.Pidor.DeleteGameMessage
+namespace WellBot.UseCases.Chats.Pidor.DeleteGameMessage;
+
+/// <summary>
+/// Handler for <see cref="DeleteGameMessageCommand"/>.
+/// </summary>
+internal class DeleteGameMessageCommandHandler : AsyncRequestHandler<DeleteGameMessageCommand>
 {
+    private readonly IAppDbContext dbContext;
+
     /// <summary>
-    /// Handler for <see cref="DeleteGameMessageCommand"/>.
+    /// Constructor.
     /// </summary>
-    internal class DeleteGameMessageCommandHandler : AsyncRequestHandler<DeleteGameMessageCommand>
+    public DeleteGameMessageCommandHandler(IAppDbContext dbContext) => this.dbContext = dbContext;
+
+    /// <inheritdoc/>
+    protected override async Task Handle(DeleteGameMessageCommand request, CancellationToken cancellationToken)
     {
-        private readonly IAppDbContext dbContext;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public DeleteGameMessageCommandHandler(IAppDbContext dbContext) => this.dbContext = dbContext;
-
-        /// <inheritdoc/>
-        protected override async Task Handle(DeleteGameMessageCommand request, CancellationToken cancellationToken)
+        var message = await dbContext.PidorResultMessages.FirstOrDefaultAsync(m => m.Id == request.Id, cancellationToken);
+        if (message == null)
         {
-            var message = await dbContext.PidorResultMessages.FirstOrDefaultAsync(m => m.Id == request.Id, cancellationToken);
-            if (message == null)
-            {
-                throw new NotFoundException();
-            }
-
-            message.IsActive = false;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            throw new NotFoundException();
         }
+
+        message.IsActive = false;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

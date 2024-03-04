@@ -1,16 +1,15 @@
 ﻿using MediatR;
 using Telegram.Bot.Types;
 
-namespace WellBot.UseCases.Chats.Pidor.PidorRules
+namespace WellBot.UseCases.Chats.Pidor.PidorRules;
+
+/// <summary>
+/// Show the pidor game rules.
+/// </summary>
+public record PidorRulesCommand : IRequest<Unit>, IChatInfo
 {
     /// <summary>
-    /// Show the pidor game rules.
+    /// Id of the telegram chat.
     /// </summary>
-    public record PidorRulesCommand : IRequest, IChatInfo
-    {
-        /// <summary>
-        /// Id of the telegram chat.
-        /// </summary>
-        public ChatId ChatId { get; init; }
-    }
+    public ChatId ChatId { get; init; }
 }

@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using WellBot.Domain.Users.Entities;
 using Saritasa.Tools.Domain.Exceptions;
+using WellBot.Domain.Users;
 
 namespace WellBot.UseCases.Users.AuthenticateUser
 {

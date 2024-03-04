@@ -4,7 +4,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Saritasa.Tools.Domain.Exceptions;
-using WellBot.Domain.Chats.Entities;
+using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.RegularMessageHandles.Reply;
 

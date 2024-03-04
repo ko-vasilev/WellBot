@@ -1,4 +1,4 @@
-﻿namespace WellBot.Domain.Chats.Entities
+﻿namespace WellBot.Domain.Chats
 {
     /// <summary>
     /// Weight of a single message to pick random message.

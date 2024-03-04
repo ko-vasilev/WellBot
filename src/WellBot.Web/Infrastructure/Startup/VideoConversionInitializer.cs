@@ -1,36 +1,32 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Extensions.Hosting.AsyncInitialization;
-using Microsoft.Extensions.Logging;
+﻿using Extensions.Hosting.AsyncInitialization;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
-namespace WellBot.Web.Infrastructure.Startup
+namespace WellBot.Web.Infrastructure.Startup;
+
+/// <summary>
+/// Class for initializing video conversion service.
+/// </summary>
+public class VideoConversionInitializer : IAsyncInitializer
 {
+    private readonly IVideoConverter videoConverter;
+    private readonly ILogger<VideoConversionInitializer> logger;
+
     /// <summary>
-    /// Class for initializing video conversion service.
+    /// Constructor.
     /// </summary>
-    public class VideoConversionInitializer : IAsyncInitializer
+    public VideoConversionInitializer(IVideoConverter videoConverter, ILogger<VideoConversionInitializer> logger)
     {
-        private readonly IVideoConverter videoConverter;
-        private readonly ILogger<VideoConversionInitializer> logger;
+        this.videoConverter = videoConverter;
+        this.logger = logger;
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public VideoConversionInitializer(IVideoConverter videoConverter, ILogger<VideoConversionInitializer> logger)
-        {
-            this.videoConverter = videoConverter;
-            this.logger = logger;
-        }
-
-        /// <summary>
-        /// Initialize the video converter.
-        /// </summary>
-        public async Task InitializeAsync()
-        {
-            logger.LogInformation("Starting video converter initialization...");
-            await videoConverter.InitializeAsync(CancellationToken.None);
-            logger.LogInformation("Finished video converter initialization.");
-        }
+    /// <summary>
+    /// Initialize the video converter.
+    /// </summary>
+    public async Task InitializeAsync(CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Starting video converter initialization...");
+        await videoConverter.InitializeAsync(cancellationToken);
+        logger.LogInformation("Finished video converter initialization.");
     }
 }

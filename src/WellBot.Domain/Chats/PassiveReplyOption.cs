@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace WellBot.Domain.Chats.Entities
+namespace WellBot.Domain.Chats
 {
     /// <summary>
     /// Option that can be used by bot as a passive reply to some messages.

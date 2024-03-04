@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using WellBot.Domain.Chats.Entities;
-using WellBot.Domain.Users.Entities;
+using WellBot.Domain.Chats;
+using WellBot.Domain.Users;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
 namespace WellBot.Infrastructure.DataAccess

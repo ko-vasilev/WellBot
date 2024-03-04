@@ -1,6 +1,6 @@
 ﻿using System;
 using MediatR;
-using WellBot.Domain.Chats.Entities;
+using WellBot.Domain.Chats;
 
 namespace WellBot.UseCases.Chats.AutomaticMessages.CreateAutomaticMessage
 {

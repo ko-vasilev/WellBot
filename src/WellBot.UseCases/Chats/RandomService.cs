@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using WellBot.Domain.Chats.Entities;
+using WellBot.Domain.Chats;
 
 namespace WellBot.UseCases.Chats
 {

@@ -1,48 +1,46 @@
-using System.Threading.Tasks;
 using Extensions.Hosting.AsyncInitialization;
 using Microsoft.EntityFrameworkCore;
 using WellBot.Infrastructure.DataAccess;
-using WellBot.UseCases.Chats;
 using WellBot.UseCases.Chats.RegularMessageHandles.Reply;
+using WellBot.UseCases.Chats;
 
-namespace WellBot.Web.Infrastructure.Startup
+namespace WellBot.Web.Infrastructure.Startup;
+
+/// <summary>
+/// Contains database migration helper methods.
+/// </summary>
+internal sealed class DatabaseInitializer : IAsyncInitializer
 {
+    private readonly AppDbContext appDbContext;
+    private readonly MemeChannelService memeChannelService;
+    private readonly PassiveTopicService passiveTopicService;
+
     /// <summary>
-    /// Contains database migration helper methods.
+    /// Database initializer. Performs migration and data seed.
     /// </summary>
-    internal sealed class DatabaseInitializer : IAsyncInitializer
+    public DatabaseInitializer(AppDbContext appDbContext, MemeChannelService memeChannelService, PassiveTopicService passiveTopicService)
     {
-        private readonly AppDbContext appDbContext;
-        private readonly MemeChannelService memeChannelService;
-        private readonly PassiveTopicService passiveTopicService;
+        this.appDbContext = appDbContext;
+        this.memeChannelService = memeChannelService;
+        this.passiveTopicService = passiveTopicService;
+    }
 
-        /// <summary>
-        /// Database initializer. Performs migration and data seed.
-        /// </summary>
-        public DatabaseInitializer(AppDbContext appDbContext, MemeChannelService memeChannelService, PassiveTopicService passiveTopicService)
+    /// <inheritdoc />
+    public async Task InitializeAsync(CancellationToken cancellationToken)
+    {
+        await appDbContext.Database.MigrateAsync(cancellationToken);
+
+        var currentMemeChannel = await appDbContext.MemeChannels
+            .AsNoTracking()
+            .FirstOrDefaultAsync(cancellationToken);
+        if (currentMemeChannel != null)
         {
-            this.appDbContext = appDbContext;
-            this.memeChannelService = memeChannelService;
-            this.passiveTopicService = passiveTopicService;
+            memeChannelService.CurrentMemeChatId = currentMemeChannel.ChannelId;
         }
 
-        /// <inheritdoc />
-        public async Task InitializeAsync()
-        {
-            await appDbContext.Database.MigrateAsync();
-
-            var currentMemeChannel = await appDbContext.MemeChannels
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-            if (currentMemeChannel != null)
-            {
-                memeChannelService.CurrentMemeChatId = currentMemeChannel.ChannelId;
-            }
-
-            var existingTopics = await appDbContext.PassiveTopics
-                .AsNoTracking()
-                .ToListAsync();
-            passiveTopicService.Update(existingTopics);
-        }
+        var existingTopics = await appDbContext.PassiveTopics
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+        passiveTopicService.Update(existingTopics);
     }
 }

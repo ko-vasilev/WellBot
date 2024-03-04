@@ -1,4 +1,4 @@
-﻿namespace WellBot.Domain.Chats.Entities
+﻿namespace WellBot.Domain.Chats
 {
     /// <summary>
     /// Type of data.

@@ -6,9 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using WellBot.Domain.Users.Entities;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using Saritasa.Tools.Domain.Exceptions;
+using WellBot.Domain.Users;
 
 namespace WellBot.UseCases.Users.AuthenticateUser
 {

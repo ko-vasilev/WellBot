@@ -1,29 +1,27 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
+﻿using MediatR;
 using Telegram.Bot;
 
-namespace WellBot.UseCases.Chats.Pidor.PidorRules
+namespace WellBot.UseCases.Chats.Pidor.PidorRules;
+
+/// <summary>
+/// Handler for <see cref="PidorRulesCommand"/>.
+/// </summary>
+internal class PidorRulesCommandHandler : AsyncRequestHandler<PidorRulesCommand>
 {
+    private readonly ITelegramBotClient botClient;
+
     /// <summary>
-    /// Handler for <see cref="PidorRulesCommand"/>.
+    /// Constructor.
     /// </summary>
-    internal class PidorRulesCommandHandler : AsyncRequestHandler<PidorRulesCommand>
+    public PidorRulesCommandHandler(ITelegramBotClient botClient)
     {
-        private readonly ITelegramBotClient botClient;
+        this.botClient = botClient;
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public PidorRulesCommandHandler(ITelegramBotClient botClient)
-        {
-            this.botClient = botClient;
-        }
-
-        /// <inheritdoc/>
-        protected override async Task Handle(PidorRulesCommand request, CancellationToken cancellationToken)
-        {
-            await botClient.SendTextMessageAsync(request.ChatId, @"Правила игры *Пидор Дня* (только для групповых чатов):
+    /// <inheritdoc/>
+    protected override async Task Handle(PidorRulesCommand request, CancellationToken cancellationToken)
+    {
+        await botClient.SendTextMessageAsync(request.ChatId, @"Правила игры *Пидор Дня* (только для групповых чатов):
 
 *1*. Зарегистрируйтесь в игру по команде */pidoreg*
 *2*. Подождите пока зарегиструются все (или большинство :)
@@ -36,6 +34,5 @@ namespace WellBot.UseCases.Chats.Pidor.PidorRules
 Сброс розыгрыша происходит каждый день в 12 часов ночи по UTC+3 (полночь по Москве).",
 Telegram.Bot.Types.Enums.ParseMode.Markdown,
 cancellationToken: cancellationToken);
-        }
     }
 }

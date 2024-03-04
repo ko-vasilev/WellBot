@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace WellBot.Domain.Chats.Entities
+namespace WellBot.Domain.Chats
 {
     /// <summary>
     /// Information about a channel that will be used to get memes.

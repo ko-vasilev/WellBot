@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WellBot.Domain.Chats.Entities
+namespace WellBot.Domain.Chats
 {
     /// <summary>
     /// Contains info about a daily pidor game winner.

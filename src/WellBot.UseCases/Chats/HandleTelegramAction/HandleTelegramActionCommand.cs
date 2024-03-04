@@ -1,16 +1,15 @@
 ﻿using MediatR;
 using Telegram.Bot.Types;
 
-namespace WellBot.UseCases.Chats.HandleTelegramAction
+namespace WellBot.UseCases.Chats.HandleTelegramAction;
+
+/// <summary>
+/// Command for handling a telegram action.
+/// </summary>
+public record HandleTelegramActionCommand : IRequest<Unit>
 {
     /// <summary>
-    /// Command for handling a telegram action.
+    /// Description of an action.
     /// </summary>
-    public record HandleTelegramActionCommand : IRequest
-    {
-        /// <summary>
-        /// Description of an action.
-        /// </summary>
-        public Update Action { get; init; }
-    }
+    public Update Action { get; init; }
 }

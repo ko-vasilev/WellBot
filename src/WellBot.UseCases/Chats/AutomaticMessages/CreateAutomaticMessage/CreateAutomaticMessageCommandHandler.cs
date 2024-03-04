@@ -1,9 +1,6 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using MediatR;
 using Saritasa.Tools.Domain.Exceptions;
-using WellBot.Domain.Chats.Entities;
+using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
 namespace WellBot.UseCases.Chats.AutomaticMessages.CreateAutomaticMessage

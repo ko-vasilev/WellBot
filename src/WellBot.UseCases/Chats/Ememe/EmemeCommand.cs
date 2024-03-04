@@ -1,16 +1,15 @@
 ﻿using MediatR;
 using Telegram.Bot.Types;
 
-namespace WellBot.UseCases.Chats.Ememe
+namespace WellBot.UseCases.Chats.Ememe;
+
+/// <summary>
+/// Send a random meme to the chat.
+/// </summary>
+public record EmemeCommand : IRequest<Unit>
 {
     /// <summary>
-    /// Send a random meme to the chat.
+    /// Id of the chat.
     /// </summary>
-    public record EmemeCommand : IRequest
-    {
-        /// <summary>
-        /// Id of the chat.
-        /// </summary>
-        public ChatId ChatId { get; init; }
-    }
+    public ChatId ChatId { get; init; }
 }

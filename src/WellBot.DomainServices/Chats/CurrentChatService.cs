@@ -1,6 +1,5 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
 namespace WellBot.DomainServices.Chats
@@ -18,7 +17,7 @@ namespace WellBot.DomainServices.Chats
         public CurrentChatService(IAppDbContext dbContext) => this.dbContext = dbContext;
 
         /// <summary>
-        /// Id of the chat (<see cref="Domain.Chats.Entities.Chat.Id"/>).
+        /// Id of the chat (<see cref="Chat.Id"/>).
         /// </summary>
         public int ChatId { get; private set; }
 
@@ -32,7 +31,7 @@ namespace WellBot.DomainServices.Chats
             var chat = await dbContext.Chats.FirstOrDefaultAsync(c => c.TelegramId == telegramChatId, cancellationToken);
             if (chat == null)
             {
-                chat = new Domain.Chats.Entities.Chat()
+                chat = new Chat()
                 {
                     TelegramId = telegramChatId
                 };

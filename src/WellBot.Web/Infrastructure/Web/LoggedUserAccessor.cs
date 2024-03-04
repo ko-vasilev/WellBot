@@ -1,40 +1,37 @@
-using System;
-using Microsoft.AspNetCore.Http;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
-namespace WellBot.Web.Infrastructure.Web
+namespace WellBot.Web.Infrastructure.Web;
+
+/// <summary>
+/// Logged user accessor implementation.
+/// </summary>
+internal class LoggedUserAccessor : ILoggedUserAccessor
 {
-    /// <summary>
-    /// Logged user accessor implementation.
-    /// </summary>
-    internal class LoggedUserAccessor : ILoggedUserAccessor
+    private readonly IHttpContextAccessor httpContextAccessor;
+
+    public LoggedUserAccessor(IHttpContextAccessor httpContextAccessor)
     {
-        private readonly IHttpContextAccessor httpContextAccessor;
+        this.httpContextAccessor = httpContextAccessor;
+    }
 
-        public LoggedUserAccessor(IHttpContextAccessor httpContextAccessor)
+    /// <inheritdoc />
+    public int GetCurrentUserId()
+    {
+        if (httpContextAccessor.HttpContext == null)
         {
-            this.httpContextAccessor = httpContextAccessor;
+            throw new InvalidOperationException("There is no active HTTP context specified.");
         }
 
-        /// <inheritdoc />
-        public int GetCurrentUserId()
-        {
-            if (httpContextAccessor.HttpContext == null)
-            {
-                throw new InvalidOperationException("There is no active HTTP context specified.");
-            }
+        return httpContextAccessor.HttpContext.User.GetCurrentUserId();
+    }
 
-            return httpContextAccessor.HttpContext.User.GetCurrentUserId();
-        }
-
-        /// <inheritdoc />
-        public bool IsAuthenticated()
+    /// <inheritdoc />
+    public bool IsAuthenticated()
+    {
+        if (httpContextAccessor.HttpContext == null)
         {
-            if (httpContextAccessor.HttpContext == null)
-            {
-                return false;
-            }
-            return httpContextAccessor.HttpContext.User.TryGetCurrentUserId(out _);
+            return false;
         }
+        return httpContextAccessor.HttpContext.User.TryGetCurrentUserId(out _);
     }
 }

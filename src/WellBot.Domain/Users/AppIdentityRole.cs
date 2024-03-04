@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace WellBot.Domain.Users.Entities
+namespace WellBot.Domain.Users
 {
     /// <summary>
     /// Custom application identity role.

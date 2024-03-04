@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WellBot.Domain.Chats.Entities
+namespace WellBot.Domain.Chats
 {
     /// <summary>
     /// A message that can be used to notify about the game results.

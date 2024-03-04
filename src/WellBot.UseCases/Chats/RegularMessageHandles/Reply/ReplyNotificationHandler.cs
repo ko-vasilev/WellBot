@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using WellBot.Domain.Chats.Entities;
+using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
 namespace WellBot.UseCases.Chats.RegularMessageHandles.Reply

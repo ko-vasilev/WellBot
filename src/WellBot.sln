@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WellBot.Web", "WellBot.Web\WellBot.Web.csproj", "{6C6191EC-1B95-4DC8-9337-F088883FFA34}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WellBot.Domain", "WellBot.Domain\WellBot.Domain.csproj", "{886ECF66-C72B-47FD-A051-E6797C476C95}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WellBot.Infrastructure.DataAccess", "WellBot.Infrastructure.DataAccess\WellBot.Infrastructure.DataAccess.csproj", "{7833B9A4-A257-4EA0-B066-FE34795BD330}"
@@ -30,10 +28,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1AAC31B4-1F84-4F0E-ADB9-23844077097E}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		..\tools\Saritasa.ruleset = ..\tools\Saritasa.ruleset
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WellBot.Infrastructure", "WellBot.Infrastructure\WellBot.Infrastructure.csproj", "{18BD0654-A70E-4765-B941-2F411A8298DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WellBot.Infrastructure", "WellBot.Infrastructure\WellBot.Infrastructure.csproj", "{18BD0654-A70E-4765-B941-2F411A8298DE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WellBot.Web", "WellBot.Web\WellBot.Web.csproj", "{AD2C86C8-E908-4231-BD17-0E04E32907BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +41,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6C6191EC-1B95-4DC8-9337-F088883FFA34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6C6191EC-1B95-4DC8-9337-F088883FFA34}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6C6191EC-1B95-4DC8-9337-F088883FFA34}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6C6191EC-1B95-4DC8-9337-F088883FFA34}.Release|Any CPU.Build.0 = Release|Any CPU
 		{886ECF66-C72B-47FD-A051-E6797C476C95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{886ECF66-C72B-47FD-A051-E6797C476C95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{886ECF66-C72B-47FD-A051-E6797C476C95}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -77,12 +73,15 @@ Global
 		{18BD0654-A70E-4765-B941-2F411A8298DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18BD0654-A70E-4765-B941-2F411A8298DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18BD0654-A70E-4765-B941-2F411A8298DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD2C86C8-E908-4231-BD17-0E04E32907BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD2C86C8-E908-4231-BD17-0E04E32907BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD2C86C8-E908-4231-BD17-0E04E32907BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD2C86C8-E908-4231-BD17-0E04E32907BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{6C6191EC-1B95-4DC8-9337-F088883FFA34} = {80AB52D5-EED1-4CF7-9951-18BC6589851E}
 		{886ECF66-C72B-47FD-A051-E6797C476C95} = {21047DCA-64CC-4BC4-8552-8AE58285CCB1}
 		{7833B9A4-A257-4EA0-B066-FE34795BD330} = {E7349FE4-516E-473E-97A7-A9AEF627BE2D}
 		{55810698-7B31-406A-9D53-2B1014FAB0EA} = {21047DCA-64CC-4BC4-8552-8AE58285CCB1}
@@ -91,6 +90,7 @@ Global
 		{30B19478-60CF-4A1E-8FD7-85D44E88584C} = {21047DCA-64CC-4BC4-8552-8AE58285CCB1}
 		{B87930A4-EDC4-406D-98C4-A7BF6D51937D} = {BA4CB6D2-CEB4-4110-B2CF-410C91B6669F}
 		{18BD0654-A70E-4765-B941-2F411A8298DE} = {E7349FE4-516E-473E-97A7-A9AEF627BE2D}
+		{AD2C86C8-E908-4231-BD17-0E04E32907BA} = {80AB52D5-EED1-4CF7-9951-18BC6589851E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AD26F89F-7744-4A57-885E-864E7B7BA0F1}

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WellBot.Domain.Chats.Entities
+namespace WellBot.Domain.Chats
 {
     /// <summary>
     /// Template for automatic messages.

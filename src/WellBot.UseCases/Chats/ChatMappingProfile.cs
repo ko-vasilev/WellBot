@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using WellBot.Domain.Chats.Entities;
+using WellBot.Domain.Chats;
 using WellBot.UseCases.Chats.AutomaticMessages.GetAutomaticMessages;
 using WellBot.UseCases.Chats.Data.SearchData;
 using WellBot.UseCases.Chats.Pidor.GetPidorGameMessages;

@@ -1,9 +1,7 @@
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
-using Saritasa.Tools.EFCore;
-using WellBot.Domain.Users.Entities;
+using Saritasa.Tools.EntityFrameworkCore;
+using WellBot.Domain.Users;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
 namespace WellBot.UseCases.Users.GetUserById

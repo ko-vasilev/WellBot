@@ -1,16 +1,11 @@
-﻿using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Extensions;
-using WellBot.Infrastructure.Abstractions.Interfaces;
+﻿using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.Infrastructure.Abstractions.Interfaces.Dtos;
 using WellBot.Infrastructure.Dtos;
 
 namespace WellBot.Infrastructure
 {
     /// <summary>
-    /// Settings for the google image searcher
+    /// Settings for the google image searcher.
     /// </summary>
     public class GoogleImageSearcherSettings
     {
@@ -45,15 +40,15 @@ namespace WellBot.Infrastructure
             // Using the SerpApi for image search
             // Documentation https://serpapi.com/search-api
 
-            var queryBuilder = new QueryBuilder();
-            queryBuilder.Add("engine", "google");
-            queryBuilder.Add("q", term ?? string.Empty);
-            queryBuilder.Add("api_key", settings.ApiKey);
-            queryBuilder.Add("tbm", "isch");
+            var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+            queryString.Add("engine", "google");
+            queryString.Add("q", term ?? string.Empty);
+            queryString.Add("api_key", settings.ApiKey);
+            queryString.Add("tbm", "isch");
             // Exclude autocorrect results
-            queryBuilder.Add("nfpr", "1");
+            queryString.Add("nfpr", "1");
 
-            var queryUrl = "https://serpapi.com/search.json" + queryBuilder.ToString();
+            var queryUrl = "https://serpapi.com/search.json?" + queryString.ToString();
             var result = await httpClient.GetAsync(queryUrl, cancellationToken);
             var json = await result.Content.ReadAsStringAsync(cancellationToken);
 
