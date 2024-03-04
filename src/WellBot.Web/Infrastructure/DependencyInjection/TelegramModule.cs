@@ -5,7 +5,6 @@ using WellBot.Web.Infrastructure.Telegram;
 
 namespace WellBot.Web.Infrastructure.DependencyInjection;
 
-
 /// <summary>
 /// Module for registering telegram-specific services.
 /// </summary>

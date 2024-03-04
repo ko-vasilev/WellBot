@@ -68,8 +68,7 @@ public class Startup
         // provider uses this data to create the token. If it is not specified explicitly,
         // tokens from different instances will be incompatible.
         services.AddDataProtection().SetApplicationName("Application")
-            //.PersistKeysToDbContext<AppDbContext>()
-            ;
+            .PersistKeysToDbContext<AppDbContext>();
 
         // Identity.
         services.AddIdentity<User, AppIdentityRole>()

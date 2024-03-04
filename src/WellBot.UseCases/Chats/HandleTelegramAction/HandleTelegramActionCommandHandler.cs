@@ -255,7 +255,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error handling inline query {text}");
+            logger.LogError(ex, "Error handling inline query {text}", inlineQuery.Query);
         }
 
         return true;

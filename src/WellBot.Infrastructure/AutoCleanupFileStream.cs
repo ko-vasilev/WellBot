@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace WellBot.Infrastructure;
+﻿namespace WellBot.Infrastructure;
 
 /// <summary>
 /// A file stream that automatically deletes a file after it's been disposed.
@@ -41,10 +39,16 @@ internal class AutoCleanupFileStream : Stream
 
     /// <inheritdoc/>
     public override void Flush() => fileStream.Flush();
+
+    /// <inheritdoc/>
     public override int Read(byte[] buffer, int offset, int count) => fileStream.Read(buffer, offset, count);
+
     /// <inheritdoc/>
     public override long Seek(long offset, SeekOrigin origin) => fileStream.Seek(offset, origin);
+
+    /// <inheritdoc/>
     public override void SetLength(long value) => fileStream.SetLength(value);
+
     /// <inheritdoc/>
     public override void Write(byte[] buffer, int offset, int count) => fileStream.Write(buffer, offset, count);
 
