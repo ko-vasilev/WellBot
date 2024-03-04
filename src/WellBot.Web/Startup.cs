@@ -61,6 +61,7 @@ public class Startup
         // MVC.
         services
             .AddControllers()
+            .AddNewtonsoftJson()
             .AddJsonOptions(new JsonOptionsSetup().Setup);
         services.Configure<ApiBehaviorOptions>(new ApiBehaviorOptionsSetup().Setup);
 
