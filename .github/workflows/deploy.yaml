@@ -19,7 +19,7 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Dotnet Publish
-      run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --self-contained false --runtime ubuntu.20.04-x64
+      run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --self-contained false --runtime linux-x64
 
     - name: Copy production config
       run: echo $APPSETTINGS_FILE >> deploy/appsettings.Production.json
