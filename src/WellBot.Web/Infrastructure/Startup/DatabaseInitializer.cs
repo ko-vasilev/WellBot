@@ -42,5 +42,15 @@ internal sealed class DatabaseInitializer : IAsyncInitializer
             .AsNoTracking()
             .ToListAsync(cancellationToken);
         passiveTopicService.Update(existingTopics);
+
+        var chatDataRecords = await appDbContext.ChatDatas
+            .ToListAsync(cancellationToken);
+
+        var invalidChatDataRecords = chatDataRecords.Where(d => d.Key.Contains('\n'));
+        foreach (var chatData in invalidChatDataRecords)
+        {
+            chatData.Key = chatData.Key.Replace("\n", string.Empty);
+        }
+        await appDbContext.SaveChangesAsync(cancellationToken);
     }
 }

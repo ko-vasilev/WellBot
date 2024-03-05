@@ -37,6 +37,11 @@ internal class SetChatDataCommandHandler : AsyncRequestHandler<SetChatDataComman
             await botClient.SendTextMessageAsync(request.ChatId, "Укажите ключ для сохранения");
             return;
         }
+        if (string.IsNullOrEmpty(key))
+        {
+            await botClient.SendTextMessageAsync(request.ChatId, "Не могу сохранить с таким ключом");
+            return;
+        }
 
         var storeKey = key.ToLowerInvariant();
         var existingItem = await dbContext.ChatDatas.FirstOrDefaultAsync(d => d.ChatId == currentChatService.ChatId && d.Key == storeKey);
@@ -90,15 +95,23 @@ internal class SetChatDataCommandHandler : AsyncRequestHandler<SetChatDataComman
         }
 
         var spaceSymbol = arguments.IndexOf(' ');
-        if (spaceSymbol == -1)
+        var newLineSymbol = arguments.IndexOf('\n');
+
+        var breakSymbolPosition = spaceSymbol;
+        // Use the first existing break symbol.
+        if (breakSymbolPosition == -1 || (newLineSymbol > 0 && newLineSymbol < spaceSymbol))
+        {
+            breakSymbolPosition = newLineSymbol;
+        }
+        if (breakSymbolPosition == -1)
         {
             key = arguments;
             remainder = string.Empty;
             return true;
         }
 
-        key = arguments.Substring(0, spaceSymbol);
-        remainder = arguments.Substring(spaceSymbol).Trim();
+        key = arguments.Substring(0, breakSymbolPosition);
+        remainder = arguments.Substring(breakSymbolPosition).Trim();
         return true;
     }
 }
