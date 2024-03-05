@@ -1,72 +1,66 @@
-﻿using System;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using AngleSharp;
+﻿using AngleSharp;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 
-namespace WellBot.UseCases.Chats.Prikol
+namespace WellBot.UseCases.Chats.Prikol;
+
+/// <summary>
+/// Handler for <see cref="PrikolCommand"/>.
+/// </summary>
+internal class PrikolCommandHandler : AsyncRequestHandler<PrikolCommand>
 {
-    /// <summary>
-    /// Handler for <see cref="PrikolCommand"/>.
-    /// </summary>
-    internal class PrikolCommandHandler : AsyncRequestHandler<PrikolCommand>
+    private readonly ITelegramBotClient botClient;
+    private readonly IHttpClientFactory httpClientFactory;
+    private readonly ILogger<PrikolCommandHandler> logger;
+
+    public PrikolCommandHandler(ITelegramBotClient botClient, IHttpClientFactory httpClientFactory, ILogger<PrikolCommandHandler> logger)
     {
-        private readonly ITelegramBotClient botClient;
-        private readonly IHttpClientFactory httpClientFactory;
-        private readonly ILogger<PrikolCommandHandler> logger;
+        this.botClient = botClient;
+        this.httpClientFactory = httpClientFactory;
+        this.logger = logger;
+    }
 
-        public PrikolCommandHandler(ITelegramBotClient botClient, IHttpClientFactory httpClientFactory, ILogger<PrikolCommandHandler> logger)
+    /// <inheritdoc/>
+    protected override async Task Handle(PrikolCommand request, CancellationToken cancellationToken)
+    {
+        try
         {
-            this.botClient = botClient;
-            this.httpClientFactory = httpClientFactory;
-            this.logger = logger;
+            var anekdot = await GetRandomAnekdotAsync(cancellationToken);
+            await botClient.SendTextMessageAsync(request.ChatId, anekdot);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error getting a random anekdot");
+            await botClient.SendTextMessageAsync(request.ChatId, "Приколы закончились, приходите завтра.");
+        }
+    }
+
+    private async Task<string> GetRandomAnekdotAsync(CancellationToken cancellationToken)
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "https://www.anekdot.ru/random/anekdot/");
+        using var client = httpClientFactory.CreateClient();
+        using var response = await client.SendAsync(request, cancellationToken);
+        using var content = await response.Content.ReadAsStreamAsync();
+        response.EnsureSuccessStatusCode();
+
+        var context = BrowsingContext.New(Configuration.Default);
+        var document = await context.OpenAsync(req => req.Content(content), cancellationToken);
+
+        var anekdotes = document.All
+            .Where(m => m.ClassList.Contains("topicbox"))
+            .SelectMany(m => m.GetElementsByClassName("text"))
+            .FirstOrDefault();
+
+        if (anekdotes == null)
+        {
+            throw new Exception("Could not find an anekdot");
         }
 
-        /// <inheritdoc/>
-        protected override async Task Handle(PrikolCommand request, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var anekdot = await GetRandomAnekdotAsync(cancellationToken);
-                await botClient.SendTextMessageAsync(request.ChatId, anekdot);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error getting a random anekdot");
-                await botClient.SendTextMessageAsync(request.ChatId, "Приколы закончились, приходите завтра.");
-            }
-        }
-
-        private async Task<string> GetRandomAnekdotAsync(CancellationToken cancellationToken)
-        {
-            var request = new HttpRequestMessage(
-                HttpMethod.Get,
-                "https://www.anekdot.ru/random/anekdot/");
-            using var client = httpClientFactory.CreateClient();
-            using var response = await client.SendAsync(request, cancellationToken);
-            using var content = await response.Content.ReadAsStreamAsync();
-            response.EnsureSuccessStatusCode();
-
-            var context = BrowsingContext.New(Configuration.Default);
-            var document = await context.OpenAsync(req => req.Content(content), cancellationToken);
-
-            var anekdotes = document.All
-                .Where(m => m.ClassList.Contains("topicbox"))
-                .SelectMany(m => m.GetElementsByClassName("text"))
-                .FirstOrDefault();
-
-            if (anekdotes == null)
-            {
-                throw new Exception("Could not find an anekdot");
-            }
-
-            return anekdotes.InnerHtml
-                .Replace("<br>", "\n")
-                .Replace("<br/>", "\n");
-        }
+        return anekdotes.InnerHtml
+            .Replace("<br>", "\n")
+            .Replace("<br/>", "\n");
     }
 }

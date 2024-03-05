@@ -1,21 +1,20 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using WellBot.UseCases.Users.AuthenticateUser;
 
-namespace WellBot.Web.Infrastructure.DependencyInjection
+namespace WellBot.Web.Infrastructure.DependencyInjection;
+
+/// <summary>
+/// Register AutoMapper dependencies.
+/// </summary>
+public class AutoMapperModule
 {
     /// <summary>
-    /// Register AutoMapper dependencies.
+    /// Register dependencies.
     /// </summary>
-    public class AutoMapperModule
+    /// <param name="services">Services.</param>
+    public static void Register(IServiceCollection services)
     {
-        /// <summary>
-        /// Register dependencies.
-        /// </summary>
-        /// <param name="services">Services.</param>
-        public static void Register(IServiceCollection services)
-        {
-            services.AddAutoMapper(
-                typeof(TokenModel).Assembly);
-        }
+        services.AddAutoMapper(
+            typeof(TokenModel).Assembly);
     }
 }

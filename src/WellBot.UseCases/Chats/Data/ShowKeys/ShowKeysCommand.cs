@@ -1,16 +1,15 @@
 ﻿using MediatR;
 using Telegram.Bot.Types;
 
-namespace WellBot.UseCases.Chats.Data.ShowKeys
+namespace WellBot.UseCases.Chats.Data.ShowKeys;
+
+/// <summary>
+/// Show the list of exiting keys.
+/// </summary>
+public class ShowKeysCommand : IRequest<Unit>, IChatInfo
 {
     /// <summary>
-    /// Show the list of exiting keys.
+    /// Id of the current chat.
     /// </summary>
-    public class ShowKeysCommand : IRequest, IChatInfo
-    {
-        /// <summary>
-        /// Id of the current chat.
-        /// </summary>
-        public ChatId ChatId { get; init; }
-    }
+    public required ChatId ChatId { get; init; }
 }

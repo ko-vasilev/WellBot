@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
+﻿namespace WellBot.Infrastructure.Abstractions.Interfaces.Dtos;
 
-namespace WellBot.Infrastructure.Abstractions.Interfaces.Dtos
+/// <summary>
+/// Contains search result of images.
+/// </summary>
+public class ImagesSearchResult
 {
     /// <summary>
-    /// Contains search result of images.
+    /// Contains list of found images.
     /// </summary>
-    public class ImagesSearchResult
-    {
-        /// <summary>
-        /// Contains list of found images.
-        /// </summary>
-        public IEnumerable<ImageData> Images { get; set; }
-    }
+    public required IEnumerable<ImageData> Images { get; set; }
 }

@@ -1,32 +1,42 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
+﻿using MediatR;
 using WellBot.DomainServices.Chats;
 using WellBot.UseCases.Chats;
 
-namespace WellBot.Web.Infrastructure.Telegram
+namespace WellBot.Web.Infrastructure.Telegram;
+
+/// <summary>
+/// Stores information about current action chat.
+/// </summary>
+public class TelegramChatSetterPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : notnull
 {
+    private readonly CurrentChatService currentChatService;
+    private readonly ILogger<TelegramChatSetterPipelineBehavior<TRequest, TResponse>> logger;
+
     /// <summary>
-    /// Stores information about current action chat.
+    /// Constructor.
     /// </summary>
-    public class TelegramChatSetterPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public TelegramChatSetterPipelineBehavior(CurrentChatService currentChatService, ILogger<TelegramChatSetterPipelineBehavior<TRequest, TResponse>> logger)
     {
-        private readonly CurrentChatService currentChatService;
+        this.currentChatService = currentChatService;
+        this.logger = logger;
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public TelegramChatSetterPipelineBehavior(CurrentChatService currentChatService) => this.currentChatService = currentChatService;
-
-        /// <inheritdoc />
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+    /// <inheritdoc />
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    {
+        if (request is IChatInfo chatInfo)
         {
-            if (request is IChatInfo chatInfo)
+            if (chatInfo.ChatId.Identifier.HasValue)
             {
                 await currentChatService.SetCurrentChatIdAsync(chatInfo.ChatId.Identifier.Value, cancellationToken);
             }
-
-            return await next();
+            else
+            {
+                logger.LogWarning("ChatId is not set, {command}", request);
+            }
         }
+
+        return await next();
     }
 }

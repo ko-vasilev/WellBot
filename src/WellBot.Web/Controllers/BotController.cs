@@ -4,35 +4,34 @@ using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using WellBot.UseCases.Chats.HandleTelegramAction;
 
-namespace WellBot.Web.Controllers
+namespace WellBot.Web.Controllers;
+
+/// <summary>
+/// Handles bot messages.
+/// </summary>
+public class BotController : ControllerBase
 {
+    private readonly IMediator mediator;
+
     /// <summary>
-    /// Handles bot messages.
+    /// Constructor.
     /// </summary>
-    public class BotController : ControllerBase
+    public BotController(IMediator mediator)
     {
-        private readonly IMediator mediator;
+        this.mediator = mediator;
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public BotController(IMediator mediator)
+    /// <summary>
+    /// Handle telegram webhook action.
+    /// </summary>
+    /// <param name="update">Information about an action.</param>
+    [HttpPost]
+    public async Task<IActionResult> Telegram([FromBody] Update update)
+    {
+        await mediator.Send(new HandleTelegramActionCommand
         {
-            this.mediator = mediator;
-        }
-
-        /// <summary>
-        /// Handle telegram webhook action.
-        /// </summary>
-        /// <param name="update">Information about an action.</param>
-        [HttpPost]
-        public async Task<IActionResult> Telegram([FromBody] Update update)
-        {
-            await mediator.Send(new HandleTelegramActionCommand
-            {
-                Action = update
-            });
-            return Ok();
-        }
+            Action = update
+        });
+        return Ok();
     }
 }

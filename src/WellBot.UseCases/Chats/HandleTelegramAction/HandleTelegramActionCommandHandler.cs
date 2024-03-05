@@ -1,14 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Saritasa.Tools.Domain.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InlineQueryResults;
+using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.AdminControl;
 using WellBot.UseCases.Chats.Data.DeleteChatData;
@@ -26,320 +24,327 @@ using WellBot.UseCases.Chats.Prikol;
 using WellBot.UseCases.Chats.RegularMessageHandles;
 using WellBot.UseCases.Chats.Slap;
 
-namespace WellBot.UseCases.Chats.HandleTelegramAction
+namespace WellBot.UseCases.Chats.HandleTelegramAction;
+
+/// <summary>
+/// Handler for <see cref="HandleTelegramActionCommand"/>.
+/// </summary>
+internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTelegramActionCommand>
 {
+    private readonly ITelegramBotClient botClient;
+    private readonly ITelegramBotSettings telegramBotSettings;
+    private readonly IMediator mediator;
+    private readonly ILogger<HandleTelegramActionCommandHandler> logger;
+    private readonly TelegramMessageService telegramMessageService;
+    private readonly MemeChannelService memeChannelService;
+    private readonly Lazy<IAppDbContext> dbContext;
+    private readonly IServiceScopeFactory serviceScopeFactory;
+
     /// <summary>
-    /// Handler for <see cref="HandleTelegramActionCommand"/>.
+    /// Constructor.
     /// </summary>
-    internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTelegramActionCommand>
+    public HandleTelegramActionCommandHandler(
+        ITelegramBotClient botClient,
+        ITelegramBotSettings telegramBotSettings,
+        IMediator mediator,
+        ILogger<HandleTelegramActionCommandHandler> logger,
+        TelegramMessageService telegramMessageService,
+        MemeChannelService memeChannelService,
+        Lazy<IAppDbContext> dbContext,
+        IServiceScopeFactory serviceScopeFactory)
     {
-        private readonly ITelegramBotClient botClient;
-        private readonly ITelegramBotSettings telegramBotSettings;
-        private readonly IMediator mediator;
-        private readonly ILogger<HandleTelegramActionCommandHandler> logger;
-        private readonly TelegramMessageService telegramMessageService;
-        private readonly MemeChannelService memeChannelService;
-        private readonly Lazy<IAppDbContext> dbContext;
-        private readonly IServiceScopeFactory serviceScopeFactory;
+        this.botClient = botClient;
+        this.telegramBotSettings = telegramBotSettings;
+        this.mediator = mediator;
+        this.logger = logger;
+        this.telegramMessageService = telegramMessageService;
+        this.memeChannelService = memeChannelService;
+        this.dbContext = dbContext;
+        this.serviceScopeFactory = serviceScopeFactory;
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public HandleTelegramActionCommandHandler(
-            ITelegramBotClient botClient,
-            ITelegramBotSettings telegramBotSettings,
-            IMediator mediator,
-            ILogger<HandleTelegramActionCommandHandler> logger,
-            TelegramMessageService telegramMessageService,
-            MemeChannelService memeChannelService,
-            Lazy<IAppDbContext> dbContext,
-            IServiceScopeFactory serviceScopeFactory)
+    /// <inheritdoc/>
+    protected override async Task Handle(HandleTelegramActionCommand request, CancellationToken cancellationToken)
+    {
+        if (await HandleInlineQueryAsync(request.Action.InlineQuery, cancellationToken))
         {
-            this.botClient = botClient;
-            this.telegramBotSettings = telegramBotSettings;
-            this.mediator = mediator;
-            this.logger = logger;
-            this.telegramMessageService = telegramMessageService;
-            this.memeChannelService = memeChannelService;
-            this.dbContext = dbContext;
-            this.serviceScopeFactory = serviceScopeFactory;
+            return;
         }
 
-        /// <inheritdoc/>
-        protected override async Task Handle(HandleTelegramActionCommand request, CancellationToken cancellationToken)
+        // Check if this is a message.
+        if (request.Action.Message == null)
         {
-            if (await HandleInlineQueryAsync(request.Action.InlineQuery, cancellationToken))
-            {
-                return;
-            }
+            return;
+        }
+        var isDirectMessage = request.Action.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
+        if (isDirectMessage)
+        {
+            // Ignore direct messages.
+            return;
+        }
 
-            var isMessage = request.Action.Message != null;
-            if (!isMessage)
-            {
-                return;
-            }
-            var isDirectMessage = request.Action.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
-            if (isDirectMessage)
-            {
-                // Ignore direct messages.
-                return;
-            }
+        if (await HandleMemeChannelMessageAsync(request.Action.Message, cancellationToken))
+        {
+            return;
+        }
 
-            if (await HandleMemeChannelMessageAsync(request.Action.Message, cancellationToken))
+        var plainMessageText = request.Action.Message.Text ?? request.Action.Message.Caption;
+        var textFormatted = telegramMessageService.GetMessageTextHtml(request.Action.Message);
+        ChatId? chatId = null;
+        try
+        {
+            if (!string.IsNullOrEmpty(plainMessageText))
             {
-                return;
-            }
-
-            var plainMessageText = request.Action.Message.Text ?? request.Action.Message.Caption;
-            var textFormatted = telegramMessageService.GetMessageTextHtml(request.Action.Message);
-            ChatId chatId = null;
-            try
-            {
-                if (!string.IsNullOrEmpty(plainMessageText))
+                chatId = request.Action.Message.Chat.Id;
+                var command = ParseCommand(plainMessageText, textFormatted, out string arguments, out string argumentsHtml, ref isDirectMessage);
+                if (!string.IsNullOrEmpty(command))
                 {
-                    chatId = request.Action.Message.Chat.Id;
-                    var command = ParseCommand(plainMessageText, textFormatted, out string arguments, out string argumentsHtml, ref isDirectMessage);
-                    if (!string.IsNullOrEmpty(command))
-                    {
-                        await botClient.SendChatActionAsync(request.Action.Message.Chat.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
-                        await HandleCommandAsync(command, arguments, argumentsHtml, isDirectMessage, chatId, request.Action.Message.From, request.Action.Message);
-                        return;
-                    }
-                }
-
-                HandleMessageNotification(request.Action.Message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error handling command {text}", textFormatted);
-                if (chatId != null)
-                {
-                    await botClient.SendTextMessageAsync(chatId, "Что-то пошло не так.");
+                    await botClient.SendChatActionAsync(request.Action.Message.Chat.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
+                    await HandleCommandAsync(command, arguments, argumentsHtml, isDirectMessage, chatId, request.Action.Message.From, request.Action.Message);
+                    return;
                 }
             }
+
+            HandleMessageNotification(request.Action.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error handling command {text}", textFormatted);
+            if (chatId is not null)
+            {
+                await botClient.SendTextMessageAsync(chatId, "Что-то пошло не так.");
+            }
+        }
+    }
+
+    private async Task HandleCommandAsync(string command, string arguments, string argumentsHtml, bool isDirectMessage, ChatId chatId, User? sender, Message message)
+    {
+        long GetSenderId()
+        {
+            if (sender == null)
+            {
+                throw new DomainException("Sender is not specified");
+            }
+            return sender.Id;
+        }
+        Task action = command switch
+        {
+            "pidoreg" => mediator.Send(new PidorGameRegisterCommand()
+            {
+                ChatId = chatId,
+                TelegramUserId = GetSenderId(),
+                TelegramUserName = telegramMessageService.GetUserFullName(sender)
+            }),
+            "pidorlist" => mediator.Send(new PidorListCommand
+            {
+                ChatId = chatId,
+                TelegramUserId = GetSenderId(),
+                Arguments = arguments,
+            }),
+            "pidorules" => mediator.Send(new PidorRulesCommand
+            {
+                ChatId = chatId,
+            }),
+            "pidor" => mediator.Send(new PidorGameRunCommand
+            {
+                ChatId = chatId,
+            }),
+            "pidorstats" => mediator.Send(new PidorStatsCommand
+            {
+                ChatId = chatId,
+                Arguments = arguments
+            }),
+            "set" => mediator.Send(new SetChatDataCommand
+            {
+                ChatId = chatId,
+                Arguments = argumentsHtml,
+                Message = message
+            }),
+            "get" => mediator.Send(new ShowDataCommand
+            {
+                ChatId = chatId,
+                Key = arguments,
+                MessageId = message.MessageId,
+                SenderUserId = GetSenderId(),
+                ReplyMessageId = message.ReplyToMessage?.MessageId
+            }),
+            "getall" => mediator.Send(new ShowKeysCommand
+            {
+                ChatId = chatId,
+            }),
+            "del" => mediator.Send(new DeleteChatDataCommand
+            {
+                ChatId = chatId,
+                Key = arguments,
+                MessageId = message.MessageId
+            }),
+            "шлёп" or "шлеп" or "slap" => mediator.Send(new SlapCommand
+            {
+                ChatId = chatId,
+                MessageId = message.MessageId
+            }),
+            "admin" => mediator.Send(new AdminControlCommand
+            {
+                Arguments = arguments,
+                Message = message
+            }),
+            "ememe" => mediator.Send(new EmemeCommand
+            {
+                ChatId = chatId
+            }),
+            "prikol" => mediator.Send(new PrikolCommand
+            {
+                ChatId = chatId
+            }),
+            _ => isDirectMessage
+                ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")
+                : Task.CompletedTask
+        };
+
+        await action;
+    }
+
+    private string ParseCommand(string text, string textFormatted, out string arguments, out string argumentsFormatted, ref bool isDirectMessage)
+    {
+        if (!text.StartsWith('/'))
+        {
+            arguments = text;
+            argumentsFormatted = textFormatted;
+            return string.Empty;
         }
 
-        private async Task HandleCommandAsync(string command, string arguments, string argumentsHtml, bool isDirectMessage, ChatId chatId, User sender, Message message)
+        var command = SplitCommandText(text, out var argumentsStartIndex);
+        arguments = text.Substring(argumentsStartIndex);
+        argumentsFormatted = textFormatted.Substring(argumentsStartIndex);
+        string botUsername = "@" + telegramBotSettings?.TelegramBotUsername;
+        if (command.EndsWith(botUsername))
         {
-            long senderId = sender.Id;
-            Task action = command switch
-            {
-                "pidoreg" => mediator.Send(new PidorGameRegisterCommand()
-                {
-                    ChatId = chatId,
-                    TelegramUserId = senderId,
-                    TelegramUserName = telegramMessageService.GetUserFullName(sender)
-                }),
-                "pidorlist" => mediator.Send(new PidorListCommand
-                {
-                    ChatId = chatId,
-                    TelegramUserId = senderId,
-                    Arguments = arguments,
-                }),
-                "pidorules" => mediator.Send(new PidorRulesCommand
-                {
-                    ChatId = chatId,
-                }),
-                "pidor" => mediator.Send(new PidorGameRunCommand
-                {
-                    ChatId = chatId,
-                }),
-                "pidorstats" => mediator.Send(new PidorStatsCommand
-                {
-                    ChatId = chatId,
-                    Arguments = arguments
-                }),
-                "set" => mediator.Send(new SetChatDataCommand
-                {
-                    ChatId = chatId,
-                    Arguments = argumentsHtml,
-                    Message = message
-                }),
-                "get" => mediator.Send(new ShowDataCommand
-                {
-                    ChatId = chatId,
-                    Key = arguments,
-                    MessageId = message.MessageId,
-                    SenderUserId = senderId,
-                    ReplyMessageId = message.ReplyToMessage?.MessageId
-                }),
-                "getall" => mediator.Send(new ShowKeysCommand
-                {
-                    ChatId = chatId,
-                }),
-                "del" => mediator.Send(new DeleteChatDataCommand
-                {
-                    ChatId = chatId,
-                    Key = arguments,
-                    MessageId = message.MessageId
-                }),
-                "шлёп" or "шлеп" or "slap" => mediator.Send(new SlapCommand
-                {
-                    ChatId = chatId,
-                    MessageId = message.MessageId
-                }),
-                "admin" => mediator.Send(new AdminControlCommand
-                {
-                    Arguments = arguments,
-                    Message = message
-                }),
-                "ememe" => mediator.Send(new EmemeCommand
-                {
-                    ChatId = chatId
-                }),
-                "prikol" => mediator.Send(new PrikolCommand
-                {
-                    ChatId = chatId
-                }),
-                _ => isDirectMessage
-                    ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")
-                    : Task.CompletedTask
-            };
+            command = command.Substring(0, command.Length - botUsername.Length);
+            isDirectMessage = true;
+        }
+        // Remove the leading slash
+        command = command.Substring(1);
 
-            await action;
+        return command;
+    }
+
+    private string SplitCommandText(string text, out int argumentsStartIndex)
+    {
+        var command = text;
+        argumentsStartIndex = 0;
+        var commandNamePart = text.IndexOf(' ');
+        if (commandNamePart >= 0)
+        {
+            command = text.Substring(0, commandNamePart);
+            // Ignore the space delimiter
+            argumentsStartIndex = commandNamePart + 1;
         }
 
-        private string ParseCommand(string text, string textFormatted, out string arguments, out string argumentsFormatted, ref bool isDirectMessage)
+        return command;
+    }
+
+    private async Task<bool> HandleInlineQueryAsync(InlineQuery? inlineQuery, CancellationToken cancellationToken)
+    {
+        if (inlineQuery == null)
         {
-            if (!text.StartsWith('/'))
-            {
-                arguments = text;
-                argumentsFormatted = textFormatted;
-                return string.Empty;
-            }
-
-            var command = SplitCommandText(text, out var argumentsStartIndex);
-            arguments = text.Substring(argumentsStartIndex);
-            argumentsFormatted = textFormatted.Substring(argumentsStartIndex);
-            string botUsername = "@" + telegramBotSettings?.TelegramBotUsername;
-            if (command.EndsWith(botUsername))
-            {
-                command = command.Substring(0, command.Length - botUsername.Length);
-                isDirectMessage = true;
-            }
-            // Remove the leading slash
-            command = command.Substring(1);
-
-            return command;
+            return false;
         }
 
-        private string SplitCommandText(string text, out int argumentsStartIndex)
+        try
         {
-            var command = text;
-            argumentsStartIndex = 0;
-            var commandNamePart = text.IndexOf(' ');
-            if (commandNamePart >= 0)
+            var dataItems = await mediator.Send(new SearchDataQuery
             {
-                command = text.Substring(0, commandNamePart);
-                // Ignore the space delimiter
-                argumentsStartIndex = commandNamePart + 1;
-            }
+                SearchText = inlineQuery.Query
+            }, cancellationToken);
 
-            return command;
+            var inlineResults = dataItems.Select(item => MapQueryResult(item))
+                .Where(res => res != null)
+                .Cast<InlineQueryResult>();
+            await botClient.AnswerInlineQueryAsync(inlineQuery.Id, inlineResults, cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error handling inline query {text}", inlineQuery.Query);
         }
 
-        private async Task<bool> HandleInlineQueryAsync(InlineQuery inlineQuery, CancellationToken cancellationToken)
-        {
-            if (inlineQuery == null)
-            {
-                return false;
-            }
+        return true;
+    }
 
-            try
-            {
-                var dataItems = await mediator.Send(new SearchDataQuery
+    private async Task<bool> HandleMemeChannelMessageAsync(Message message, CancellationToken cancellationToken)
+    {
+        if (message == null)
+        {
+            return false;
+        }
+
+        if (message.Chat.Id != memeChannelService.CurrentMemeChatId)
+        {
+            return false;
+        }
+
+        var context = dbContext.Value;
+
+        var memeChannel = await context.MemeChannels.FirstAsync(cancellationToken);
+        memeChannel.LatestMessageId = message.MessageId;
+        await context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    private InlineQueryResult? MapQueryResult(DataItem data)
+    {
+        var uniqueId = data.Id.ToString();
+        switch (data.DataType)
+        {
+            case DataType.Animation:
+                return new InlineQueryResultCachedMpeg4Gif(uniqueId, data.FileId);
+            case DataType.Audio:
+                return new InlineQueryResultCachedAudio(uniqueId, data.FileId);
+            case DataType.Document:
+                return new InlineQueryResultCachedDocument(uniqueId, data.FileId, data.Key);
+            case DataType.Photo:
+                return new InlineQueryResultCachedPhoto(uniqueId, data.FileId);
+            case DataType.Sticker:
+                return new InlineQueryResultCachedSticker(uniqueId, data.FileId);
+            case DataType.Text:
                 {
-                    SearchText = inlineQuery.Query
-                }, cancellationToken);
-
-                var inlineResults = dataItems.Select(item => MapQueryResult(item))
-                    .Where(res => res != null);
-                await botClient.AnswerInlineQueryAsync(inlineQuery.Id, inlineResults, cancellationToken: cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error handling inline query {text}");
-            }
-
-            return true;
-        }
-
-        private async Task<bool> HandleMemeChannelMessageAsync(Message message, CancellationToken cancellationToken)
-        {
-            if (message == null)
-            {
-                return false;
-            }
-
-            if (message.Chat.Id != memeChannelService.CurrentMemeChatId)
-            {
-                return false;
-            }
-
-            var context = dbContext.Value;
-
-            var memeChannel = await context.MemeChannels.FirstAsync(cancellationToken);
-            memeChannel.LatestMessageId = message.MessageId;
-            await context.SaveChangesAsync(cancellationToken);
-            return true;
-        }
-
-        private InlineQueryResult MapQueryResult(DataItem data)
-        {
-            var uniqueId = data.Id.ToString();
-            switch (data.DataType)
-            {
-                case Domain.Chats.Entities.DataType.Animation:
-                    return new InlineQueryResultCachedMpeg4Gif(uniqueId, data.FileId);
-                case Domain.Chats.Entities.DataType.Audio:
-                    return new InlineQueryResultCachedAudio(uniqueId, data.FileId);
-                case Domain.Chats.Entities.DataType.Document:
-                    return new InlineQueryResultCachedDocument(uniqueId, data.FileId, data.Key);
-                case Domain.Chats.Entities.DataType.Photo:
-                    return new InlineQueryResultCachedPhoto(uniqueId, data.FileId);
-                case Domain.Chats.Entities.DataType.Sticker:
-                    return new InlineQueryResultCachedSticker(uniqueId, data.FileId);
-                case Domain.Chats.Entities.DataType.Text:
+                    var content = new InputTextMessageContent(data.Text)
                     {
-                        var content = new InputTextMessageContent(data.Text)
-                        {
-                            ParseMode = Telegram.Bot.Types.Enums.ParseMode.Html
-                        };
-                        return new InlineQueryResultArticle(uniqueId, data.Key, content);
-                    }
-                case Domain.Chats.Entities.DataType.Video:
-                    return new InlineQueryResultCachedVideo(uniqueId, data.FileId, data.Key);
-                case Domain.Chats.Entities.DataType.Voice:
-                    return new InlineQueryResultCachedVoice(uniqueId, data.FileId, data.Key);
-                default:
-                    return null;
-            }
-        }
-
-        private void HandleMessageNotification(Message message)
-        {
-            // TODO: ideally this logic should be encapsulated in a separate class.
-            // Fire and forget for the notification.
-            var serviceScope = serviceScopeFactory.CreateScope();
-            Task.Run(async () =>
-            {
-                using (serviceScope)
-                {
-                    var mediator = serviceScope.ServiceProvider.GetRequiredService<IMediator>();
-                    var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<HandleTelegramActionCommandHandler>>();
-                    try
-                    {
-                        await mediator.Publish(new MessageNotification
-                        {
-                            Message = message
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "Error sending message notification");
-                    }
+                        ParseMode = Telegram.Bot.Types.Enums.ParseMode.Html
+                    };
+                    return new InlineQueryResultArticle(uniqueId, data.Key, content);
                 }
-            });
+            case DataType.Video:
+                return new InlineQueryResultCachedVideo(uniqueId, data.FileId, data.Key);
+            case DataType.Voice:
+                return new InlineQueryResultCachedVoice(uniqueId, data.FileId, data.Key);
+            default:
+                return null;
         }
+    }
+
+    private void HandleMessageNotification(Message message)
+    {
+        // TODO: ideally this logic should be encapsulated in a separate class.
+        // Fire and forget for the notification.
+        var serviceScope = serviceScopeFactory.CreateScope();
+        Task.Run(async () =>
+        {
+            using (serviceScope)
+            {
+                var mediator = serviceScope.ServiceProvider.GetRequiredService<IMediator>();
+                var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<HandleTelegramActionCommandHandler>>();
+                try
+                {
+                    await mediator.Publish(new MessageNotification
+                    {
+                        Message = message
+                    });
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error sending message notification");
+                }
+            }
+        });
     }
 }

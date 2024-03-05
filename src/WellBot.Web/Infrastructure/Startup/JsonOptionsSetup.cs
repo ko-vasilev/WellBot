@@ -1,20 +1,19 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace WellBot.Web.Infrastructure.Startup
+namespace WellBot.Web.Infrastructure.Startup;
+
+/// <summary>
+/// JSON options setup.
+/// </summary>
+internal class JsonOptionsSetup
 {
     /// <summary>
-    /// JSON options setup.
+    /// Setup method.
     /// </summary>
-    internal class JsonOptionsSetup
+    /// <param name="options">JSON options.</param>
+    public void Setup(JsonOptions options)
     {
-        /// <summary>
-        /// Setup method.
-        /// </summary>
-        /// <param name="options">JSON options.</param>
-        public void Setup(JsonOptions options)
-        {
-            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        }
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     }
 }

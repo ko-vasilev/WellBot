@@ -1,9 +1,11 @@
 {
   "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft": "Warning",
-      "Microsoft.Hosting.Lifetime": "Information"
+    "Console": {
+      "FormatterOptions": {
+        "JsonWriterOptions": {
+          "Indented": false
+        }
+      }
     }
   },
   "ConnectionStrings": {
@@ -17,13 +19,5 @@
   "Jwt": {
     "SecretKey": "{{jwtSecretKey}}",
     "Issuer": "{{jwtIssuer}}"
-  },
-  "Mail": {
-    "Host": "{{smtpHost}}",
-    "Password": "{{smtpPassword}}",
-    "Username": "{{smtpUser}}",
-    "Port": "{{smtpPort}}",
-    "UseSsl": "{{smtpSsl}}",
-    "FromAddress": "{{smtpFrom}}"
   }
 }

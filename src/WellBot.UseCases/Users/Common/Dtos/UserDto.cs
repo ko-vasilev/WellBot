@@ -1,18 +1,17 @@
-namespace WellBot.UseCases.Users.Common.Dtos
+namespace WellBot.UseCases.Users.Common.Dtos;
+
+/// <summary>
+/// User DTO.
+/// </summary>
+public class UserDto
 {
     /// <summary>
-    /// User DTO.
+    /// User identifier.
     /// </summary>
-    public class UserDto
-    {
-        /// <summary>
-        /// User identifier.
-        /// </summary>
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        /// <summary>
-        /// Full user name.
-        /// </summary>
-        public string FullName { get; set; }
-    }
+    /// <summary>
+    /// Full user name.
+    /// </summary>
+    public required string FullName { get; set; }
 }

@@ -1,21 +1,20 @@
 ﻿using MediatR;
 using Telegram.Bot.Types;
 
-namespace WellBot.UseCases.Chats.AdminControl
+namespace WellBot.UseCases.Chats.AdminControl;
+
+/// <summary>
+/// Set some bot settings.
+/// </summary>
+public record AdminControlCommand : IRequest<Unit>
 {
     /// <summary>
-    /// Set some bot settings.
+    /// Command arguments.
     /// </summary>
-    public record AdminControlCommand : IRequest
-    {
-        /// <summary>
-        /// Command arguments.
-        /// </summary>
-        public string Arguments { get; init; }
+    public required string Arguments { get; init; }
 
-        /// <summary>
-        /// Telegram message.
-        /// </summary>
-        public Message Message { get; init; }
-    }
+    /// <summary>
+    /// Telegram message.
+    /// </summary>
+    public required Message Message { get; init; }
 }

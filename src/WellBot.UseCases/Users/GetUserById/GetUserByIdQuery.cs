@@ -1,15 +1,14 @@
 using MediatR;
 
-namespace WellBot.UseCases.Users.GetUserById
+namespace WellBot.UseCases.Users.GetUserById;
+
+/// <summary>
+/// Get user details by identifier.
+/// </summary>
+public record GetUserByIdQuery : IRequest<UserDetailsDto>
 {
     /// <summary>
-    /// Get user details by identifier.
+    /// User id.
     /// </summary>
-    public record GetUserByIdQuery : IRequest<UserDetailsDto>
-    {
-        /// <summary>
-        /// User id.
-        /// </summary>
-        public int UserId { get; init; }
-    }
+    public int UserId { get; init; }
 }

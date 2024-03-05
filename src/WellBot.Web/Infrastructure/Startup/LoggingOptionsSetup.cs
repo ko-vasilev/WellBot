@@ -1,41 +1,35 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+namespace WellBot.Web.Infrastructure.Startup;
 
-namespace WellBot.Web.Infrastructure.Startup
+/// <summary>
+/// Logging setup for application.
+/// </summary>
+internal class LoggingOptionsSetup
 {
+    private readonly IConfiguration configuration;
+    private readonly IWebHostEnvironment environment;
+
     /// <summary>
-    /// Logging setup for application.
+    /// Constructor.
     /// </summary>
-    internal class LoggingOptionsSetup
+    /// <param name="configuration">Configuration.</param>
+    /// <param name="environment">Host environment.</param>
+    public LoggingOptionsSetup(IConfiguration configuration, IWebHostEnvironment environment)
     {
-        private readonly IConfiguration configuration;
-        private readonly IWebHostEnvironment environment;
+        this.configuration = configuration;
+        this.environment = environment;
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration.</param>
-        /// <param name="environment">Host environment.</param>
-        public LoggingOptionsSetup(IConfiguration configuration, IWebHostEnvironment environment)
+    /// <summary>
+    /// Setup logging.
+    /// </summary>
+    /// <param name="options">Logging builder.</param>
+    public void Setup(ILoggingBuilder options)
+    {
+        options.AddConsole();
+        if (!environment.IsProduction())
         {
-            this.configuration = configuration;
-            this.environment = environment;
+            options.AddDebug();
         }
-
-        /// <summary>
-        /// Setup logging.
-        /// </summary>
-        /// <param name="options">Logging builder.</param>
-        public void Setup(ILoggingBuilder options)
-        {
-            options.AddConsole();
-            if (!environment.IsProduction())
-            {
-                options.AddDebug();
-            }
-            options.AddConfiguration(configuration);
-        }
+        options.AddConfiguration(configuration);
     }
 }

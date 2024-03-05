@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using MediatR;
+﻿using MediatR;
 
-namespace WellBot.UseCases.Chats.AutomaticMessages.GetAutomaticMessages
+namespace WellBot.UseCases.Chats.AutomaticMessages.GetAutomaticMessages;
+
+/// <summary>
+/// Get all existing automatic messages.
+/// </summary>
+public class GetAutomaticMessagesCommand : IRequest<IEnumerable<AutomaticMessageDto>>
 {
-    /// <summary>
-    /// Get all existing automatic messages.
-    /// </summary>
-    public class GetAutomaticMessagesCommand : IRequest<IEnumerable<AutomaticMessageDto>>
-    {
-    }
 }

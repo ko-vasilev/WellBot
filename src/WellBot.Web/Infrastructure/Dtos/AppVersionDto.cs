@@ -1,18 +1,17 @@
-﻿namespace WellBot.Web.Infrastructure.Dtos
+﻿namespace WellBot.Web.Infrastructure.Dtos;
+
+/// <summary>
+/// DTO for application version.
+/// </summary>
+public class AppVersionDto
 {
     /// <summary>
-    /// DTO for application version.
+    /// Information version.
     /// </summary>
-    public class AppVersionDto
-    {
-        /// <summary>
-        /// Information version.
-        /// </summary>
-        public string InformationalVersion { get; set; }
+    public string? InformationalVersion { get; set; }
 
-        /// <summary>
-        /// Assembly version.
-        /// </summary>
-        public string AssemblyVersion { get; set; }
-    }
+    /// <summary>
+    /// Assembly version.
+    /// </summary>
+    public string? AssemblyVersion { get; set; }
 }

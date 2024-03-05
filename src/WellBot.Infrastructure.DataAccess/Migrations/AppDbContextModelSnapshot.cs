@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WellBot.Infrastructure.DataAccess;
 
+#nullable disable
+
 namespace WellBot.Infrastructure.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
@@ -13,8 +15,26 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.12");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.2");
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FriendlyName")
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Xml")
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
@@ -37,7 +57,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims");
+                    b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
@@ -61,7 +81,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims");
+                    b.ToTable("AspNetUserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
@@ -85,7 +105,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins");
+                    b.ToTable("AspNetUserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
@@ -100,7 +120,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles");
+                    b.ToTable("AspNetUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -122,7 +142,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens");
+                    b.ToTable("AspNetUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("PassiveReplyOptionPassiveTopic", b =>
@@ -140,7 +160,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("PassiveReplyOptionPassiveTopic");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.AutomaticMessageTemplate", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.AutomaticMessageTemplate", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -150,6 +170,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("CronInterval")
+                        .IsRequired()
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
@@ -161,6 +182,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Message")
+                        .IsRequired()
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
@@ -171,7 +193,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("AutomaticMessageTemplates");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.Chat", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.Chat", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -187,7 +209,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("Chats");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.ChatData", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.ChatData", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -208,6 +230,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Key")
+                        .IsRequired()
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
@@ -224,7 +247,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("ChatDatas");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.ChatPidor", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.ChatPidor", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -253,7 +276,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("ChatPidors");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.MemeChannelInfo", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.MemeChannelInfo", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -270,7 +293,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("MemeChannels");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.PassiveReplyOption", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.PassiveReplyOption", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -285,6 +308,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Text")
+                        .IsRequired()
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
@@ -293,7 +317,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("PassiveReplyOptions");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.PassiveTopic", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.PassiveTopic", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -312,6 +336,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
@@ -327,7 +352,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("PassiveTopics");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.PidorMessage", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.PidorMessage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -343,6 +368,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("MessageRaw")
+                        .IsRequired()
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
 
@@ -357,7 +383,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("PidorResultMessages");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.PidorRegistration", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.PidorRegistration", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -370,6 +396,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("OriginalTelegramUserName")
+                        .IsRequired()
                         .HasMaxLength(63)
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
@@ -386,13 +413,14 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("PidorRegistrations");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.SlapOption", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.SlapOption", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("FileId")
+                        .IsRequired()
                         .HasMaxLength(150)
                         .IsUnicode(false)
                         .HasColumnType("TEXT");
@@ -402,7 +430,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.ToTable("SlapOptions");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Users.Entities.AppIdentityRole", b =>
+            modelBuilder.Entity("WellBot.Domain.Users.AppIdentityRole", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -429,10 +457,10 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles");
+                    b.ToTable("AspNetRoles", (string)null);
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Users.Entities.User", b =>
+            modelBuilder.Entity("WellBot.Domain.Users.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -508,12 +536,12 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers");
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
-                    b.HasOne("WellBot.Domain.Users.Entities.AppIdentityRole", null)
+                    b.HasOne("WellBot.Domain.Users.AppIdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -522,7 +550,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
                 {
-                    b.HasOne("WellBot.Domain.Users.Entities.User", null)
+                    b.HasOne("WellBot.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -531,7 +559,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
                 {
-                    b.HasOne("WellBot.Domain.Users.Entities.User", null)
+                    b.HasOne("WellBot.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -540,13 +568,13 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
                 {
-                    b.HasOne("WellBot.Domain.Users.Entities.AppIdentityRole", null)
+                    b.HasOne("WellBot.Domain.Users.AppIdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("WellBot.Domain.Users.Entities.User", null)
+                    b.HasOne("WellBot.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -555,7 +583,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
                 {
-                    b.HasOne("WellBot.Domain.Users.Entities.User", null)
+                    b.HasOne("WellBot.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -564,22 +592,22 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
 
             modelBuilder.Entity("PassiveReplyOptionPassiveTopic", b =>
                 {
-                    b.HasOne("WellBot.Domain.Chats.Entities.PassiveTopic", null)
+                    b.HasOne("WellBot.Domain.Chats.PassiveTopic", null)
                         .WithMany()
                         .HasForeignKey("PassiveTopicsId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("WellBot.Domain.Chats.Entities.PassiveReplyOption", null)
+                    b.HasOne("WellBot.Domain.Chats.PassiveReplyOption", null)
                         .WithMany()
                         .HasForeignKey("ReplyOptionsId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.AutomaticMessageTemplate", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.AutomaticMessageTemplate", b =>
                 {
-                    b.HasOne("WellBot.Domain.Chats.Entities.Chat", "Chat")
+                    b.HasOne("WellBot.Domain.Chats.Chat", "Chat")
                         .WithMany()
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -588,9 +616,9 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.Navigation("Chat");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.ChatData", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.ChatData", b =>
                 {
-                    b.HasOne("WellBot.Domain.Chats.Entities.Chat", "Chat")
+                    b.HasOne("WellBot.Domain.Chats.Chat", "Chat")
                         .WithMany("Data")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -599,21 +627,21 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.Navigation("Chat");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.ChatPidor", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.ChatPidor", b =>
                 {
-                    b.HasOne("WellBot.Domain.Chats.Entities.Chat", "Chat")
+                    b.HasOne("WellBot.Domain.Chats.Chat", "Chat")
                         .WithMany("Pidors")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("WellBot.Domain.Chats.Entities.PidorRegistration", "Registration")
+                    b.HasOne("WellBot.Domain.Chats.PidorRegistration", "Registration")
                         .WithMany("Wins")
                         .HasForeignKey("RegistrationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("WellBot.Domain.Chats.Entities.PidorMessage", "UsedMessage")
+                    b.HasOne("WellBot.Domain.Chats.PidorMessage", "UsedMessage")
                         .WithMany("UsedWins")
                         .HasForeignKey("UsedMessageId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -626,9 +654,9 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.Navigation("UsedMessage");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.PidorRegistration", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.PidorRegistration", b =>
                 {
-                    b.HasOne("WellBot.Domain.Chats.Entities.Chat", "Chat")
+                    b.HasOne("WellBot.Domain.Chats.Chat", "Chat")
                         .WithMany("PidorRegistrations")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -637,7 +665,7 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.Navigation("Chat");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.Chat", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.Chat", b =>
                 {
                     b.Navigation("Data");
 
@@ -646,12 +674,12 @@ namespace WellBot.Infrastructure.DataAccess.Migrations
                     b.Navigation("Pidors");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.PidorMessage", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.PidorMessage", b =>
                 {
                     b.Navigation("UsedWins");
                 });
 
-            modelBuilder.Entity("WellBot.Domain.Chats.Entities.PidorRegistration", b =>
+            modelBuilder.Entity("WellBot.Domain.Chats.PidorRegistration", b =>
                 {
                     b.Navigation("Wins");
                 });

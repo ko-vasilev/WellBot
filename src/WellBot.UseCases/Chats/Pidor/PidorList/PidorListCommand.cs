@@ -1,26 +1,25 @@
 ﻿using MediatR;
 using Telegram.Bot.Types;
 
-namespace WellBot.UseCases.Chats.Pidor.PidorList
+namespace WellBot.UseCases.Chats.Pidor.PidorList;
+
+/// <summary>
+/// Get list of users signed up for daily pidor game.
+/// </summary>
+public record PidorListCommand : IRequest<Unit>, IChatInfo
 {
     /// <summary>
-    /// Get list of users signed up for daily pidor game.
+    /// Id of the telegram chat.
     /// </summary>
-    public record PidorListCommand : IRequest, IChatInfo
-    {
-        /// <summary>
-        /// Id of the telegram chat.
-        /// </summary>
-        public ChatId ChatId { get; init; }
+    public required ChatId ChatId { get; init; }
 
-        /// <summary>
-        /// Id of the user who has sent the request.
-        /// </summary>
-        public long TelegramUserId { get; init; }
+    /// <summary>
+    /// Id of the user who has sent the request.
+    /// </summary>
+    public long TelegramUserId { get; init; }
 
-        /// <summary>
-        /// Additional command arguments.
-        /// </summary>
-        public string Arguments { get; init; }
-    }
+    /// <summary>
+    /// Additional command arguments.
+    /// </summary>
+    public required string Arguments { get; init; }
 }

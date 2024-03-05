@@ -1,265 +1,262 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
-using WellBot.Domain.Chats.Entities;
+using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.Dtos;
 using WellBot.UseCases.Chats.RegularMessageHandles.Reply;
 
-namespace WellBot.UseCases.Chats.AdminControl
-{
-    /// <summary>
-    /// Handler for <see cref="AdminControlCommand"/>.
-    /// </summary>
-    internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlCommand>
-    {
-        private readonly IAppDbContext appDbContext;
-        private readonly TelegramMessageService telegramMessageService;
-        private readonly ILogger<AdminControlCommandHandler> logger;
-        private readonly MemeChannelService memeChannelService;
-        private readonly Lazy<PassiveTopicService> passiveTopicService;
+namespace WellBot.UseCases.Chats.AdminControl;
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        public AdminControlCommandHandler(IAppDbContext appDbContext, TelegramMessageService telegramMessageService, ILogger<AdminControlCommandHandler> logger, MemeChannelService memeChannelService, Lazy<PassiveTopicService> passiveTopicService)
+/// <summary>
+/// Handler for <see cref="AdminControlCommand"/>.
+/// </summary>
+internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlCommand>
+{
+    private readonly IAppDbContext appDbContext;
+    private readonly TelegramMessageService telegramMessageService;
+    private readonly ILogger<AdminControlCommandHandler> logger;
+    private readonly MemeChannelService memeChannelService;
+    private readonly Lazy<PassiveTopicService> passiveTopicService;
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public AdminControlCommandHandler(IAppDbContext appDbContext, TelegramMessageService telegramMessageService, ILogger<AdminControlCommandHandler> logger, MemeChannelService memeChannelService, Lazy<PassiveTopicService> passiveTopicService)
+    {
+        this.appDbContext = appDbContext;
+        this.telegramMessageService = telegramMessageService;
+        this.logger = logger;
+        this.memeChannelService = memeChannelService;
+        this.passiveTopicService = passiveTopicService;
+    }
+
+    /// <inheritdoc/>
+    protected override async Task Handle(AdminControlCommand request, CancellationToken cancellationToken)
+    {
+        try
         {
-            this.appDbContext = appDbContext;
-            this.telegramMessageService = telegramMessageService;
-            this.logger = logger;
-            this.memeChannelService = memeChannelService;
-            this.passiveTopicService = passiveTopicService;
+            if (request.Arguments == "add slap")
+            {
+                await AddSlapOptionAsync(request.Message);
+                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                return;
+            }
+
+            const string PassiveAdd = "passive add";
+            if (request.Arguments.StartsWith(PassiveAdd))
+            {
+                var arguments = request.Arguments.Substring(PassiveAdd.Length).Trim();
+                if (await AddPassiveReplyOptionAsync(request.Message, arguments))
+                {
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                }
+                return;
+            }
+
+            const string PassiveProbability = "passive probability";
+            if (request.Arguments.StartsWith(PassiveProbability))
+            {
+                var arguments = request.Arguments.Substring(PassiveProbability.Length).Trim();
+                if (await SetTopicProbabilityAsync(arguments))
+                {
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                }
+                return;
+            }
+
+            if (request.Arguments == "meme")
+            {
+                await SetMemeChannelAsync(request.Message);
+                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                return;
+            }
+
+            if (request.Arguments == "broadcast")
+            {
+                await BroadcastMessageAsync(request.Message);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error handling admin command {command}", request.Arguments);
         }
 
-        /// <inheritdoc/>
-        protected override async Task Handle(AdminControlCommand request, CancellationToken cancellationToken)
+        return;
+    }
+
+    private async Task AddSlapOptionAsync(Message message)
+    {
+        var replyMessage = message.ReplyToMessage;
+        if (replyMessage?.Animation == null)
+        {
+            return;
+        }
+
+        var slapOption = new SlapOption
+        {
+            FileId = replyMessage.Animation.FileId
+        };
+        appDbContext.SlapOptions.Add(slapOption);
+        await appDbContext.SaveChangesAsync();
+    }
+
+    private async Task<bool> AddPassiveReplyOptionAsync(Message message, string arguments)
+    {
+        var replyMessage = message.ReplyToMessage;
+        if (replyMessage == null)
+        {
+            return false;
+        }
+
+        var options = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var topicIds = passiveTopicService.Value.SearchTopics(options).ToList();
+        if (!topicIds.Any())
+        {
+            const string defaultTopic = "regular";
+            topicIds = passiveTopicService.Value.SearchTopics(new[] { defaultTopic }).ToList();
+        }
+        var topics = await appDbContext.PassiveTopics.Where(t => topicIds.Contains(t.Id))
+            .ToListAsync();
+        bool isBatchMode = options.Contains("batch");
+
+        var text = telegramMessageService.GetMessageTextHtml(replyMessage);
+        if (isBatchMode && replyMessage.Type == Telegram.Bot.Types.Enums.MessageType.Text)
+        {
+            foreach (var line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var lineOption = new PassiveReplyOption
+                {
+                    Text = line,
+                    DataType = DataType.Text,
+                    PassiveTopics = topics
+                };
+                appDbContext.PassiveReplyOptions.Add(lineOption);
+            }
+            await appDbContext.SaveChangesAsync();
+            return true;
+        }
+
+        var replyOption = new PassiveReplyOption
+        {
+            Text = text,
+            DataType = DataType.Text,
+            PassiveTopics = topics
+        };
+        if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+        {
+            var dataType = telegramMessageService.GetFile(replyMessage, out var attachedDocument);
+            if (dataType == null || attachedDocument == null)
+            {
+                return false;
+            }
+            replyOption.DataType = dataType.Value;
+            replyOption.FileId = attachedDocument.FileId;
+        }
+
+        appDbContext.PassiveReplyOptions.Add(replyOption);
+        await appDbContext.SaveChangesAsync();
+        return true;
+    }
+
+    private async Task SetMemeChannelAsync(Message message)
+    {
+        var replyMessage = message.ReplyToMessage;
+        if (replyMessage == null)
+        {
+            return;
+        }
+
+        if (replyMessage.ForwardFromChat == null || replyMessage.ForwardFromMessageId == null)
+        {
+            return;
+        }
+
+        var currentChannelInfo = await appDbContext.MemeChannels.FirstOrDefaultAsync();
+        if (currentChannelInfo == null)
+        {
+            currentChannelInfo = new MemeChannelInfo();
+            appDbContext.MemeChannels.Add(currentChannelInfo);
+        }
+
+        currentChannelInfo.ChannelId = replyMessage.ForwardFromChat.Id;
+        currentChannelInfo.LatestMessageId = replyMessage.ForwardFromMessageId.Value;
+        await appDbContext.SaveChangesAsync();
+        memeChannelService.CurrentMemeChatId = currentChannelInfo.ChannelId;
+    }
+
+    private async Task BroadcastMessageAsync(Message originalMessage)
+    {
+        var messageToSend = originalMessage.ReplyToMessage;
+        if (messageToSend == null)
+        {
+            return;
+        }
+
+        var chats = await appDbContext.Chats
+            .Select(c => c.TelegramId)
+            .ToListAsync();
+        var text = telegramMessageService.GetMessageTextHtml(messageToSend);
+        var messageData = new GenericMessage
+        {
+            Text = text,
+            DataType = DataType.Text
+        };
+        if (messageToSend.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+        {
+            var dataType = telegramMessageService.GetFile(messageToSend, out var attachedDocument);
+            if (dataType == null || attachedDocument == null)
+            {
+                return;
+            }
+            messageData.DataType = dataType.Value;
+            messageData.FileId = attachedDocument.FileId;
+        }
+
+        foreach (var chat in chats)
         {
             try
             {
-                if (request.Arguments == "add slap")
-                {
-                    await AddSlapOptionAsync(request.Message);
-                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
-                    return;
-                }
-
-                const string PassiveAdd = "passive add";
-                if (request.Arguments.StartsWith(PassiveAdd))
-                {
-                    var arguments = request.Arguments.Substring(PassiveAdd.Length).Trim();
-                    if (await AddPassiveReplyOptionAsync(request.Message, arguments))
-                    {
-                        await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
-                    }
-                    return;
-                }
-
-                const string PassiveProbability = "passive probability";
-                if (request.Arguments.StartsWith(PassiveProbability))
-                {
-                    var arguments = request.Arguments.Substring(PassiveProbability.Length).Trim();
-                    if (await SetTopicProbabilityAsync(arguments))
-                    {
-                        await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
-                    }
-                    return;
-                }
-
-                if (request.Arguments == "meme")
-                {
-                    await SetMemeChannelAsync(request.Message);
-                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
-                    return;
-                }
-
-                if (request.Arguments == "broadcast")
-                {
-                    await BroadcastMessageAsync(request.Message);
-                    return;
-                }
+                await telegramMessageService.SendMessageAsync(messageData, new ChatId(chat));
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error handling admin command {command}", request.Arguments);
+                logger.LogError(ex, "Error broadcasting to {chatId} chat", chat);
             }
         }
+    }
 
-        private async Task AddSlapOptionAsync(Message message)
+    private async Task<bool> SetTopicProbabilityAsync(string arguments)
+    {
+        var parsedArguments = arguments.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+        if (parsedArguments.Length != 2)
         {
-            var replyMessage = message.ReplyToMessage;
-            if (replyMessage?.Animation == null)
-            {
-                return;
-            }
-
-            var slapOption = new SlapOption
-            {
-                FileId = replyMessage.Animation.FileId
-            };
-            appDbContext.SlapOptions.Add(slapOption);
-            await appDbContext.SaveChangesAsync();
+            return false;
         }
 
-        private async Task<bool> AddPassiveReplyOptionAsync(Message message, string arguments)
+        if (!int.TryParse(parsedArguments[1], out var probability))
         {
-            var replyMessage = message.ReplyToMessage;
-            if (replyMessage == null)
-            {
-                return false;
-            }
-
-            var options = arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            var topicIds = passiveTopicService.Value.SearchTopics(options).ToList();
-            if (!topicIds.Any())
-            {
-                const string defaultTopic = "regular";
-                topicIds = passiveTopicService.Value.SearchTopics(new[] { defaultTopic }).ToList();
-            }
-            var topics = await appDbContext.PassiveTopics.Where(t => topicIds.Contains(t.Id))
-                .ToListAsync();
-            bool isBatchMode = options.Contains("batch");
-
-            var text = telegramMessageService.GetMessageTextHtml(replyMessage);
-            if (isBatchMode && replyMessage.Type == Telegram.Bot.Types.Enums.MessageType.Text)
-            {
-                foreach (var line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-                {
-                    var lineOption = new PassiveReplyOption
-                    {
-                        Text = line,
-                        DataType = DataType.Text,
-                        PassiveTopics = topics
-                    };
-                    appDbContext.PassiveReplyOptions.Add(lineOption);
-                }
-                await appDbContext.SaveChangesAsync();
-                return true;
-            }
-
-            var replyOption = new PassiveReplyOption
-            {
-                Text = text,
-                DataType = DataType.Text,
-                PassiveTopics = topics
-            };
-            if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
-            {
-                var dataType = telegramMessageService.GetFile(replyMessage, out var attachedDocument);
-                if (dataType == null)
-                {
-                    return false;
-                }
-                replyOption.DataType = dataType.Value;
-                replyOption.FileId = attachedDocument.FileId;
-            }
-
-            appDbContext.PassiveReplyOptions.Add(replyOption);
-            await appDbContext.SaveChangesAsync();
-            return true;
+            return false;
         }
 
-        private async Task SetMemeChannelAsync(Message message)
+        var topicName = parsedArguments[0];
+        var topic = await appDbContext.PassiveTopics.FirstOrDefaultAsync(t => t.Name == topicName);
+        if (topic == null)
         {
-            var replyMessage = message.ReplyToMessage;
-            if (replyMessage == null)
-            {
-                return;
-            }
-
-            if (replyMessage.ForwardFromChat == null)
-            {
-                return;
-            }
-
-            var currentChannelInfo = await appDbContext.MemeChannels.FirstOrDefaultAsync();
-            if (currentChannelInfo == null)
-            {
-                currentChannelInfo = new MemeChannelInfo();
-                appDbContext.MemeChannels.Add(currentChannelInfo);
-            }
-
-            currentChannelInfo.ChannelId = replyMessage.ForwardFromChat.Id;
-            currentChannelInfo.LatestMessageId = replyMessage.ForwardFromMessageId.Value;
-            await appDbContext.SaveChangesAsync();
-            memeChannelService.CurrentMemeChatId = currentChannelInfo.ChannelId;
+            return false;
         }
 
-        private async Task BroadcastMessageAsync(Message originalMessage)
-        {
-            var messageToSend = originalMessage.ReplyToMessage;
-            if (messageToSend == null)
-            {
-                return;
-            }
+        topic.Probability = probability;
+        await appDbContext.SaveChangesAsync();
 
-            var chats = await appDbContext.Chats
-                .Select(c => c.TelegramId)
-                .ToListAsync();
-            var text = telegramMessageService.GetMessageTextHtml(messageToSend);
-            var messageData = new GenericMessage
-            {
-                Text = text,
-                DataType = DataType.Text
-            };
-            if (messageToSend.Type != Telegram.Bot.Types.Enums.MessageType.Text)
-            {
-                var dataType = telegramMessageService.GetFile(messageToSend, out var attachedDocument);
-                if (dataType == null)
-                {
-                    return;
-                }
-                messageData.DataType = dataType.Value;
-                messageData.FileId = attachedDocument.FileId;
-            }
+        // Reload topics cache.
+        var existingTopics = await appDbContext.PassiveTopics
+            .AsNoTracking()
+            .ToListAsync();
+        passiveTopicService.Value.Update(existingTopics);
 
-            foreach (var chat in chats)
-            {
-                try
-                {
-                    await telegramMessageService.SendMessageAsync(messageData, new ChatId(chat));
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Error broadcasting to {chatId} chat", chat);
-                }
-            }
-        }
-
-        private async Task<bool> SetTopicProbabilityAsync(string arguments)
-        {
-            var parsedArguments = arguments.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-            if (parsedArguments.Length != 2)
-            {
-                return false;
-            }
-
-            if (!int.TryParse(parsedArguments[1], out var probability))
-            {
-                return false;
-            }
-
-            var topicName = parsedArguments[0];
-            var topic = await appDbContext.PassiveTopics.FirstOrDefaultAsync(t => t.Name == topicName);
-            if (topic == null)
-            {
-                return false;
-            }
-
-            topic.Probability = probability;
-            await appDbContext.SaveChangesAsync();
-
-            // Reload topics cache.
-            var existingTopics = await appDbContext.PassiveTopics
-                .AsNoTracking()
-                .ToListAsync();
-            passiveTopicService.Value.Update(existingTopics);
-
-            return true;
-        }
+        return true;
     }
 }

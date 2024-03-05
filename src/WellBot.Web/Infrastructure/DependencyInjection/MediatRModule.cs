@@ -1,23 +1,21 @@
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using WellBot.UseCases.Users.AuthenticateUser;
 using WellBot.Web.Infrastructure.Telegram;
 
-namespace WellBot.Web.Infrastructure.DependencyInjection
+namespace WellBot.Web.Infrastructure.DependencyInjection;
+
+/// <summary>
+/// Register Mediator as dependency.
+/// </summary>
+internal static class MediatRModule
 {
     /// <summary>
-    /// Register Mediator as dependency.
+    /// Register dependencies.
     /// </summary>
-    internal static class MediatRModule
+    /// <param name="services">Services.</param>
+    public static void Register(IServiceCollection services)
     {
-        /// <summary>
-        /// Register dependencies.
-        /// </summary>
-        /// <param name="services">Services.</param>
-        public static void Register(IServiceCollection services)
-        {
-            services.AddMediatR(typeof(LoginUserCommand).Assembly);
-            services.AddScoped(typeof(IPipelineBehavior<,>), typeof(TelegramChatSetterPipelineBehavior<,>));
-        }
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(LoginUserCommand).Assembly));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(TelegramChatSetterPipelineBehavior<,>));
     }
 }
