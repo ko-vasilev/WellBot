@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +12,6 @@ using WellBot.Web.Infrastructure.Middlewares;
 using WellBot.Web.Infrastructure.RecurringJobs;
 using WellBot.Web.Infrastructure.Settings;
 using WellBot.Web.Infrastructure.Startup;
-using WellBot.Web.Infrastructure.Startup.HealthCheck;
 using WellBot.Web.Infrastructure.Startup.Swagger;
 using WellBot.Web.Infrastructure.Telegram;
 
@@ -61,7 +59,6 @@ public class Startup
         // MVC.
         services
             .AddControllers()
-            .AddNewtonsoftJson()
             .AddJsonOptions(new JsonOptionsSetup().Setup);
         services.Configure<ApiBehaviorOptions>(new ApiBehaviorOptionsSetup().Setup);
 
