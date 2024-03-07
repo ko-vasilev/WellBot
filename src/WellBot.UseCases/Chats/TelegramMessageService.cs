@@ -32,19 +32,25 @@ public class TelegramMessageService
 
     private static readonly string[] successReplies = new string[]
     {
-        "Ок",
-        "ОК!",
+        "👍",
+        "👏",
         "👌",
-        "Принято",
+        "🙏",
+        "🆒"
     };
 
     /// <summary>
     /// Send a "success" type of response to user.
     /// </summary>
-    public async Task SendSuccessAsync(long chatId)
+    /// <param name="chatId">Id of the chat where the reply should be sent.</param>
+    /// <param name="messageId">Id of the message to reply the "success" status to.</param>
+    public async Task SendSuccessAsync(long chatId, int messageId)
     {
         var reply = randomService.PickRandom(successReplies);
-        await botClient.SendMessageAsync(chatId, reply);
+        await botClient.SetMessageReactionAsync(chatId, messageId, new[]
+        {
+            new ReactionTypeEmoji() { Emoji = reply }
+        });
     }
 
     /// <summary>

@@ -21,4 +21,9 @@ public record PidorListCommand : IRequest<Unit>, IChatInfo
     /// Additional command arguments.
     /// </summary>
     public required string Arguments { get; init; }
+
+    /// <summary>
+    /// Id of the message that triggered the command.
+    /// </summary>
+    public int MessageId { get; init; }
 }

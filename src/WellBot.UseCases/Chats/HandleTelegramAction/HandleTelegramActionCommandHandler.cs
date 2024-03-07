@@ -134,13 +134,15 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
             {
                 ChatId = chatId,
                 TelegramUserId = GetSenderId(),
-                TelegramUserName = telegramMessageService.GetUserFullName(sender)
+                TelegramUserName = telegramMessageService.GetUserFullName(sender),
+                MessageId = message.MessageId
             }),
             "pidorlist" => mediator.Send(new PidorListCommand
             {
                 ChatId = chatId,
                 TelegramUserId = GetSenderId(),
                 Arguments = arguments,
+                MessageId = message.MessageId
             }),
             "pidorules" => mediator.Send(new PidorRulesCommand
             {

@@ -21,4 +21,9 @@ public record PidorGameRegisterCommand : IRequest<Unit>, IChatInfo
     /// Name of the person who sent the request.
     /// </summary>
     public required string TelegramUserName { get; init; }
+
+    /// <summary>
+    /// Id of the message that triggered the command.
+    /// </summary>
+    public int MessageId { get; init; }
 }

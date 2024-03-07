@@ -47,6 +47,6 @@ internal class PidorGameRegisterCommandHandler : AsyncRequestHandler<PidorGameRe
         };
         dbContext.PidorRegistrations.Add(registration);
         await dbContext.SaveChangesAsync(cancellationToken);
-        await telegramMessageService.SendSuccessAsync(request.ChatId);
+        await telegramMessageService.SendSuccessAsync(request.ChatId, request.MessageId);
     }
 }

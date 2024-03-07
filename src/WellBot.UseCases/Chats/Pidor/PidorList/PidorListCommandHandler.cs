@@ -64,7 +64,7 @@ internal class PidorListCommandHandler : AsyncRequestHandler<PidorListCommand>
                 dbContext.PidorRegistrations.Remove(user);
                 await dbContext.SaveChangesAsync();
             }
-            await telegramMessageService.SendSuccessAsync(request.ChatId);
+            await telegramMessageService.SendSuccessAsync(request.ChatId, request.MessageId);
             return;
         }
 

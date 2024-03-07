@@ -40,7 +40,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             if (request.Arguments == "add slap")
             {
                 await AddSlapOptionAsync(request.Message);
-                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
                 return;
             }
 
@@ -50,7 +50,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
                 var arguments = request.Arguments.Substring(PassiveAdd.Length).Trim();
                 if (await AddPassiveReplyOptionAsync(request.Message, arguments))
                 {
-                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
                 }
                 return;
             }
@@ -61,7 +61,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
                 var arguments = request.Arguments.Substring(PassiveProbability.Length).Trim();
                 if (await SetTopicProbabilityAsync(arguments))
                 {
-                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
                 }
                 return;
             }
@@ -69,7 +69,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             if (request.Arguments == "meme")
             {
                 await SetMemeChannelAsync(request.Message);
-                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
                 return;
             }
 

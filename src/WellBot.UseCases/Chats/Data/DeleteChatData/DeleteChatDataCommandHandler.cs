@@ -40,6 +40,6 @@ internal class DeleteChatDataCommandHandler : AsyncRequestHandler<DeleteChatData
 
         dbContext.ChatDatas.Remove(data);
         await dbContext.SaveChangesAsync();
-        await telegramMessageService.SendSuccessAsync(request.ChatId);
+        await telegramMessageService.SendSuccessAsync(request.ChatId, request.MessageId);
     }
 }
