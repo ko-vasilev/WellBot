@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using Telegram.Bot.Types;
+using Telegram.BotAPI.AvailableTypes;
 
 namespace WellBot.UseCases.Chats.AdminControl;
 

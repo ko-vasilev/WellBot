@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
-using Telegram.Bot.Types.Enums;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 using WellBot.Domain.Chats;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
@@ -34,12 +34,12 @@ internal class SetChatDataCommandHandler : AsyncRequestHandler<SetChatDataComman
     {
         if (!TryParseKey(request.Arguments, out var key, out var saveText))
         {
-            await botClient.SendTextMessageAsync(request.ChatId, "Укажите ключ для сохранения");
+            await botClient.SendMessageAsync(request.ChatId, "Укажите ключ для сохранения");
             return;
         }
         if (string.IsNullOrEmpty(key))
         {
-            await botClient.SendTextMessageAsync(request.ChatId, "Не могу сохранить с таким ключом");
+            await botClient.SendMessageAsync(request.ChatId, "Не могу сохранить с таким ключом");
             return;
         }
 
@@ -67,22 +67,19 @@ internal class SetChatDataCommandHandler : AsyncRequestHandler<SetChatDataComman
         };
         if (message.Entities != null)
         {
-            data.HasUserMention = message.Entities.Any(e => e.Type == MessageEntityType.Mention || e.Type == MessageEntityType.TextMention);
+            data.HasUserMention = message.Entities.Any(e => e.Type == MessageEntityTypes.Mention || e.Type == MessageEntityTypes.TextMention);
         }
-        if (message.Type != MessageType.Text)
+
+        var dataType = telegramMessageService.GetFileId(message, out var attachedFileId);
+        if (dataType != null && attachedFileId != null)
         {
-            var dataType = telegramMessageService.GetFile(message, out var attachedDocument);
-            if (dataType == null || attachedDocument == null)
-            {
-                await botClient.SendTextMessageAsync(request.ChatId, $"Не поддерживаемый формат сообщения");
-                return;
-            }
             data.DataType = dataType.Value;
-            data.FileId = attachedDocument.FileId;
+            data.FileId = attachedFileId;
         }
+
         dbContext.ChatDatas.Add(data);
         await dbContext.SaveChangesAsync();
-        await botClient.SendTextMessageAsync(request.ChatId, $"Сохранил как \"{key}\"");
+        await botClient.SendMessageAsync(request.ChatId, $"Сохранил как \"{key}\"");
     }
 
     private bool TryParseKey(string arguments, out string key, out string remainder)

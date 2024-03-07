@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Telegram.Bot.Types;
 
 namespace WellBot.UseCases.Chats.Data.ShowKeys;
 
@@ -11,5 +10,5 @@ public class ShowKeysCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the current chat.
     /// </summary>
-    public required ChatId ChatId { get; init; }
+    public required long ChatId { get; init; }
 }

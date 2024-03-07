@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
 using Saritasa.Tools.Domain.Exceptions;
-using Telegram.Bot;
-using Telegram.Bot.Types.Enums;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
+using Telegram.BotAPI.GettingUpdates;
 using WellBot.Web.Infrastructure.Settings;
 
 namespace WellBot.Web.Infrastructure.Telegram;
@@ -46,9 +47,10 @@ public class TelegramWebhookInitializer : IHostedService
         // Since nobody else knows your bot's token, you can be pretty sure it's us.
         var webhookAddress = @$"{appSettings.HostAddress}/bot/tg/{appSettings.BotToken}";
         logger.LogInformation("Setting webhook: {webhookAddress}", webhookAddress);
+        await botClient.DeleteWebhookAsync(cancellationToken: cancellationToken);
         await botClient.SetWebhookAsync(
             url: webhookAddress,
-            allowedUpdates: Array.Empty<UpdateType>(),
+            allowedUpdates: Array.Empty<string>(),
             cancellationToken: cancellationToken);
     }
 

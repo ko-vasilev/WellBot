@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 using WellBot.Domain.Chats;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
@@ -44,19 +45,22 @@ internal class PidorGameRunCommandHandler : AsyncRequestHandler<PidorGameRunComm
             var user = await pidorGameService.GetPidorMemberAsync(request.ChatId, selectedPidor.Registration!.TelegramUserId, cancellationToken);
             if (user == null)
             {
-                await botClient.SendTextMessageAsync(request.ChatId, "Пидор дня вышел из чата :(");
+                await botClient.SendMessageAsync(request.ChatId, "Пидор дня вышел из чата :(");
                 return;
             }
 
             var username = telegramMessageService.GetPersonNameHtml(user.User, mention: false);
-            await botClient.SendTextMessageAsync(request.ChatId, $"По моей информации пидор дня — {username}", parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: true);
+            await botClient.SendMessageAsync(request.ChatId,
+                $"По моей информации пидор дня — {username}",
+                parseMode: FormatStyles.HTML,
+                disableNotification: true);
             return;
         }
 
         var users = await pidorGameService.GetPidorUsersAsync(currentChatService.ChatId, request.ChatId, cancellationToken);
         if (!users.Any())
         {
-            await botClient.SendTextMessageAsync(request.ChatId, "Никто ещё не зарегистрировался на игру.");
+            await botClient.SendMessageAsync(request.ChatId, "Никто ещё не зарегистрировался на игру.");
             return;
         }
 
@@ -76,10 +80,10 @@ internal class PidorGameRunCommandHandler : AsyncRequestHandler<PidorGameRunComm
         foreach (var text in notification.Message)
         {
             var message = text.Replace(PidorMessage.UsernamePlaceholder, pidorUsername);
-            await botClient.SendTextMessageAsync(request.ChatId,
+            await botClient.SendMessageAsync(request.ChatId,
                 message,
                 disableNotification: true,
-                parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
+                parseMode: FormatStyles.HTML);
             await Task.Delay(TimeSpan.FromSeconds(0.7));
         }
     }

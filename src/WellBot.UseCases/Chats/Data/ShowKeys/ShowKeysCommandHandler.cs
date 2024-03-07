@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
@@ -35,11 +36,11 @@ internal class ShowKeysCommandHandler : AsyncRequestHandler<ShowKeysCommand>
             .ToListAsync();
         if (!items.Any())
         {
-            await botClient.SendTextMessageAsync(request.ChatId, "Пока ещё ничего не сохранено");
+            await botClient.SendMessageAsync(request.ChatId, "Пока ещё ничего не сохранено");
             return;
         }
 
         var keysSummary = string.Join(", ", items);
-        await botClient.SendTextMessageAsync(request.ChatId, keysSummary, disableNotification: true);
+        await botClient.SendMessageAsync(request.ChatId, keysSummary, disableNotification: true);
     }
 }

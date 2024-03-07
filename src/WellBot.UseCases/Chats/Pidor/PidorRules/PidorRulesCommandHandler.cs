@@ -1,5 +1,6 @@
 ﻿using MediatR;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 
 namespace WellBot.UseCases.Chats.Pidor.PidorRules;
 
@@ -21,7 +22,7 @@ internal class PidorRulesCommandHandler : AsyncRequestHandler<PidorRulesCommand>
     /// <inheritdoc/>
     protected override async Task Handle(PidorRulesCommand request, CancellationToken cancellationToken)
     {
-        await botClient.SendTextMessageAsync(request.ChatId, @"Правила игры *Пидор Дня* (только для групповых чатов):
+        await botClient.SendMessageAsync(request.ChatId, @"Правила игры *Пидор Дня* (только для групповых чатов):
 
 *1*. Зарегистрируйтесь в игру по команде */pidoreg*
 *2*. Подождите пока зарегиструются все (или большинство :)
@@ -32,7 +33,7 @@ internal class PidorRulesCommandHandler : AsyncRequestHandler<PidorRulesCommand>
 
 *Важно*, розыгрыш проходит только *раз в день*, повторная команда выведет *результат* игры.
 Сброс розыгрыша происходит каждый день в 12 часов ночи по UTC+3 (полночь по Москве).",
-Telegram.Bot.Types.Enums.ParseMode.Markdown,
-cancellationToken: cancellationToken);
+            parseMode: FormatStyles.Markdown,
+            cancellationToken: cancellationToken);
     }
 }

@@ -1,6 +1,4 @@
-﻿using Telegram.Bot.Types;
-
-namespace WellBot.UseCases.Chats;
+﻿namespace WellBot.UseCases.Chats;
 
 /// <summary>
 /// Should be used for commands that contain information about a chat.
@@ -10,5 +8,5 @@ public interface IChatInfo
     /// <summary>
     /// Id of the current chat.
     /// </summary>
-    ChatId ChatId { get; }
+    long ChatId { get; }
 }

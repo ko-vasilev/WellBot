@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
+using Telegram.BotAPI.AvailableTypes;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
 namespace WellBot.UseCases.Chats.Pidor;
@@ -30,7 +30,7 @@ public class PidorGameService
     /// <param name="telegramChatId">Id of the telegram chat.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>List of active chat members.</returns>
-    public async Task<IList<PidorParticipant>> GetPidorUsersAsync(int chatId, ChatId telegramChatId, CancellationToken cancellationToken)
+    public async Task<IList<PidorParticipant>> GetPidorUsersAsync(int chatId, long telegramChatId, CancellationToken cancellationToken)
     {
         var registrations = dbContext.PidorRegistrations
             .AsNoTracking()
@@ -61,14 +61,14 @@ public class PidorGameService
     /// <param name="telegramUserId">Id of the telegram user.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>User object or null if user is not found or not active.</returns>
-    public async Task<ChatMember?> GetPidorMemberAsync(ChatId telegramChatId, long telegramUserId, CancellationToken cancellationToken)
+    public async Task<ChatMember?> GetPidorMemberAsync(long telegramChatId, long telegramUserId, CancellationToken cancellationToken)
     {
         ChatMember telegramUser;
         try
         {
             telegramUser = await botClient.GetChatMemberAsync(telegramChatId, telegramUserId, cancellationToken);
         }
-        catch (Telegram.Bot.Exceptions.ApiRequestException)
+        catch (BotRequestException)
         {
             // User is not in the chat anymore.
             return null;
@@ -93,7 +93,7 @@ public class PidorGameService
         return currentMoscowTime.Date;
     }
 
-    private bool IsActiveUser(ChatMember chatMember) => chatMember.Status == ChatMemberStatus.Administrator
-        || chatMember.Status == ChatMemberStatus.Creator
-        || chatMember.Status == ChatMemberStatus.Member;
+    private bool IsActiveUser(ChatMember chatMember) => chatMember is ChatMemberAdministrator
+        || chatMember is ChatMemberOwner
+        || chatMember is ChatMemberMember;
 }

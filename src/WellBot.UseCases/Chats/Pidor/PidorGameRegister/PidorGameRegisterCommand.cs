@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Telegram.Bot.Types;
 
 namespace WellBot.UseCases.Chats.Pidor.PidorGameRegister;
 
@@ -11,7 +10,7 @@ public record PidorGameRegisterCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the chat.
     /// </summary>
-    public required ChatId ChatId { get; init; }
+    public required long ChatId { get; init; }
 
     /// <summary>
     /// Id of the user who wants to sign up for the game.

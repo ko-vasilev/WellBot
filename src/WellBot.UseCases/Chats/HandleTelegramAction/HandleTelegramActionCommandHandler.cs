@@ -3,9 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Saritasa.Tools.Domain.Exceptions;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.InlineQueryResults;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
+using Telegram.BotAPI.AvailableTypes;
+using Telegram.BotAPI.InlineMode;
 using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.AdminControl;
@@ -76,7 +77,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         {
             return;
         }
-        var isDirectMessage = request.Action.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private;
+        var isDirectMessage = request.Action.Message.Chat.Type == ChatTypes.Private;
         if (isDirectMessage)
         {
             // Ignore direct messages.
@@ -90,7 +91,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
 
         var plainMessageText = request.Action.Message.Text ?? request.Action.Message.Caption;
         var textFormatted = telegramMessageService.GetMessageTextHtml(request.Action.Message);
-        ChatId? chatId = null;
+        long? chatId = null;
         try
         {
             if (!string.IsNullOrEmpty(plainMessageText))
@@ -99,8 +100,8 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
                 var command = ParseCommand(plainMessageText, textFormatted, out string arguments, out string argumentsHtml, ref isDirectMessage);
                 if (!string.IsNullOrEmpty(command))
                 {
-                    await botClient.SendChatActionAsync(request.Action.Message.Chat.Id, Telegram.Bot.Types.Enums.ChatAction.Typing);
-                    await HandleCommandAsync(command, arguments, argumentsHtml, isDirectMessage, chatId, request.Action.Message.From, request.Action.Message);
+                    await botClient.SendChatActionAsync(request.Action.Message.Chat.Id, ChatActions.Typing);
+                    await HandleCommandAsync(command, arguments, argumentsHtml, isDirectMessage, chatId.Value, request.Action.Message.From, request.Action.Message);
                     return;
                 }
             }
@@ -110,14 +111,14 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         catch (Exception ex)
         {
             logger.LogError(ex, "Error handling command {text}", textFormatted);
-            if (chatId is not null)
+            if (chatId.HasValue)
             {
-                await botClient.SendTextMessageAsync(chatId, "Что-то пошло не так.");
+                await botClient.SendMessageAsync(chatId.Value, "Что-то пошло не так.");
             }
         }
     }
 
-    private async Task HandleCommandAsync(string command, string arguments, string argumentsHtml, bool isDirectMessage, ChatId chatId, User? sender, Message message)
+    private async Task HandleCommandAsync(string command, string arguments, string argumentsHtml, bool isDirectMessage, long chatId, User? sender, Message message)
     {
         long GetSenderId()
         {
@@ -197,7 +198,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
                 ChatId = chatId
             }),
             _ => isDirectMessage
-                ? botClient.SendTextMessageAsync(chatId, "Неизвестная команда")
+                ? botClient.SendMessageAsync(chatId, "Неизвестная команда")
                 : Task.CompletedTask
         };
 
@@ -296,27 +297,63 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         switch (data.DataType)
         {
             case DataType.Animation:
-                return new InlineQueryResultCachedMpeg4Gif(uniqueId, data.FileId);
+                return new InlineQueryResultCachedMpeg4Gif()
+                {
+                    Id = uniqueId,
+                    Mpeg4FileId = data.FileId
+                };
             case DataType.Audio:
-                return new InlineQueryResultCachedAudio(uniqueId, data.FileId);
+                return new InlineQueryResultCachedAudio()
+                {
+                    Id = uniqueId,
+                    AudioFileId = data.FileId
+                };
             case DataType.Document:
-                return new InlineQueryResultCachedDocument(uniqueId, data.FileId, data.Key);
+                return new InlineQueryResultCachedDocument()
+                {
+                    Id = uniqueId,
+                    DocumentFileId = data.FileId,
+                    Title = data.Key
+                };
             case DataType.Photo:
-                return new InlineQueryResultCachedPhoto(uniqueId, data.FileId);
+                return new InlineQueryResultCachedPhoto()
+                {
+                    Id = uniqueId,
+                    PhotoFileId = data.FileId
+                };
             case DataType.Sticker:
-                return new InlineQueryResultCachedSticker(uniqueId, data.FileId);
+                return new InlineQueryResultCachedSticker()
+                {
+                    Id = uniqueId,
+                    StickerFileId = data.FileId
+                };
             case DataType.Text:
                 {
                     var content = new InputTextMessageContent(data.Text)
                     {
-                        ParseMode = Telegram.Bot.Types.Enums.ParseMode.Html
+                        ParseMode = FormatStyles.HTML
                     };
-                    return new InlineQueryResultArticle(uniqueId, data.Key, content);
+                    return new InlineQueryResultArticle()
+                    {
+                        Id = uniqueId,
+                        Title = data.Key,
+                        InputMessageContent = content
+                    };
                 }
             case DataType.Video:
-                return new InlineQueryResultCachedVideo(uniqueId, data.FileId, data.Key);
+                return new InlineQueryResultCachedVideo()
+                {
+                    Id = uniqueId,
+                    VideoFileId = data.FileId,
+                    Title = data.Key
+                };
             case DataType.Voice:
-                return new InlineQueryResultCachedVoice(uniqueId, data.FileId, data.Key);
+                return new InlineQueryResultCachedVoice()
+                {
+                    Id = uniqueId,
+                    VoiceFileId = data.FileId,
+                    Title = data.Key
+                };
             default:
                 return null;
         }

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
 namespace WellBot.UseCases.Chats.Ememe;
@@ -27,7 +28,7 @@ internal class EmemeCommandHandler : AsyncRequestHandler<EmemeCommand>
         var memeChannel = await dbContext.MemeChannels.FirstOrDefaultAsync(cancellationToken);
         if (memeChannel == null)
         {
-            await botClient.SendTextMessageAsync(request.ChatId, "Не настроен канал с мемами :(");
+            await botClient.SendMessageAsync(request.ChatId, "Не настроен канал с мемами :(");
             return;
         }
 
@@ -40,7 +41,7 @@ internal class EmemeCommandHandler : AsyncRequestHandler<EmemeCommand>
             ++messageId;
             try
             {
-                await botClient.ForwardMessageAsync(request.ChatId, new Telegram.Bot.Types.ChatId(memeChannel.ChannelId), messageId);
+                await botClient.ForwardMessageAsync(request.ChatId, memeChannel.ChannelId, messageId);
                 return;
             }
             catch
@@ -49,6 +50,6 @@ internal class EmemeCommandHandler : AsyncRequestHandler<EmemeCommand>
             }
         }
 
-        await botClient.SendTextMessageAsync(request.ChatId, "Не сегодня");
+        await botClient.SendMessageAsync(request.ChatId, "Не сегодня");
     }
 }

@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot.Types;
+using Telegram.BotAPI.AvailableTypes;
 using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.Dtos;
@@ -123,7 +123,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         bool isBatchMode = options.Contains("batch");
 
         var text = telegramMessageService.GetMessageTextHtml(replyMessage);
-        if (isBatchMode && replyMessage.Type == Telegram.Bot.Types.Enums.MessageType.Text)
+        if (isBatchMode)
         {
             foreach (var line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
             {
@@ -145,15 +145,12 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             DataType = DataType.Text,
             PassiveTopics = topics
         };
-        if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+
+        var dataType = telegramMessageService.GetFileId(replyMessage, out var attachedFileId);
+        if (dataType != null && attachedFileId != null)
         {
-            var dataType = telegramMessageService.GetFile(replyMessage, out var attachedDocument);
-            if (dataType == null || attachedDocument == null)
-            {
-                return false;
-            }
             replyOption.DataType = dataType.Value;
-            replyOption.FileId = attachedDocument.FileId;
+            replyOption.FileId = attachedFileId;
         }
 
         appDbContext.PassiveReplyOptions.Add(replyOption);
@@ -169,7 +166,8 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             return;
         }
 
-        if (replyMessage.ForwardFromChat == null || replyMessage.ForwardFromMessageId == null)
+        var forwardChannel = replyMessage.ForwardOrigin as MessageOriginChannel;
+        if (forwardChannel == null)
         {
             return;
         }
@@ -181,8 +179,8 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             appDbContext.MemeChannels.Add(currentChannelInfo);
         }
 
-        currentChannelInfo.ChannelId = replyMessage.ForwardFromChat.Id;
-        currentChannelInfo.LatestMessageId = replyMessage.ForwardFromMessageId.Value;
+        currentChannelInfo.ChannelId = forwardChannel.Chat.Id;
+        currentChannelInfo.LatestMessageId = forwardChannel.MessageId;
         await appDbContext.SaveChangesAsync();
         memeChannelService.CurrentMemeChatId = currentChannelInfo.ChannelId;
     }
@@ -204,26 +202,23 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             Text = text,
             DataType = DataType.Text
         };
-        if (messageToSend.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+
+        var dataType = telegramMessageService.GetFileId(messageToSend, out var attachedFileId);
+        if (dataType != null && attachedFileId != null)
         {
-            var dataType = telegramMessageService.GetFile(messageToSend, out var attachedDocument);
-            if (dataType == null || attachedDocument == null)
-            {
-                return;
-            }
             messageData.DataType = dataType.Value;
-            messageData.FileId = attachedDocument.FileId;
+            messageData.FileId = attachedFileId;
         }
 
-        foreach (var chat in chats)
+        foreach (var chatId in chats)
         {
             try
             {
-                await telegramMessageService.SendMessageAsync(messageData, new ChatId(chat));
+                await telegramMessageService.SendMessageAsync(messageData, chatId);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error broadcasting to {chatId} chat", chat);
+                logger.LogError(ex, "Error broadcasting to {chatId} chat", chatId);
             }
         }
     }

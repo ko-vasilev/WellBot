@@ -1,9 +1,11 @@
 ﻿using System.Web;
 using Microsoft.Extensions.Logging;
 using Saritasa.Tools.Domain.Exceptions;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.InputFiles;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
+using Telegram.BotAPI.AvailableMethods.FormattingOptions;
+using Telegram.BotAPI.AvailableTypes;
+using Telegram.BotAPI.Stickers;
 using WellBot.Domain.Chats;
 using WellBot.UseCases.Chats.Dtos;
 
@@ -39,10 +41,10 @@ public class TelegramMessageService
     /// <summary>
     /// Send a "success" type of response to user.
     /// </summary>
-    public async Task SendSuccessAsync(ChatId chatId)
+    public async Task SendSuccessAsync(long chatId)
     {
         var reply = randomService.PickRandom(successReplies);
-        await botClient.SendTextMessageAsync(chatId, reply);
+        await botClient.SendMessageAsync(chatId, reply);
     }
 
     /// <summary>
@@ -72,7 +74,7 @@ public class TelegramMessageService
 
     /// <summary>
     /// Get a string that allows to mention a user.
-    /// The resulting string can be used with <see cref="Telegram.Bot.Types.Enums.ParseMode.Html"/> format.
+    /// The resulting string can be used with <see cref="Telegram.BotAPI.FormatStyles.HTML"/> format.
     /// </summary>
     /// <param name="user">User reference.</param>
     /// <param name="mention">Indicates if user should be mentioned in the text.</param>
@@ -102,48 +104,57 @@ public class TelegramMessageService
     /// <param name="message">Message data.</param>
     /// <param name="chatId">Id of the chat.</param>
     /// <param name="replyMessageId">Id of the message to reply to.</param>
-    public async Task SendMessageAsync(GenericMessage message, ChatId chatId, int? replyMessageId = null)
+    public async Task SendMessageAsync(GenericMessage message, long chatId, int? replyMessageId = null)
     {
-        InputOnlineFile GetFile()
+        string GetFileId()
         {
             if (message.FileId == null)
             {
                 throw new DomainException("Missing file.");
             }
-            return new Telegram.Bot.Types.InputFiles.InputOnlineFile(message.FileId);
+            return message.FileId;
+        }
+
+        ReplyParameters? reply = null;
+        if (replyMessageId != null)
+        {
+            reply = new ReplyParameters()
+            {
+                MessageId = replyMessageId.Value
+            };
         }
 
         switch (message.DataType)
         {
             case DataType.Animation:
-                await botClient.SendAnimationAsync(chatId, GetFile(), caption: message.Text, replyToMessageId: replyMessageId);
+                await botClient.SendAnimationAsync(chatId, GetFileId(), caption: message.Text, replyParameters: reply);
                 break;
             case DataType.Audio:
-                await botClient.SendAudioAsync(chatId, GetFile(), caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                await botClient.SendAudioAsync(chatId, GetFileId(), caption: message.Text, parseMode: FormatStyles.HTML, replyParameters: reply);
                 break;
             case DataType.Document:
-                await botClient.SendDocumentAsync(chatId, GetFile(), caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                await botClient.SendDocumentAsync(chatId, GetFileId(), caption: message.Text, parseMode: FormatStyles.HTML, replyParameters: reply);
                 break;
             case DataType.Photo:
-                await botClient.SendPhotoAsync(chatId, GetFile(), caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                await botClient.SendPhotoAsync(chatId, GetFileId(), caption: message.Text, parseMode: FormatStyles.HTML, replyParameters: reply);
                 break;
             case DataType.Sticker:
-                await botClient.SendStickerAsync(chatId, GetFile(), replyToMessageId: replyMessageId);
+                await botClient.SendStickerAsync(chatId, GetFileId(), replyParameters: reply);
                 break;
             case DataType.Text:
-                await botClient.SendTextMessageAsync(chatId, message.Text ?? string.Empty, Telegram.Bot.Types.Enums.ParseMode.Html, disableNotification: true, replyToMessageId: replyMessageId);
+                await botClient.SendMessageAsync(chatId, message.Text ?? string.Empty, parseMode: FormatStyles.HTML, disableNotification: true, replyParameters: reply);
                 break;
             case DataType.Video:
-                await botClient.SendVideoAsync(chatId, GetFile(), caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                await botClient.SendVideoAsync(chatId, GetFileId(), caption: message.Text, parseMode: FormatStyles.HTML, replyParameters: reply);
                 break;
             case DataType.VideoNote:
-                await botClient.SendVideoNoteAsync(chatId, GetFile(), replyToMessageId: replyMessageId);
+                await botClient.SendVideoNoteAsync(chatId, GetFileId(), replyParameters: reply);
                 break;
             case DataType.Voice:
-                await botClient.SendVoiceAsync(chatId, GetFile(), caption: message.Text, parseMode: Telegram.Bot.Types.Enums.ParseMode.Html, replyToMessageId: replyMessageId);
+                await botClient.SendVoiceAsync(chatId, GetFileId(), caption: message.Text, parseMode: FormatStyles.HTML, replyParameters: reply);
                 break;
             default:
-                await botClient.SendTextMessageAsync(chatId, "Неожиданный формат файла " + message.DataType);
+                await botClient.SendMessageAsync(chatId, "Неожиданный формат файла " + message.DataType);
                 break;
         }
     }
@@ -175,7 +186,7 @@ public class TelegramMessageService
         void AddTextMarkup(string format, int startPosition, int length)
         {
             var textPart = text.Substring(startPosition, length);
-            logger.LogDebug("Applying markup {0} to text {1}", format, textPart);
+            logger.LogDebug("Applying markup {format} to text {textPart}", format, textPart);
             var newText = string.Format(format, HttpUtility.HtmlEncode(textPart));
 
             text = text.Substring(0, startPosition)
@@ -193,37 +204,37 @@ public class TelegramMessageService
             }
             previousOffset = formatEntity.Offset;
 
-            if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.Bold)
+            if (formatEntity.Type == MessageEntityTypes.Bold)
             {
                 AddTextMarkup("<b>{0}</b>", formatEntity.Offset, formatEntity.Length);
                 continue;
             }
 
-            if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.Italic)
+            if (formatEntity.Type == MessageEntityTypes.Italic)
             {
                 AddTextMarkup("<i>{0}</i>", formatEntity.Offset, formatEntity.Length);
                 continue;
             }
 
-            if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.Code)
+            if (formatEntity.Type == MessageEntityTypes.Code)
             {
                 AddTextMarkup("<code>{0}</code>", formatEntity.Offset, formatEntity.Length);
                 continue;
             }
 
-            if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.Pre)
+            if (formatEntity.Type == MessageEntityTypes.Pre)
             {
                 AddTextMarkup("<pre>{0}</pre>", formatEntity.Offset, formatEntity.Length);
                 continue;
             }
 
-            if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.Strikethrough)
+            if (formatEntity.Type == MessageEntityTypes.Strikethrough)
             {
                 AddTextMarkup("<s>{0}</s>", formatEntity.Offset, formatEntity.Length);
                 continue;
             }
 
-            if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.TextLink)
+            if (formatEntity.Type == MessageEntityTypes.TextLink)
             {
                 var link = "{0}";
                 if (formatEntity.Url != null)
@@ -235,19 +246,19 @@ public class TelegramMessageService
                 continue;
             }
 
-            if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.TextMention && formatEntity.User != null)
+            if (formatEntity.Type == MessageEntityTypes.TextMention && formatEntity.User != null)
             {
                 AddTextMarkup($"<a href=\"tg://user?id={formatEntity.User.Id}\">{{0}}</a>", formatEntity.Offset, formatEntity.Length);
                 continue;
             }
 
-            if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.Underline)
+            if (formatEntity.Type == MessageEntityTypes.Underline)
             {
                 AddTextMarkup("<u>{0}</u>", formatEntity.Offset, formatEntity.Length);
                 continue;
             }
 
-            if (formatEntity.Type == Telegram.Bot.Types.Enums.MessageEntityType.Url)
+            if (formatEntity.Type == MessageEntityTypes.Url)
             {
                 AddTextMarkup("<a href=\"{0}\">{0}</a>", formatEntity.Offset, formatEntity.Length);
                 continue;
@@ -261,59 +272,59 @@ public class TelegramMessageService
     /// Get a main file data from a message.
     /// </summary>
     /// <param name="message">Message data.</param>
-    /// <param name="file">Found file.</param>
+    /// <param name="fileId">Id of the found file.</param>
     /// <returns>Type of file data.</returns>
-    public DataType? GetFile(Message message, out FileBase? file)
+    public DataType? GetFileId(Message message, out string? fileId)
     {
+        fileId = null;
         if (message.Photo != null)
         {
-            file = message.Photo.OrderByDescending(p => p.Height).First();
+            fileId = message.Photo.OrderByDescending(p => p.Height).FirstOrDefault()?.FileId;
             return DataType.Photo;
         }
 
         if (message.Audio != null)
         {
-            file = message.Audio;
+            fileId = message.Audio.FileId;
             return DataType.Audio;
         }
 
         if (message.Animation != null)
         {
-            file = message.Animation;
+            fileId = message.Animation.FileId;
             return DataType.Animation;
         }
 
         if (message.Sticker != null)
         {
-            file = message.Sticker;
+            fileId = message.Sticker.FileId;
             return DataType.Sticker;
         }
 
         if (message.Video != null)
         {
-            file = message.Video;
+            fileId = message.Video.FileId;
             return DataType.Video;
         }
 
         if (message.VideoNote != null)
         {
-            file = message.VideoNote;
+            fileId = message.VideoNote.FileId;
             return DataType.VideoNote;
         }
 
         if (message.Voice != null)
         {
-            file = message.Voice;
+            fileId = message.Voice.FileId;
             return DataType.Voice;
         }
 
         if (message.Document != null)
         {
-            file = message.Document;
+            fileId = message.Document.FileId;
             return DataType.Document;
         }
 
-        file = null;
         return null;
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Telegram.Bot;
+using Telegram.BotAPI;
 using WellBot.Web.Infrastructure.Settings;
 using WellBot.Web.Infrastructure.Telegram;
 
@@ -18,13 +18,11 @@ internal static class TelegramModule
     {
         services.AddHostedService<TelegramWebhookInitializer>();
 
-        // Register named HttpClient to get benefits of IHttpClientFactory
-        // and consume it with ITelegramBotClient typed client.
-        services.AddHttpClient("tgwebhook")
-            .AddTypedClient<ITelegramBotClient>((httpClient, serviceProvider) =>
-            {
-                var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>();
-                return new TelegramBotClient(appSettings.Value.BotToken, httpClient);
-            });
+        services.AddScoped<ITelegramBotClient>(serviceProvider =>
+        {
+            var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>();
+            var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+            return new TelegramBotClient(appSettings.Value.BotToken, httpClientFactory.CreateClient());
+        });
     }
 }

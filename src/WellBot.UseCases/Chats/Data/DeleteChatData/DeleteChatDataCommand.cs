@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Telegram.Bot.Types;
 
 namespace WellBot.UseCases.Chats.Data.DeleteChatData;
 
@@ -11,7 +10,7 @@ public record DeleteChatDataCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the associated chat.
     /// </summary>
-    public required ChatId ChatId { get; init; }
+    public required long ChatId { get; init; }
 
     /// <summary>
     /// Data key to delete.
