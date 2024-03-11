@@ -49,4 +49,9 @@ public enum DataType
     /// Simple text.
     /// </summary>
     Text = 8,
+
+    /// <summary>
+    /// Reaction to a message.
+    /// </summary>
+    Reaction = 9,
 }

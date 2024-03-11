@@ -159,10 +159,41 @@ public class TelegramMessageService
             case DataType.Voice:
                 await botClient.SendVoiceAsync(chatId, GetFileId(), caption: message.Text, parseMode: FormatStyles.HTML, replyParameters: reply);
                 break;
+            case DataType.Reaction:
+                if (replyMessageId == null)
+                {
+                    logger.LogWarning("Cannot send a reaction without a message.");
+                    break;
+                }
+                var reaction = new ReactionTypeEmoji()
+                {
+                    Emoji = message.Text ?? string.Empty
+                };
+                await botClient.SetMessageReactionAsync(chatId,
+                    replyMessageId.Value,
+                    new[] { reaction });
+                break;
             default:
                 await botClient.SendMessageAsync(chatId, "Неожиданный формат файла " + message.DataType);
                 break;
         }
+    }
+
+    /// <summary>
+    /// Send a text message.
+    /// </summary>
+    /// <param name="text">Text to send.</param>
+    /// <param name="chatId">Id of the chat to send the message to.</param>
+    /// <param name="replyMessageId">Optional id of the message to reply to.</param>
+    public async Task SendMessageAsync(string text, long chatId, int? replyMessageId = null)
+    {
+        await SendMessageAsync(new GenericMessage()
+            {
+                DataType = DataType.Text,
+                Text = text
+            },
+            chatId,
+            replyMessageId);
     }
 
     /// <summary>

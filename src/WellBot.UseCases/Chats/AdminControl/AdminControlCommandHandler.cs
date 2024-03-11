@@ -94,11 +94,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         var replyMessage = message.ReplyToMessage;
         if (replyMessage?.Animation == null)
         {
-            await telegramMessageService.SendMessageAsync(new GenericMessage()
-            {
-                DataType = DataType.Text,
-                Text = "Можно добавить только гифку"
-            }, message.Chat.Id, message.MessageId);
+            await telegramMessageService.SendMessageAsync("Можно добавить только гифку", message.Chat.Id, message.MessageId);
             return false;
         }
 
@@ -147,18 +143,44 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             return true;
         }
 
+        var isReaction = options.Contains("react");
+
         var replyOption = new PassiveReplyOption
         {
             Text = text,
             DataType = DataType.Text,
             PassiveTopics = topics
         };
-
-        var dataType = telegramMessageService.GetFileId(replyMessage, out var attachedFileId);
-        if (dataType != null && attachedFileId != null)
+        if (isReaction)
         {
-            replyOption.DataType = dataType.Value;
-            replyOption.FileId = attachedFileId;
+            replyOption.DataType = DataType.Reaction;
+            // Try to use this reaction first.
+            try
+            {
+                await telegramMessageService.SendMessageAsync(new GenericMessage
+                {
+                    Text = replyOption.Text,
+                    FileId = replyOption.FileId,
+                    DataType = replyOption.DataType
+                },
+                    message.Chat.Id,
+                    message.MessageId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while trying to add a reaction {reaction}", text);
+                await telegramMessageService.SendMessageAsync($"Не удалось добавить реакцию '{text}'", message.Chat.Id, message.MessageId);
+                return false;
+            }
+        }
+        else
+        {
+            var dataType = telegramMessageService.GetFileId(replyMessage, out var attachedFileId);
+            if (dataType != null && attachedFileId != null)
+            {
+                replyOption.DataType = dataType.Value;
+                replyOption.FileId = attachedFileId;
+            }
         }
 
         appDbContext.PassiveReplyOptions.Add(replyOption);
