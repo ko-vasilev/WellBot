@@ -100,7 +100,6 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
                 var command = ParseCommand(plainMessageText, textFormatted, out string arguments, out string argumentsHtml, ref isDirectMessage);
                 if (!string.IsNullOrEmpty(command))
                 {
-                    await botClient.SendChatActionAsync(request.Action.Message.Chat.Id, ChatActions.Typing);
                     await HandleCommandAsync(command, arguments, argumentsHtml, isDirectMessage, chatId.Value, request.Action.Message.From, request.Action.Message);
                     return;
                 }
