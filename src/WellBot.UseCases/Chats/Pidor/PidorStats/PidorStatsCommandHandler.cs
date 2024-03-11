@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
@@ -43,7 +44,7 @@ internal class PidorStatsCommandHandler : AsyncRequestHandler<PidorStatsCommand>
             .ToList();
         if (topUsers.Count == 0)
         {
-            await botClient.SendTextMessageAsync(request.ChatId, "Нет статистики за выбранный период");
+            await botClient.SendMessageAsync(request.ChatId, "Нет статистики за выбранный период");
             return;
         }
 
@@ -60,7 +61,7 @@ internal class PidorStatsCommandHandler : AsyncRequestHandler<PidorStatsCommand>
                 return $"#{index + 1} - {userName} ({u.Victories}-кратный пидор)";
             }));
 
-        await botClient.SendTextMessageAsync(request.ChatId, message);
+        await botClient.SendMessageAsync(request.ChatId, message);
     }
 
     private async Task<(IEnumerable<UserGameStats> Stats, string IntroMessage)> GetUserStats(IList<long> telegramUserIds, string argument, CancellationToken cancellationToken)

@@ -1,7 +1,6 @@
-﻿using System.Threading.Tasks;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Telegram.Bot.Types;
+using Telegram.BotAPI.GettingUpdates;
 using WellBot.UseCases.Chats.HandleTelegramAction;
 
 namespace WellBot.Web.Controllers;

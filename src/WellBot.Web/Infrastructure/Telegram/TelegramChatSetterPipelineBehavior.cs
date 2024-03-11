@@ -27,9 +27,9 @@ public class TelegramChatSetterPipelineBehavior<TRequest, TResponse> : IPipeline
     {
         if (request is IChatInfo chatInfo)
         {
-            if (chatInfo.ChatId.Identifier.HasValue)
+            if (chatInfo.ChatId != default)
             {
-                await currentChatService.SetCurrentChatIdAsync(chatInfo.ChatId.Identifier.Value, cancellationToken);
+                await currentChatService.SetCurrentChatIdAsync(chatInfo.ChatId, cancellationToken);
             }
             else
             {

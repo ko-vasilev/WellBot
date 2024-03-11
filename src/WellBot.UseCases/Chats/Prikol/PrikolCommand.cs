@@ -1,15 +1,14 @@
 ﻿using MediatR;
-using Telegram.Bot.Types;
 
 namespace WellBot.UseCases.Chats.Prikol;
 
 /// <summary>
 /// Get a random prikol.
 /// </summary>
-public class PrikolCommand : IRequest<Unit>
+public class PrikolCommand : IRequest<Unit>, IChatInfo
 {
     /// <summary>
     /// Id of the chat.
     /// </summary>
-    public required ChatId ChatId { get; init; }
+    public required long ChatId { get; init; }
 }

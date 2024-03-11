@@ -1,4 +1,4 @@
-﻿using Telegram.Bot.Types;
+﻿using Telegram.BotAPI.AvailableTypes;
 using WellBot.Domain.Chats;
 
 namespace WellBot.UseCases.Chats.Pidor;

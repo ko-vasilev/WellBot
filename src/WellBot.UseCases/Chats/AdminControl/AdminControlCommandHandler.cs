@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot.Types;
+using Telegram.BotAPI.AvailableTypes;
 using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.UseCases.Chats.Dtos;
@@ -39,8 +39,10 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         {
             if (request.Arguments == "add slap")
             {
-                await AddSlapOptionAsync(request.Message);
-                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                if (await AddSlapOptionAsync(request.Message))
+                {
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
+                }
                 return;
             }
 
@@ -50,7 +52,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
                 var arguments = request.Arguments.Substring(PassiveAdd.Length).Trim();
                 if (await AddPassiveReplyOptionAsync(request.Message, arguments))
                 {
-                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
                 }
                 return;
             }
@@ -61,7 +63,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
                 var arguments = request.Arguments.Substring(PassiveProbability.Length).Trim();
                 if (await SetTopicProbabilityAsync(arguments))
                 {
-                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
                 }
                 return;
             }
@@ -69,7 +71,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             if (request.Arguments == "meme")
             {
                 await SetMemeChannelAsync(request.Message);
-                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id);
+                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
                 return;
             }
 
@@ -87,12 +89,13 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         return;
     }
 
-    private async Task AddSlapOptionAsync(Message message)
+    private async Task<bool> AddSlapOptionAsync(Message message)
     {
         var replyMessage = message.ReplyToMessage;
         if (replyMessage?.Animation == null)
         {
-            return;
+            await telegramMessageService.SendMessageAsync("Можно добавить только гифку", message.Chat.Id, message.MessageId);
+            return false;
         }
 
         var slapOption = new SlapOption
@@ -101,6 +104,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         };
         appDbContext.SlapOptions.Add(slapOption);
         await appDbContext.SaveChangesAsync();
+        return true;
     }
 
     private async Task<bool> AddPassiveReplyOptionAsync(Message message, string arguments)
@@ -123,7 +127,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         bool isBatchMode = options.Contains("batch");
 
         var text = telegramMessageService.GetMessageTextHtml(replyMessage);
-        if (isBatchMode && replyMessage.Type == Telegram.Bot.Types.Enums.MessageType.Text)
+        if (isBatchMode)
         {
             foreach (var line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries))
             {
@@ -139,21 +143,44 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             return true;
         }
 
+        var isReaction = options.Contains("react");
+
         var replyOption = new PassiveReplyOption
         {
             Text = text,
             DataType = DataType.Text,
             PassiveTopics = topics
         };
-        if (replyMessage.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+        if (isReaction)
         {
-            var dataType = telegramMessageService.GetFile(replyMessage, out var attachedDocument);
-            if (dataType == null || attachedDocument == null)
+            replyOption.DataType = DataType.Reaction;
+            // Try to use this reaction first.
+            try
             {
+                await telegramMessageService.SendMessageAsync(new GenericMessage
+                {
+                    Text = replyOption.Text,
+                    FileId = replyOption.FileId,
+                    DataType = replyOption.DataType
+                },
+                    message.Chat.Id,
+                    message.MessageId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while trying to add a reaction {reaction}", text);
+                await telegramMessageService.SendMessageAsync($"Не удалось добавить реакцию '{text}'", message.Chat.Id, message.MessageId);
                 return false;
             }
-            replyOption.DataType = dataType.Value;
-            replyOption.FileId = attachedDocument.FileId;
+        }
+        else
+        {
+            var dataType = telegramMessageService.GetFileId(replyMessage, out var attachedFileId);
+            if (dataType != null && attachedFileId != null)
+            {
+                replyOption.DataType = dataType.Value;
+                replyOption.FileId = attachedFileId;
+            }
         }
 
         appDbContext.PassiveReplyOptions.Add(replyOption);
@@ -169,7 +196,8 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             return;
         }
 
-        if (replyMessage.ForwardFromChat == null || replyMessage.ForwardFromMessageId == null)
+        var forwardChannel = replyMessage.ForwardOrigin as MessageOriginChannel;
+        if (forwardChannel == null)
         {
             return;
         }
@@ -181,8 +209,8 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             appDbContext.MemeChannels.Add(currentChannelInfo);
         }
 
-        currentChannelInfo.ChannelId = replyMessage.ForwardFromChat.Id;
-        currentChannelInfo.LatestMessageId = replyMessage.ForwardFromMessageId.Value;
+        currentChannelInfo.ChannelId = forwardChannel.Chat.Id;
+        currentChannelInfo.LatestMessageId = forwardChannel.MessageId;
         await appDbContext.SaveChangesAsync();
         memeChannelService.CurrentMemeChatId = currentChannelInfo.ChannelId;
     }
@@ -204,26 +232,23 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             Text = text,
             DataType = DataType.Text
         };
-        if (messageToSend.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+
+        var dataType = telegramMessageService.GetFileId(messageToSend, out var attachedFileId);
+        if (dataType != null && attachedFileId != null)
         {
-            var dataType = telegramMessageService.GetFile(messageToSend, out var attachedDocument);
-            if (dataType == null || attachedDocument == null)
-            {
-                return;
-            }
             messageData.DataType = dataType.Value;
-            messageData.FileId = attachedDocument.FileId;
+            messageData.FileId = attachedFileId;
         }
 
-        foreach (var chat in chats)
+        foreach (var chatId in chats)
         {
             try
             {
-                await telegramMessageService.SendMessageAsync(messageData, new ChatId(chat));
+                await telegramMessageService.SendMessageAsync(messageData, chatId);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error broadcasting to {chatId} chat", chat);
+                logger.LogError(ex, "Error broadcasting to {chatId} chat", chatId);
             }
         }
     }

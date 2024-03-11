@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
+using Telegram.BotAPI.AvailableTypes;
 using WellBot.Domain.Chats;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
@@ -35,9 +37,13 @@ internal class ShowDataCommandHandler : AsyncRequestHandler<ShowDataCommand>
     {
         var key = (request.Key ?? string.Empty).ToLowerInvariant();
         var data = await dbContext.ChatDatas.FirstOrDefaultAsync(d => d.ChatId == currentChatService.ChatId && d.Key == key, cancellationToken);
+        var replyParameters = new ReplyParameters()
+        {
+            MessageId = request.MessageId
+        };
         if (data == null)
         {
-            await botClient.SendTextMessageAsync(request.ChatId, "Не могу найти данных по этому ключу", replyToMessageId: request.MessageId);
+            await botClient.SendMessageAsync(request.ChatId, "Не могу найти данных по этому ключу", replyParameters: replyParameters);
             return;
         }
 
@@ -52,7 +58,7 @@ internal class ShowDataCommandHandler : AsyncRequestHandler<ShowDataCommand>
                 {
                     duration = $"{allowedIn.Minutes} минут";
                 }
-                await botClient.SendTextMessageAsync(request.ChatId, $"Подождите " + duration, replyToMessageId: request.MessageId);
+                await botClient.SendMessageAsync(request.ChatId, $"Подождите " + duration, replyParameters: replyParameters);
                 return;
             }
         }

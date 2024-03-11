@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Telegram.Bot.Types;
 
 namespace WellBot.UseCases.Chats.Pidor.PidorList;
 
@@ -11,7 +10,7 @@ public record PidorListCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the telegram chat.
     /// </summary>
-    public required ChatId ChatId { get; init; }
+    public required long ChatId { get; init; }
 
     /// <summary>
     /// Id of the user who has sent the request.
@@ -22,4 +21,9 @@ public record PidorListCommand : IRequest<Unit>, IChatInfo
     /// Additional command arguments.
     /// </summary>
     public required string Arguments { get; init; }
+
+    /// <summary>
+    /// Id of the message that triggered the command.
+    /// </summary>
+    public int MessageId { get; init; }
 }

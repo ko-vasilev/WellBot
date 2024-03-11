@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.InputFiles;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
+using Telegram.BotAPI.AvailableTypes;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
 namespace WellBot.UseCases.Chats.RegularMessageHandles.FixFormat;
@@ -15,22 +15,26 @@ internal class FixFormatNotificationHandler : INotificationHandler<MessageNotifi
     private readonly ITelegramBotClient botClient;
     private readonly IVideoConverter videoConverter;
     private readonly ILogger<FixFormatNotificationHandler> logger;
+    private readonly IHttpClientFactory httpClientFactory;
 
     /// <summary>
     /// Constructor.
     /// </summary>
-    public FixFormatNotificationHandler(ITelegramBotClient botClient, IVideoConverter videoConverter, ILogger<FixFormatNotificationHandler> logger)
+    public FixFormatNotificationHandler(ITelegramBotClient botClient,
+        IVideoConverter videoConverter,
+        ILogger<FixFormatNotificationHandler> logger,
+        IHttpClientFactory httpClientFactory)
     {
         this.botClient = botClient;
         this.videoConverter = videoConverter;
         this.logger = logger;
+        this.httpClientFactory = httpClientFactory;
     }
 
     /// <inheritdoc/>
     public async Task Handle(MessageNotification notification, CancellationToken cancellationToken)
     {
-        if (notification.Message.Type != Telegram.Bot.Types.Enums.MessageType.Document
-            || notification.Message.Document == null)
+        if (notification.Message.Document == null)
         {
             return;
         }
@@ -59,16 +63,26 @@ internal class FixFormatNotificationHandler : INotificationHandler<MessageNotifi
         {
             throw new Exception("File not found");
         }
-        await using var tempFileStream = new MemoryStream();
-        await botClient.DownloadFileAsync(filePath.FilePath, tempFileStream, cancellationToken);
 
-        using var mp4FileStream = await videoConverter.ConvertWebmToMp4Async(tempFileStream, cancellationToken);
-        var newFileName = Path.ChangeExtension(document.FileName, "mp4");
-        var doc = new InputOnlineFile(mp4FileStream, newFileName);
-        await botClient.SendDocumentAsync(originalMessage.Chat.Id,
-            doc,
-            replyToMessageId: originalMessage.MessageId,
-            caption: "Fixed",
-            cancellationToken: cancellationToken);
+        using (var httpClient = httpClientFactory.CreateClient())
+        {
+            using var fileStream = await httpClient.GetStreamAsync(filePath.FilePath, cancellationToken);
+            if (fileStream == null)
+            {
+                throw new Exception("Error downloading file");
+            }
+
+            using var mp4FileStream = await videoConverter.ConvertWebmToMp4Async(fileStream, cancellationToken);
+            var newFileName = Path.ChangeExtension(document.FileName, "mp4");
+            var doc = new InputFile(mp4FileStream, newFileName ?? string.Empty);
+            await botClient.SendDocumentAsync(originalMessage.Chat.Id,
+                doc,
+                replyParameters: new ReplyParameters()
+                {
+                    MessageId = originalMessage.MessageId
+                },
+                caption: "Fixed",
+                cancellationToken: cancellationToken);
+        }
     }
 }

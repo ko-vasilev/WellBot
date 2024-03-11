@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 using WellBot.Domain.Chats;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
@@ -34,7 +35,7 @@ internal class PidorGameRegisterCommandHandler : AsyncRequestHandler<PidorGameRe
             .AnyAsync(cancellationToken);
         if (registrationExists)
         {
-            await botClient.SendTextMessageAsync(request.ChatId, "Эй, ты уже в игре!");
+            await botClient.SendMessageAsync(request.ChatId, "Эй, ты уже в игре!");
             return;
         }
 
@@ -46,6 +47,6 @@ internal class PidorGameRegisterCommandHandler : AsyncRequestHandler<PidorGameRe
         };
         dbContext.PidorRegistrations.Add(registration);
         await dbContext.SaveChangesAsync(cancellationToken);
-        await telegramMessageService.SendSuccessAsync(request.ChatId);
+        await telegramMessageService.SendSuccessAsync(request.ChatId, request.MessageId);
     }
 }

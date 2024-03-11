@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot.Types;
+using Telegram.BotAPI.AvailableTypes;
 using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 

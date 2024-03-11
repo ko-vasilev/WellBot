@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Telegram.Bot.Types;
 
 namespace WellBot.UseCases.Chats.Pidor.PidorStats;
 
@@ -11,7 +10,7 @@ public record PidorStatsCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Telegram chat id.
     /// </summary>
-    public required ChatId ChatId { get; init; }
+    public required long ChatId { get; init; }
 
     /// <summary>
     /// Command arguments.

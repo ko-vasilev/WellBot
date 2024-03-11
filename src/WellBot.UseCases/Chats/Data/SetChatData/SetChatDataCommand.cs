@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using Telegram.Bot.Types;
+using Telegram.BotAPI.AvailableTypes;
 
 namespace WellBot.UseCases.Chats.Data.SetChatData;
 
@@ -11,7 +11,7 @@ public record SetChatDataCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the associated chat.
     /// </summary>
-    public required ChatId ChatId { get; init; }
+    public required long ChatId { get; init; }
 
     /// <summary>
     /// Command arguments.

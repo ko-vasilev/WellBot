@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
@@ -83,31 +84,31 @@ internal class SendAutomaticMessagesCommandHandler : AsyncRequestHandler<SendAut
                 return;
             }
 
-            var image = randomService.PickRandom(availableImages);
-            availableImages.Remove(image);
+            var imageUrl = randomService.PickRandom(availableImages);
+            availableImages.Remove(imageUrl);
             try
             {
                 await botClient.SendPhotoAsync(messageTemplate.Chat!.TelegramId,
-                    new Telegram.Bot.Types.InputFiles.InputOnlineFile(image),
-                    messageTemplate.Message,
-                    Telegram.Bot.Types.Enums.ParseMode.Html,
+                    imageUrl,
+                    caption: messageTemplate.Message,
+                    parseMode: FormatStyles.HTML,
                     cancellationToken: cancellationToken);
 
                 return;
             }
-            catch (Telegram.Bot.Exceptions.ApiRequestException ex)
+            catch (BotRequestException ex)
             {
                 ++attempt;
-                logger.LogWarning(ex, "Could not send an image {url}", image);
+                logger.LogWarning(ex, "Could not send an image {url}", imageUrl);
             }
         }
     }
 
     private async Task SendTextMessageAsync(AutomaticMessageTemplate messageTemplate, CancellationToken cancellationToken)
     {
-        await botClient.SendTextMessageAsync(messageTemplate.Chat!.TelegramId,
+        await botClient.SendMessageAsync(messageTemplate.Chat!.TelegramId,
             messageTemplate.Message,
-            Telegram.Bot.Types.Enums.ParseMode.Html,
+            parseMode: FormatStyles.HTML,
             cancellationToken: cancellationToken);
     }
 

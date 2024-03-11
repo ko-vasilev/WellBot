@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
-using Telegram.Bot.Types;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
+using Telegram.BotAPI.AvailableTypes;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
@@ -34,7 +35,7 @@ internal class PidorListCommandHandler : AsyncRequestHandler<PidorListCommand>
     protected override async Task Handle(PidorListCommand request, CancellationToken cancellationToken)
     {
         var chatInfo = await botClient.GetChatAsync(request.ChatId, cancellationToken);
-        if (chatInfo.Type == Telegram.Bot.Types.Enums.ChatType.Group || chatInfo.Type == Telegram.Bot.Types.Enums.ChatType.Supergroup)
+        if (chatInfo.Type == ChatTypes.Group || chatInfo.Type == ChatTypes.Supergroup)
         {
             var chatAdmins = await botClient.GetChatAdministratorsAsync(request.ChatId, cancellationToken);
             var isSenderAdmin = chatAdmins.Any(admin => admin.User.Id == request.TelegramUserId);
@@ -53,7 +54,7 @@ internal class PidorListCommandHandler : AsyncRequestHandler<PidorListCommand>
 
             if (deleteUser == null)
             {
-                await botClient.SendTextMessageAsync(request.ChatId, "Пользователь не зарегистрирован в игре.");
+                await botClient.SendMessageAsync(request.ChatId, "Пользователь не зарегистрирован в игре.");
                 return;
             }
 
@@ -63,7 +64,7 @@ internal class PidorListCommandHandler : AsyncRequestHandler<PidorListCommand>
                 dbContext.PidorRegistrations.Remove(user);
                 await dbContext.SaveChangesAsync();
             }
-            await telegramMessageService.SendSuccessAsync(request.ChatId);
+            await telegramMessageService.SendSuccessAsync(request.ChatId, request.MessageId);
             return;
         }
 
@@ -76,7 +77,7 @@ internal class PidorListCommandHandler : AsyncRequestHandler<PidorListCommand>
         {
             reply = "Пока никто не зарегистрировался на игру.";
         }
-        await botClient.SendTextMessageAsync(request.ChatId, reply, Telegram.Bot.Types.Enums.ParseMode.Html);
+        await botClient.SendMessageAsync(request.ChatId, reply, parseMode: FormatStyles.HTML);
     }
 
     private string FormatUserName(User user)

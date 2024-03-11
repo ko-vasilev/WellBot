@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Telegram.Bot.Types;
 
 namespace WellBot.UseCases.Chats.Pidor.PidorGameRun;
 
@@ -11,5 +10,5 @@ public record PidorGameRunCommand : IRequest<Unit>, IChatInfo
     /// <summary>
     /// Id of the chat for which the game should be run.
     /// </summary>
-    public required ChatId ChatId { get; init; }
+    public required long ChatId { get; init; }
 }

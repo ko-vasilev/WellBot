@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableTypes;
 using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
@@ -31,7 +31,7 @@ public class PassiveTopicService
     public IEnumerable<MatchingTopic> GetMatchingTopics(Message message)
     {
         var repliedToBot = message.ReplyToMessage != null && message.ReplyToMessage.From?.Username == telegramBotSettings.TelegramBotUsername;
-        var isMeme = message.Type == MessageType.Photo || message.Type == MessageType.Video;
+        var isMeme = (message.Photo?.Any() == true) || message.Video != null;
         if (!repliedToBot)
         {
             if (message.Entities != null)
@@ -58,7 +58,7 @@ public class PassiveTopicService
             }
             if (topic.IsAudio.HasValue)
             {
-                var isAudio = message.Type == MessageType.Audio;
+                var isAudio = message.Audio != null;
                 if (topic.IsAudio != isAudio)
                 {
                     isMatch = false;
@@ -130,7 +130,7 @@ public class PassiveTopicService
     {
         var botNickname = "@" + telegramBotSettings.TelegramBotUsername;
         return text != null
-            && messageEntities.Any(e => e.Type == MessageEntityType.Mention && text.Substring(e.Offset, e.Length) == botNickname);
+            && messageEntities.Any(e => e.Type == MessageEntityTypes.Mention && text.Substring(e.Offset, e.Length) == botNickname);
     }
 
     /// <summary>

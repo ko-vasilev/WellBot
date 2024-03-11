@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 using WellBot.DomainServices.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 
@@ -31,12 +32,14 @@ internal class DeleteChatDataCommandHandler : AsyncRequestHandler<DeleteChatData
         var data = await dbContext.ChatDatas.FirstOrDefaultAsync(d => d.ChatId == currentChatService.ChatId && d.Key == key, cancellationToken);
         if (data == null)
         {
-            await botClient.SendTextMessageAsync(request.ChatId, "Не могу найти данных по этому ключу", replyToMessageId: request.MessageId);
+            await botClient.SendMessageAsync(request.ChatId,
+                "Не могу найти данных по этому ключу",
+                replyParameters: new() { MessageId = request.MessageId });
             return;
         }
 
         dbContext.ChatDatas.Remove(data);
         await dbContext.SaveChangesAsync();
-        await telegramMessageService.SendSuccessAsync(request.ChatId);
+        await telegramMessageService.SendSuccessAsync(request.ChatId, request.MessageId);
     }
 }

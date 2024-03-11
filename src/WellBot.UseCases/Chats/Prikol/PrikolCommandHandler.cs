@@ -1,7 +1,8 @@
 ﻿using AngleSharp;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot;
+using Telegram.BotAPI;
+using Telegram.BotAPI.AvailableMethods;
 
 namespace WellBot.UseCases.Chats.Prikol;
 
@@ -27,12 +28,12 @@ internal class PrikolCommandHandler : AsyncRequestHandler<PrikolCommand>
         try
         {
             var anekdot = await GetRandomAnekdotAsync(cancellationToken);
-            await botClient.SendTextMessageAsync(request.ChatId, anekdot);
+            await botClient.SendMessageAsync(request.ChatId, anekdot);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error getting a random anekdot");
-            await botClient.SendTextMessageAsync(request.ChatId, "Приколы закончились, приходите завтра.");
+            await botClient.SendMessageAsync(request.ChatId, "Приколы закончились, приходите завтра.");
         }
     }
 
