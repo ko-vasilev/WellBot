@@ -39,8 +39,10 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         {
             if (request.Arguments == "add slap")
             {
-                await AddSlapOptionAsync(request.Message);
-                await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
+                if (await AddSlapOptionAsync(request.Message))
+                {
+                    await telegramMessageService.SendSuccessAsync(request.Message.Chat.Id, request.Message.MessageId);
+                }
                 return;
             }
 
@@ -87,12 +89,17 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         return;
     }
 
-    private async Task AddSlapOptionAsync(Message message)
+    private async Task<bool> AddSlapOptionAsync(Message message)
     {
         var replyMessage = message.ReplyToMessage;
         if (replyMessage?.Animation == null)
         {
-            return;
+            await telegramMessageService.SendMessageAsync(new GenericMessage()
+            {
+                DataType = DataType.Text,
+                Text = "Можно добавить только гифку"
+            }, message.Chat.Id, message.MessageId);
+            return false;
         }
 
         var slapOption = new SlapOption
@@ -101,6 +108,7 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         };
         appDbContext.SlapOptions.Add(slapOption);
         await appDbContext.SaveChangesAsync();
+        return true;
     }
 
     private async Task<bool> AddPassiveReplyOptionAsync(Message message, string arguments)
