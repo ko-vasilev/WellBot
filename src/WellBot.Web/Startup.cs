@@ -124,11 +124,8 @@ public class Startup
     public void Configure(IApplicationBuilder app, IWebHostEnvironment environment)
     {
         // Swagger
-        if (!environment.IsProduction())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(new SwaggerUIOptionsSetup().Setup);
-        }
+        app.UseSwagger();
+        app.UseSwaggerUI(new SwaggerUIOptionsSetup().Setup);
 
         // Custom middlewares.
         app.UseMiddleware<ApiExceptionMiddleware>();
