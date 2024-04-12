@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using WellBot.Domain.Users;
 using WellBot.Infrastructure.Abstractions.Interfaces;
 using WellBot.Infrastructure.DataAccess;
+using WellBot.UseCases.Chats;
 using WellBot.Web.Controllers;
 using WellBot.Web.Infrastructure.Middlewares;
 using WellBot.Web.Infrastructure.RecurringJobs;
@@ -99,6 +100,7 @@ public class Startup
 
         // Application settings.
         services.Configure<AppSettings>(configuration.GetSection("Application"));
+        services.Configure<ChatSettings>(configuration.GetSection("Application"));
         services.AddSingleton(new TelegramBotSettings
         {
             TelegramBotUsername = string.Empty

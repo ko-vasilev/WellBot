@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Telegram.BotAPI.AvailableTypes;
 using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
@@ -19,22 +20,43 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
     private readonly ILogger<AdminControlCommandHandler> logger;
     private readonly MemeChannelService memeChannelService;
     private readonly Lazy<PassiveTopicService> passiveTopicService;
+    private readonly IEnumerable<long> superadminUserIds;
 
     /// <summary>
     /// Constructor.
     /// </summary>
-    public AdminControlCommandHandler(IAppDbContext appDbContext, TelegramMessageService telegramMessageService, ILogger<AdminControlCommandHandler> logger, MemeChannelService memeChannelService, Lazy<PassiveTopicService> passiveTopicService)
+    public AdminControlCommandHandler(
+        IAppDbContext appDbContext,
+        TelegramMessageService telegramMessageService,
+        ILogger<AdminControlCommandHandler> logger,
+        MemeChannelService memeChannelService,
+        Lazy<PassiveTopicService> passiveTopicService,
+        IOptions<ChatSettings> chatSettings)
     {
         this.appDbContext = appDbContext;
         this.telegramMessageService = telegramMessageService;
         this.logger = logger;
         this.memeChannelService = memeChannelService;
         this.passiveTopicService = passiveTopicService;
+        superadminUserIds = chatSettings.Value.SuperadminIds;
     }
 
     /// <inheritdoc/>
     protected override async Task Handle(AdminControlCommand request, CancellationToken cancellationToken)
     {
+        // Only superadmin user can trigger admin commands.
+        if (request.Message.From == null || !superadminUserIds.Contains(request.Message.From.Id))
+        {
+            await telegramMessageService.SendMessageAsync(new GenericMessage()
+                {
+                    DataType = DataType.Reaction,
+                    Text = "🤷"
+                },
+                request.Message.Chat.Id,
+                request.Message.MessageId);
+            return;
+        }
+
         try
         {
             if (request.Arguments == "add slap")

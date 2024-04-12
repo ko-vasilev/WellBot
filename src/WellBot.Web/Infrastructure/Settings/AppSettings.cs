@@ -15,9 +15,6 @@ public class AppSettings
     /// </summary>
     public required string HostAddress { get; init; }
 
-    /// <inheritdoc />
-    public int RegularPassiveRepliesProbability { get; init; }
-
     /// <summary>
     /// API key for the SerpApi service.
     /// </summary>
