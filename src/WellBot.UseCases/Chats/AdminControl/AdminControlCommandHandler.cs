@@ -302,11 +302,29 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
             return;
         }
 
-        var user = originalMessage.ReplyToMessage.From;
+        User? user = null;
+        if (originalMessage.ReplyToMessage?.ForwardOrigin is MessageOriginUser originUser)
+        {
+            user = originUser.SenderUser;
+        }
+        if (originalMessage.ReplyToMessage?.ForwardOrigin is MessageOriginHiddenUser hiddenUser)
+        {
+            await telegramMessageService.SendMessageAsync(
+                $"User {hiddenUser.SenderUserName} account is hidden.",
+                originalMessage.Chat.Id,
+                originalMessage.MessageId);
+            return;
+        }
+
+        if (user == null)
+        {
+            user = originalMessage.ReplyToMessage?.From;
+        }
+
         if (user == null)
         {
             await telegramMessageService.SendMessageAsync(
-                "User information is hidden",
+                "User information is unavailable",
                 originalMessage.Chat.Id,
                 originalMessage.MessageId);
             return;
