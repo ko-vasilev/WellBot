@@ -80,6 +80,12 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
                 await BroadcastMessageAsync(request.Message);
                 return;
             }
+
+            if (request.Arguments == "user")
+            {
+                await ShowUserInfoAsync(request.Message);
+                return;
+            }
         }
         catch (Exception ex)
         {
@@ -283,5 +289,32 @@ internal class AdminControlCommandHandler : AsyncRequestHandler<AdminControlComm
         passiveTopicService.Value.Update(existingTopics);
 
         return true;
+    }
+
+    private async Task ShowUserInfoAsync(Message originalMessage)
+    {
+        if (originalMessage.ReplyToMessage == null)
+        {
+            await telegramMessageService.SendMessageAsync(
+                "Reply to a user message to get information about his author.",
+                originalMessage.Chat.Id,
+                originalMessage.MessageId);
+            return;
+        }
+
+        var user = originalMessage.ReplyToMessage.From;
+        if (user == null)
+        {
+            await telegramMessageService.SendMessageAsync(
+                "User information is hidden",
+                originalMessage.Chat.Id,
+                originalMessage.MessageId);
+            return;
+        }
+
+        var information = $"Name: {user.FirstName} {user.LastName}\n" +
+            $"username: {user.Username}\n" +
+            $"user id: {user.Id}";
+        await telegramMessageService.SendMessageAsync(information, originalMessage.Chat.Id, originalMessage.MessageId);
     }
 }
