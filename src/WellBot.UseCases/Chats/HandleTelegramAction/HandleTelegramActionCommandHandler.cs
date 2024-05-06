@@ -67,13 +67,13 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
     /// <inheritdoc/>
     protected override async Task Handle(HandleTelegramActionCommand request, CancellationToken cancellationToken)
     {
-        if (await HandleInlineQueryAsync(request.Action.InlineQuery, cancellationToken))
+        if (await HandleInlineQueryAsync(request?.Action?.InlineQuery, cancellationToken))
         {
             return;
         }
 
         // Check if this is a message.
-        if (request.Action.Message == null)
+        if (request?.Action?.Message == null)
         {
             return;
         }
