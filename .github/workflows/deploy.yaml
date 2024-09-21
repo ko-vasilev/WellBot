@@ -22,23 +22,20 @@ jobs:
       run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --self-contained false --runtime linux-x64
 
     - name: Copy production config
-      run: echo $APPSETTINGS_FILE >> deploy/appsettings.Production.json && ls deploy
+      run: echo $APPSETTINGS_FILE >> deploy/appsettings.Production.json
       env:
         APPSETTINGS_FILE : ${{ secrets.APPSETTING }}
 
     - name: Deploy
-      uses: garygrossgarten/github-action-scp@release
+      uses: appleboy/scp-action@v0.1.7
       with:
-        local: deploy
-        remote: ${{ secrets.REMOTE_DIR }}
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
-        privateKey: ${{ secrets.REMOTE_SSH_KEY }}
+        key: ${{ secrets.REMOTE_SSH_KEY }}
         passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
-        rmRemote: true
-        atomicPut: true
-        dotfiles: true
-        verbose: true
+        source: deploy
+        target: ${{ secrets.REMOTE_DIR }}
+        rm: true
 
     - name: Restart Nginx
       uses: garygrossgarten/github-action-ssh@v0.6.4
