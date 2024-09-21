@@ -48,6 +48,9 @@ public class AppDbContext : IdentityDbContext<User, AppIdentityRole, int>, IAppD
     /// <inheritdoc />
     public DbSet<DataProtectionKey> DataProtectionKeys { get; protected set; }
 
+    /// <inheritdoc />
+    public DbSet<MessageLog> MessageLogs { get; protected set; }
+
     #endregion
 
     /// <summary>
@@ -92,6 +95,10 @@ public class AppDbContext : IdentityDbContext<User, AppIdentityRole, int>, IAppD
             .WithMany(c => c.Data);
         modelBuilder.Entity<ChatData>()
             .HasIndex(d => d.Key);
+
+        modelBuilder.Entity<MessageLog>()
+            .HasOne(m => m.Chat)
+            .WithMany(c => c.MessageLogs);
     }
 
     private static void RestrictCascadeDelete(ModelBuilder modelBuilder)

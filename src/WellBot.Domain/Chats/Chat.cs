@@ -33,4 +33,9 @@ public class Chat
     /// Associated chat data.
     /// </summary>
     public IList<ChatData> Data { get; set; } = new List<ChatData>();
+
+    /// <summary>
+    /// History of messages that were sent in the chat.
+    /// </summary>
+    public IList<MessageLog> MessageLogs { get; set; } = new List<MessageLog>();
 }

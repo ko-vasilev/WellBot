@@ -70,5 +70,10 @@ public interface IAppDbContext : IDbContextWithSets, IDisposable
     /// </summary>
     DbSet<AutomaticMessageTemplate> AutomaticMessageTemplates { get; }
 
+    /// <summary>
+    /// History of message or events that happen in a chat.
+    /// </summary>
+    DbSet<MessageLog> MessageLogs { get; }
+
     #endregion
 }
