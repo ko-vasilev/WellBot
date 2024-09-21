@@ -37,7 +37,7 @@ internal class LogMessageNotificationHandler : INotificationHandler<MessageNotif
         var actorName = telegramMessageService.GetUserFullName(notification.Message.From);
         if (actorName == string.Empty)
         {
-            actorName = "кто-то";
+            actorName = "somebody";
         }
 
         var messageDate = DateTimeOffset.FromUnixTimeSeconds(notification.Message.Date).UtcDateTime;

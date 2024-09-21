@@ -162,10 +162,7 @@ internal class RecapCommandHandler : AsyncRequestHandler<RecapCommand>
                 {
                     new SystemChatMessage(systemPrompt)
                 };
-                openAiMessages.AddRange(chunk.Select(m => new UserChatMessage(m.Message)
-                {
-                    ParticipantName = m.Sender == "" ? null : m.Sender,
-                }));
+                openAiMessages.AddRange(chunk.Select(MapToOpenaiMessage));
                 var promptResult = await client.CompleteChatAsync(openAiMessages, new ChatCompletionOptions()
                 {
                     MaxOutputTokenCount = multipleRequests ? 10_000 : 1000
@@ -210,6 +207,22 @@ internal class RecapCommandHandler : AsyncRequestHandler<RecapCommand>
         }
 
         return "Не удалось собрать рекап.";
+    }
+
+    private static readonly Regex UserNameRegex = new Regex(@"[^a-zA-Z0-9_-]", RegexOptions.Compiled);
+
+    private UserChatMessage MapToOpenaiMessage(MessageData messageData)
+    {
+        var senderName = messageData.Sender;
+        senderName = UserNameRegex.Replace(senderName, "");
+        if (senderName == "")
+        {
+            senderName = null;
+        }
+        return new UserChatMessage(messageData.Message)
+        {
+            ParticipantName = senderName,
+        };
     }
 
     private IList<IEnumerable<MessageData>> SplitMessagesInChunks(IEnumerable<MessageData> messages)
