@@ -28,7 +28,7 @@ internal class LogMessageNotificationHandler : INotificationHandler<MessageNotif
     /// <inheritdoc />
     public async Task Handle(MessageNotification notification, CancellationToken cancellationToken)
     {
-        var messageDescription = GetBasicMessageInformation(notification.Message);
+        var messageDescription = GetEventInformation(notification.Message);
         if (messageDescription == null)
         {
             return;
