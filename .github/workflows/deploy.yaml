@@ -38,6 +38,7 @@ jobs:
         rmRemote: true
         atomicPut: true
         dotfiles: true
+        verbose: true
 
     - name: Restart Nginx
       uses: garygrossgarten/github-action-ssh@v0.6.4
