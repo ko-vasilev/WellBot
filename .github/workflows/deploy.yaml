@@ -33,7 +33,7 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.REMOTE_SSH_KEY }}
         passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
-        source: deploy
+        source: deploy/*.*
         target: ${{ secrets.REMOTE_DIR }}
         rm: true
 
