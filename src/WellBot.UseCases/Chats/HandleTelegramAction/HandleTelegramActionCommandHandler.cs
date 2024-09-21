@@ -24,6 +24,7 @@ using WellBot.UseCases.Chats.Pidor.PidorStats;
 using WellBot.UseCases.Chats.Prikol;
 using WellBot.UseCases.Chats.RegularMessageHandles;
 using WellBot.UseCases.Chats.Slap;
+using WellBot.UseCases.Chats.Summarization.Recap;
 
 namespace WellBot.UseCases.Chats.HandleTelegramAction;
 
@@ -198,6 +199,12 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
             {
                 ChatId = chatId
             }),
+            "recap" or "рекап" => mediator.Send(new RecapCommand
+            {
+                ChatId = chatId,
+                Arguments = arguments,
+                MessageId = message.MessageId
+            }),
             _ => isDirectMessage
                 ? botClient.SendMessageAsync(chatId, "Неизвестная команда")
                 : Task.CompletedTask
@@ -216,8 +223,16 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         }
 
         var command = SplitCommandText(text, out var argumentsStartIndex);
-        arguments = text.Substring(argumentsStartIndex);
-        argumentsFormatted = textFormatted.Substring(argumentsStartIndex);
+        if (argumentsStartIndex > 0)
+        {
+            arguments = text.Substring(argumentsStartIndex);
+            argumentsFormatted = textFormatted.Substring(argumentsStartIndex);
+        }
+        else
+        {
+            arguments = string.Empty;
+            argumentsFormatted = string.Empty;
+        }
         string botUsername = "@" + telegramBotSettings?.TelegramBotUsername;
         if (command.EndsWith(botUsername))
         {
