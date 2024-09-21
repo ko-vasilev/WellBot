@@ -36,6 +36,7 @@ jobs:
         source: ./deploy/*.*
         target: ${{ secrets.REMOTE_DIR }}
         rm: true
+        debug: true
 
     - name: Restart Nginx
       uses: garygrossgarten/github-action-ssh@v0.6.4
