@@ -223,8 +223,16 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         }
 
         var command = SplitCommandText(text, out var argumentsStartIndex);
-        arguments = text.Substring(argumentsStartIndex);
-        argumentsFormatted = textFormatted.Substring(argumentsStartIndex);
+        if (argumentsStartIndex > 0)
+        {
+            arguments = text.Substring(argumentsStartIndex);
+            argumentsFormatted = textFormatted.Substring(argumentsStartIndex);
+        }
+        else
+        {
+            arguments = string.Empty;
+            argumentsFormatted = string.Empty;
+        }
         string botUsername = "@" + telegramBotSettings?.TelegramBotUsername;
         if (command.EndsWith(botUsername))
         {
