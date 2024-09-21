@@ -24,6 +24,7 @@ using WellBot.UseCases.Chats.Pidor.PidorStats;
 using WellBot.UseCases.Chats.Prikol;
 using WellBot.UseCases.Chats.RegularMessageHandles;
 using WellBot.UseCases.Chats.Slap;
+using WellBot.UseCases.Chats.Summarization.Recap;
 
 namespace WellBot.UseCases.Chats.HandleTelegramAction;
 
@@ -197,6 +198,12 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
             "prikol" => mediator.Send(new PrikolCommand
             {
                 ChatId = chatId
+            }),
+            "recap" or "рекап" => mediator.Send(new RecapCommand
+            {
+                ChatId = chatId,
+                Arguments = arguments,
+                MessageId = message.MessageId
             }),
             _ => isDirectMessage
                 ? botClient.SendMessageAsync(chatId, "Неизвестная команда")

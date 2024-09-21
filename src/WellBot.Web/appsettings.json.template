@@ -15,7 +15,8 @@
     "BotToken": "{{botToken}}",
     "HostAddress": "{{hostAddress}}",
     "SerpApiKey": "{{serpApiKey}}",
-    "SuperadminIds": [{{superadminIds}}]
+    "SuperadminIds": [{{superadminIds}}],
+    "OpenaiKey": "{{openAi_key}}"
   },
   "Jwt": {
     "SecretKey": "{{jwtSecretKey}}",

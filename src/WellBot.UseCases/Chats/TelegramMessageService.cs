@@ -197,6 +197,16 @@ public class TelegramMessageService
     }
 
     /// <summary>
+    /// Send an event in the chat to mark bot as "typing...".
+    /// </summary>
+    /// <param name="chatId">Id of the telegram chat.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task StartTypingAsync(long chatId, CancellationToken cancellationToken)
+    {
+        await botClient.SendChatActionAsync(chatId, "typing", cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
     /// Get a HTML content of a message text.
     /// </summary>
     /// <param name="message">Message object.</param>
