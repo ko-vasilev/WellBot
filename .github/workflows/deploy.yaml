@@ -33,10 +33,10 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.REMOTE_SSH_KEY }}
         passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
-        source: ./deploy/*.*
-        target: ${{ secrets.REMOTE_DIR }}
+        source: deploy/*.*
+        target: "${{ secrets.REMOTE_DIR }}"
         rm: true
-        debug: true
+        strip_components: 1
 
     - name: Restart Nginx
       uses: garygrossgarten/github-action-ssh@v0.6.4
