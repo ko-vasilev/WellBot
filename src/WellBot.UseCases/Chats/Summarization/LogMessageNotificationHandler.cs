@@ -41,7 +41,7 @@ internal class LogMessageNotificationHandler : INotificationHandler<MessageNotif
         }
 
         var messageDate = DateTimeOffset.FromUnixTimeSeconds(notification.Message.Date).UtcDateTime;
-        var fullDescription = $"{messageDate:yyyy-MM-dd HH:mm:ss} Событие #{notification.Message.MessageId}, {actorName} ";
+        var fullDescription = $"{messageDate:yyyy-MM-dd HH:mm:ss} Событие #{notification.Message.MessageId} ";
         if (notification.Message.ForwardOrigin != null)
         {
             // TODO: different format for different forward origins?
@@ -56,6 +56,7 @@ internal class LogMessageNotificationHandler : INotificationHandler<MessageNotif
             Message = fullDescription,
             MessageDate = messageDate,
             ChatId = chatId,
+            Sender = actorName
         };
         dbContext.MessageLogs.Add(messageLog);
         await dbContext.SaveChangesAsync(cancellationToken);
