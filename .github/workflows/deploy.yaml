@@ -22,7 +22,7 @@ jobs:
       run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --self-contained false --runtime linux-x64
 
     - name: Copy production config
-      run: echo $APPSETTINGS_FILE >> deploy/appsettings.Production.json
+      run: echo $APPSETTINGS_FILE >> deploy/appsettings.Production.json && ls deploy
       env:
         APPSETTINGS_FILE : ${{ secrets.APPSETTING }}
 
@@ -36,6 +36,8 @@ jobs:
         privateKey: ${{ secrets.REMOTE_SSH_KEY }}
         passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
         rmRemote: true
+        atomicPut: true
+        dotfiles: true
 
     - name: Restart Nginx
       uses: garygrossgarten/github-action-ssh@v0.6.4
