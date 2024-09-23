@@ -122,11 +122,12 @@ internal class RecapCommandHandler : AsyncRequestHandler<RecapCommand>
         {
             var minutes = int.Parse(minutesMatch.Groups[1].Value);
             minutes = Math.Min(minutes, 24 * 60);
-            return (TimeSpan.FromHours(minutes), null);
+            return (TimeSpan.FromMinutes(minutes), null);
         }
 
         if (int.TryParse(arguments, out var limit))
         {
+            limit = Math.Max(Math.Min(limit, 10_000), 1);
             return (null, limit);
         }
 
