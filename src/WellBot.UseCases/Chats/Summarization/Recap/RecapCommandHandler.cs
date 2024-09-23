@@ -90,7 +90,9 @@ internal class RecapCommandHandler : AsyncRequestHandler<RecapCommand>
         }
         else
         {
-            duration = $"за последние {messageLimits.Recent:hh\\:mm}ч";
+            var hoursDuration = Math.Floor(messageLimits.Recent.Value.TotalHours);
+            var minutesDuration = messageLimits.Recent.Value.Minutes;
+            duration = $"за последние {hoursDuration:00}:{minutesDuration:00}ч";
         }
         await telegramMessageService.SendMessageAsync($"Рекап {duration}\n" + recap, request.ChatId, request.MessageId);
 
