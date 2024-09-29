@@ -56,7 +56,8 @@ internal class LogMessageNotificationHandler : INotificationHandler<MessageNotif
             Message = fullDescription,
             MessageDate = messageDate,
             ChatId = chatId,
-            Sender = actorName
+            Sender = actorName,
+            SenderTelegramId = notification.Message.From?.Id
         };
         dbContext.MessageLogs.Add(messageLog);
         await dbContext.SaveChangesAsync(cancellationToken);

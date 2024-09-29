@@ -34,4 +34,9 @@ public class MessageLog
     /// Name of the person who sent the message.
     /// </summary>
     public required string Sender { get; set; }
+
+    /// <summary>
+    /// Id of the person who sent the message.
+    /// </summary>
+    public required long? SenderTelegramId { get; set; }
 }
