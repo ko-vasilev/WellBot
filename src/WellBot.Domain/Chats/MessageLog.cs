@@ -28,7 +28,7 @@ public class MessageLog
     /// <summary>
     /// Message or information about an event.
     /// </summary>
-    public required string Message { get; set; }
+    public required string? Message { get; set; }
 
     /// <summary>
     /// Name of the person who sent the message.

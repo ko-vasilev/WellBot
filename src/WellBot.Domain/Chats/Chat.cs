@@ -38,4 +38,9 @@ public class Chat
     /// History of messages that were sent in the chat.
     /// </summary>
     public IList<MessageLog> MessageLogs { get; set; } = new List<MessageLog>();
+
+    /// <summary>
+    /// Users who opted out from their messages being logged in this chat.
+    /// </summary>
+    public IList<MessageLogOptOut> MessageLogOptOuts { get; set; } = new List<MessageLogOptOut>();
 }

@@ -28,32 +28,27 @@ internal class LogMessageNotificationHandler : INotificationHandler<MessageNotif
     /// <inheritdoc />
     public async Task Handle(MessageNotification notification, CancellationToken cancellationToken)
     {
-        var messageDescription = GetEventInformation(notification.Message);
-        if (messageDescription == null)
-        {
-            return;
-        }
-
-        var actorName = telegramMessageService.GetUserFullName(notification.Message.From);
-        if (actorName == string.Empty)
-        {
-            actorName = "somebody";
-        }
-
         var messageDate = DateTimeOffset.FromUnixTimeSeconds(notification.Message.Date).UtcDateTime;
-        var fullDescription = $"{messageDate:yyyy-MM-dd HH:mm:ss} Событие #{notification.Message.MessageId} ";
-        if (notification.Message.ForwardOrigin != null)
+        string? message = null;
+        var shouldTrackMessage = await ShouldLogMessageAsync(notification.Message, cancellationToken);
+        var actorName = "somebody";
+        long? senderId = null;
+        if (shouldTrackMessage)
         {
-            // TODO: different format for different forward origins?
-            fullDescription += $"переслал ";
+            message = GetFullMessageDescription(notification.Message, messageDate);
+            var actualActorName = telegramMessageService.GetUserFullName(notification.Message.From);
+            if (!string.IsNullOrEmpty(actualActorName))
+            {
+                actorName = actualActorName;
+            }
+            senderId = notification.Message.From?.Id;
         }
-        fullDescription += messageDescription;
 
         var chatId = await GetChatIdAsync(notification.Message.Chat.Id, cancellationToken);
 
         var messageLog = new MessageLog()
         {
-            Message = fullDescription,
+            Message = message,
             MessageDate = messageDate,
             ChatId = chatId,
             Sender = actorName,
@@ -61,6 +56,24 @@ internal class LogMessageNotificationHandler : INotificationHandler<MessageNotif
         };
         dbContext.MessageLogs.Add(messageLog);
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private string? GetFullMessageDescription(Message message, DateTime sendDate)
+    {
+        var messageDescription = GetEventInformation(message);
+        if (messageDescription == null)
+        {
+            return null;
+        }
+
+        var fullDescription = $"{sendDate:yyyy-MM-dd HH:mm:ss} Событие #{message.MessageId} ";
+        if (message.ForwardOrigin != null)
+        {
+            // TODO: different format for different forward origins?
+            fullDescription += $"переслал ";
+        }
+        fullDescription += messageDescription;
+        return fullDescription;
     }
 
     private string? GetBasicMessageInformation(Message message)
@@ -169,5 +182,20 @@ internal class LogMessageNotificationHandler : INotificationHandler<MessageNotif
         dbContext.Chats.Add(chat);
         await dbContext.SaveChangesAsync(cancellationToken);
         return chat.Id;
+    }
+
+    private async Task<bool> ShouldLogMessageAsync(Message message, CancellationToken cancellationToken)
+    {
+        var senderId = message.From?.Id;
+        if (senderId == null)
+        {
+            return true;
+        }
+
+        var optOutExists = await dbContext.Chats
+            .Where(c => c.TelegramId == message.Chat.Id)
+            .SelectMany(c => c.MessageLogOptOuts)
+            .AnyAsync(o => o.TelegramUserId == senderId, cancellationToken);
+        return !optOutExists;
     }
 }

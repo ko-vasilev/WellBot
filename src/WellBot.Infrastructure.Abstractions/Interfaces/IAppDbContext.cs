@@ -75,5 +75,10 @@ public interface IAppDbContext : IDbContextWithSets, IDisposable
     /// </summary>
     DbSet<MessageLog> MessageLogs { get; }
 
+    /// <summary>
+    /// Collection of users who opted out from message log in particular chats.
+    /// </summary>
+    DbSet<MessageLogOptOut> MessageLogOptOuts { get; }
+
     #endregion
 }
