@@ -51,6 +51,9 @@ public class AppDbContext : IdentityDbContext<User, AppIdentityRole, int>, IAppD
     /// <inheritdoc />
     public DbSet<MessageLog> MessageLogs { get; protected set; }
 
+    /// <inheritdoc />
+    public DbSet<MessageLogOptOut> MessageLogOptOuts { get; protected set; }
+
     #endregion
 
     /// <summary>
@@ -99,6 +102,10 @@ public class AppDbContext : IdentityDbContext<User, AppIdentityRole, int>, IAppD
         modelBuilder.Entity<MessageLog>()
             .HasOne(m => m.Chat)
             .WithMany(c => c.MessageLogs);
+
+        modelBuilder.Entity<MessageLogOptOut>()
+            .HasOne(m => m.Chat)
+            .WithMany(c => c.MessageLogOptOuts);
     }
 
     private static void RestrictCascadeDelete(ModelBuilder modelBuilder)

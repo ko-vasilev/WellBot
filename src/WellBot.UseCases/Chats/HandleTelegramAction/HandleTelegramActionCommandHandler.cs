@@ -24,6 +24,8 @@ using WellBot.UseCases.Chats.Pidor.PidorStats;
 using WellBot.UseCases.Chats.Prikol;
 using WellBot.UseCases.Chats.RegularMessageHandles;
 using WellBot.UseCases.Chats.Slap;
+using WellBot.UseCases.Chats.Summarization.LogOptIn;
+using WellBot.UseCases.Chats.Summarization.LogOptOut;
 using WellBot.UseCases.Chats.Summarization.Recap;
 
 namespace WellBot.UseCases.Chats.HandleTelegramAction;
@@ -203,6 +205,18 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
             {
                 ChatId = chatId,
                 Arguments = arguments,
+                MessageId = message.MessageId
+            }),
+            "nocap" => mediator.Send(new LogOptOutCommand
+            {
+                ChatId = chatId,
+                TelegramUserId = GetSenderId(),
+                MessageId = message.MessageId
+            }),
+            "cap" => mediator.Send(new LogOptInCommand
+            {
+                ChatId = chatId,
+                TelegramUserId = GetSenderId(),
                 MessageId = message.MessageId
             }),
             _ => isDirectMessage

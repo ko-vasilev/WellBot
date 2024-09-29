@@ -70,9 +70,11 @@ internal class RecapCommandHandler : AsyncRequestHandler<RecapCommand>
             var fromDate = DateTime.UtcNow - messageLimits.Recent.Value;
             messagesQuery = messagesQuery.Where(m => m.MessageDate >= fromDate);
         }
-        messagesQuery = messagesQuery.OrderBy(m => m.MessageDate);
+        messagesQuery = messagesQuery
+            .Where(m => m.Message != null)
+            .OrderBy(m => m.MessageDate);
 
-        var messages = await messagesQuery.Select(m => new MessageData(m.Sender, m.Message))
+        var messages = await messagesQuery.Select(m => new MessageData(m.Sender, m.Message!))
             .ToListAsync(cancellationToken);
 
         if (messages.Count == 0)
@@ -90,7 +92,7 @@ internal class RecapCommandHandler : AsyncRequestHandler<RecapCommand>
         }
         else
         {
-            var hoursDuration = Math.Floor(messageLimits.Recent.Value.TotalHours);
+            var hoursDuration = Math.Floor(messageLimits.Recent!.Value.TotalHours);
             var minutesDuration = messageLimits.Recent.Value.Minutes;
             duration = $"за последние {hoursDuration:00}:{minutesDuration:00}ч";
         }
