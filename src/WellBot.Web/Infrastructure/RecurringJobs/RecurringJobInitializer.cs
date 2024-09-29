@@ -13,6 +13,11 @@ public class RecurringJobInitializer : IAsyncInitializer
     /// </summary>
     private const string SendAutomaticMessagesJobId = "SendAutomaticMessages";
 
+    /// <summary>
+    /// Id of the job that is automatically cleaning up old message logs.
+    /// </summary>
+    private const string CleanupMessageLogsJobId = "CleanupMessageLogs";
+
     private readonly IRecurringJobManager recurringJobManager;
 
     /// <summary>
@@ -29,6 +34,7 @@ public class RecurringJobInitializer : IAsyncInitializer
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
         recurringJobManager.AddOrUpdate<SendAutomaticMessages>(SendAutomaticMessagesJobId, job => job.SendAsync(CancellationToken.None), Cron.Hourly);
+        recurringJobManager.AddOrUpdate<CleanupMessageLogs>(CleanupMessageLogsJobId, job => job.CleanupAsync(CancellationToken.None), Cron.Daily);
 
         recurringJobManager.Trigger(SendAutomaticMessagesJobId);
     }
