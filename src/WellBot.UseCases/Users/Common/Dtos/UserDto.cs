@@ -9,9 +9,4 @@ public class UserDto
     /// User identifier.
     /// </summary>
     public int Id { get; set; }
-
-    /// <summary>
-    /// Full user name.
-    /// </summary>
-    public required string FullName { get; set; }
 }
