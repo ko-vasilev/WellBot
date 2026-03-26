@@ -1,49 +1,82 @@
 name: Deploy
 
-on: 
+on:
   push:
     branches:
-    - main
+      - main
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+        cache: true
+
+    - name: Restore
+      run: dotnet restore src/WellBot.sln
+
+    - name: Build
+      run: dotnet build src/WellBot.sln --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test src/WellBot.sln --configuration Release --no-build
 
     - name: Dotnet Publish
-      run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --self-contained false --runtime linux-x64
+      run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --no-build --self-contained false --runtime linux-x64
 
     - name: Copy production config
-      run: echo $APPSETTINGS_FILE >> deploy/appsettings.Production.json
+      run: printf '%s' "$APPSETTINGS_FILE" > deploy/appsettings.Production.json
       env:
-        APPSETTINGS_FILE : ${{ secrets.APPSETTING }}
+        APPSETTINGS_FILE: ${{ secrets.APPSETTING }}
 
-    - name: Deploy
+    - name: Package release
+      run: tar -czf deploy.tar.gz -C deploy .
+
+    - name: Upload release
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.REMOTE_SSH_KEY }}
         passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
-        source: deploy/*.*
-        target: "${{ secrets.REMOTE_DIR }}"
-        rm: true
-        strip_components: 1
+        source: deploy.tar.gz
+        target: /tmp/wellbot-deploy-${{ github.sha }}
 
-    - name: Restart Nginx
+    - name: Activate release
       uses: garygrossgarten/github-action-ssh@v0.6.4
       with:
         command: |
-          sudo nginx -s reload
+          set -e
+          TMP_DIR="/tmp/wellbot-deploy-${{ github.sha }}"
+          APP_DIR="${{ secrets.REMOTE_DIR }}"
+          mkdir -p "$TMP_DIR/unpacked"
+          mkdir -p "$APP_DIR"
+          tar -xzf "$TMP_DIR/deploy.tar.gz" -C "$TMP_DIR/unpacked"
+          rsync -a --delete "$TMP_DIR/unpacked/" "$APP_DIR/"
+          rm -rf "$TMP_DIR"
           sudo systemctl restart ${{ secrets.SERVICE_NAME }}
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        privateKey: ${{ secrets.REMOTE_SSH_KEY }}
+        passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
+
+    - name: Reload Nginx
+      uses: garygrossgarten/github-action-ssh@v0.6.4
+      with:
+        command: sudo nginx -s reload
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         privateKey: ${{ secrets.REMOTE_SSH_KEY }}
