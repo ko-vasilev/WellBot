@@ -22,7 +22,8 @@ public class ChatMappingProfile : Profile
         CreateMap<ChatData, DataItem>();
         CreateMap<PassiveTopic, TopicDto>();
         CreateMap<UpsertTopicCommand, PassiveTopic>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.ReplyOptions, opt => opt.Ignore());
 
         CreateMap<AutomaticMessageTemplate, AutomaticMessageDto>();
     }
