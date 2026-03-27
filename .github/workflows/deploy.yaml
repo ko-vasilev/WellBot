@@ -15,6 +15,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DOTNET_RUNTIME: linux-x64
 
     steps:
     - uses: actions/checkout@v4
@@ -25,16 +27,13 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore
-      run: dotnet restore src/WellBot.sln
-
-    - name: Build
-      run: dotnet build src/WellBot.sln --configuration Release --no-restore
+      run: dotnet restore src/WellBot.Web/WellBot.Web.csproj --runtime $DOTNET_RUNTIME
 
     - name: Test
-      run: dotnet test src/WellBot.sln --configuration Release --no-build
+      run: dotnet test src/WellBot.sln --configuration Release
 
     - name: Dotnet Publish
-      run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --no-build --self-contained false --runtime linux-x64
+      run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --no-restore --self-contained false --runtime $DOTNET_RUNTIME
 
     - name: Copy production config
       run: printf '%s' "$APPSETTINGS_FILE" > deploy/appsettings.Production.json
