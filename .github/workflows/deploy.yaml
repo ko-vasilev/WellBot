@@ -27,13 +27,13 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore
-      run: dotnet restore src/WellBot.Web/WellBot.Web.csproj --runtime $DOTNET_RUNTIME
+      run: dotnet restore src/WellBot.sln
 
     - name: Test
-      run: dotnet test src/WellBot.sln --configuration Release
+      run: dotnet test src/WellBot.sln --configuration Release --no-restore
 
     - name: Dotnet Publish
-      run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --no-restore --self-contained false --runtime $DOTNET_RUNTIME
+      run: dotnet publish src/WellBot.Web/WellBot.Web.csproj --configuration Release --output deploy --self-contained false --runtime $DOTNET_RUNTIME
 
     - name: Copy production config
       run: printf '%s' "$APPSETTINGS_FILE" > deploy/appsettings.Production.json
