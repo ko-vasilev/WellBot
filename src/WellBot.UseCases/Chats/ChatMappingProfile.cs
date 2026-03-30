@@ -2,7 +2,6 @@
 using WellBot.Domain.Chats;
 using WellBot.UseCases.Chats.AutomaticMessages.GetAutomaticMessages;
 using WellBot.UseCases.Chats.Data.SearchData;
-using WellBot.UseCases.Chats.Pidor.GetPidorGameMessages;
 using WellBot.UseCases.Chats.Topics.GetTopicList;
 using WellBot.UseCases.Chats.Topics.UpsertTopic;
 
@@ -18,7 +17,6 @@ public class ChatMappingProfile : Profile
     /// </summary>
     public ChatMappingProfile()
     {
-        CreateMap<PidorMessage, PidorGameMessageDto>();
         CreateMap<ChatData, DataItem>();
         CreateMap<PassiveTopic, TopicDto>();
         CreateMap<UpsertTopicCommand, PassiveTopic>()

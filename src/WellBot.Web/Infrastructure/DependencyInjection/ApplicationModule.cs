@@ -2,7 +2,6 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using WellBot.DomainServices.Chats;
 using WellBot.UseCases.Chats;
-using WellBot.UseCases.Chats.Pidor;
 
 namespace WellBot.Web.Infrastructure.DependencyInjection;
 
@@ -19,7 +18,6 @@ internal static class ApplicationModule
     {
         services.AddScoped<CurrentChatService>();
         services.AddTransient<TelegramMessageService>();
-        services.AddTransient<PidorGameService>();
         services.AddSingleton<MessageRateLimitingService>();
         services.AddSingleton<RandomService>();
         services.AddSingleton<MemeChannelService>();

@@ -16,11 +16,6 @@ using WellBot.UseCases.Chats.Data.SetChatData;
 using WellBot.UseCases.Chats.Data.ShowData;
 using WellBot.UseCases.Chats.Data.ShowKeys;
 using WellBot.UseCases.Chats.Ememe;
-using WellBot.UseCases.Chats.Pidor.PidorGameRegister;
-using WellBot.UseCases.Chats.Pidor.PidorGameRun;
-using WellBot.UseCases.Chats.Pidor.PidorList;
-using WellBot.UseCases.Chats.Pidor.PidorRules;
-using WellBot.UseCases.Chats.Pidor.PidorStats;
 using WellBot.UseCases.Chats.Prikol;
 using WellBot.UseCases.Chats.RegularMessageHandles;
 using WellBot.UseCases.Chats.Slap;
@@ -132,33 +127,6 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         }
         Task action = command switch
         {
-            "pidoreg" => mediator.Send(new PidorGameRegisterCommand()
-            {
-                ChatId = chatId,
-                TelegramUserId = GetSenderId(),
-                TelegramUserName = telegramMessageService.GetUserFullName(sender),
-                MessageId = message.MessageId
-            }),
-            "pidorlist" => mediator.Send(new PidorListCommand
-            {
-                ChatId = chatId,
-                TelegramUserId = GetSenderId(),
-                Arguments = arguments,
-                MessageId = message.MessageId
-            }),
-            "pidorules" => mediator.Send(new PidorRulesCommand
-            {
-                ChatId = chatId,
-            }),
-            "pidor" => mediator.Send(new PidorGameRunCommand
-            {
-                ChatId = chatId,
-            }),
-            "pidorstats" => mediator.Send(new PidorStatsCommand
-            {
-                ChatId = chatId,
-                Arguments = arguments
-            }),
             "set" => mediator.Send(new SetChatDataCommand
             {
                 ChatId = chatId,

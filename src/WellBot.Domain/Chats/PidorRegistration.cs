@@ -6,6 +6,7 @@ namespace WellBot.Domain.Chats;
 /// <summary>
 /// Contains a registration information for Daily Pidor game.
 /// </summary>
+[Obsolete]
 public class PidorRegistration
 {
     /// <summary>
