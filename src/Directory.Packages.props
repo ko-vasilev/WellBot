@@ -1,0 +1,47 @@
+﻿<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Identity.Stores" Version="8.0.2" />
+    <PackageVersion Include="Saritasa.Tools.Common" Version="5.0.0" />
+    <PackageVersion Include="Saritasa.Tools.Domain" Version="0.8.2" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageVersion Include="Xabe.FFmpeg" Version="5.2.6" />
+    <PackageVersion Include="Xabe.FFmpeg.Downloader" Version="5.2.6" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.2" />
+    <PackageVersion Include="AngleSharp" Version="1.1.1" />
+    <PackageVersion Include="AutoMapper" Version="13.0.1" />
+    <PackageVersion Include="Cronos" Version="0.7.1" />
+    <PackageVersion Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.2" />
+    <PackageVersion Include="NodaTime" Version="3.1.11" />
+    <PackageVersion Include="OpenAI" Version="2.0.0-beta.12" />
+    <PackageVersion Include="Telegram.BotAPI" Version="7.1.1" />
+    <PackageVersion Include="MediatR" Version="12.2.0" />
+    <PackageVersion Include="Saritasa.Tools.EntityFrameworkCore" Version="7.0.1" />
+    <PackageVersion Include="AspNetCore.HealthChecks.Sqlite" Version="8.0.0" />
+    <PackageVersion Include="Bogus" Version="35.0.1" />
+    <PackageVersion Include="DateOnlyTimeOnly.AspNet.Swashbuckle" Version="2.1.1" />
+    <PackageVersion Include="Extensions.Hosting.AsyncInitialization" Version="3.0.1" />
+    <PackageVersion Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
+    <PackageVersion Include="McMaster.Extensions.Hosting.CommandLine" Version="4.1.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageVersion Include="Unchase.Swashbuckle.AspNetCore.Extensions" Version="2.7.1" />
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.11" />
+    <PackageVersion Include="Hangfire.MemoryStorage" Version="1.8.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageVersion Include="xunit" Version="2.7.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.7" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.0" />
+    <PackageVersion Include="StyleCop.Analyzers.Unstable" Version="1.2.0.507" />
+  </ItemGroup>
+</Project>

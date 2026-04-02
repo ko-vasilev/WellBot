@@ -1,31 +1,26 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="1.1.1" />
-    <PackageReference Include="AutoMapper" Version="13.0.1" />
-    <PackageReference Include="Cronos" Version="0.7.1" />
-    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="8.0.2" />
-    <PackageReference Include="NodaTime" Version="3.1.11" />
-    <PackageReference Include="OpenAI" Version="2.0.0-beta.12" />
-    <PackageReference Include="Telegram.BotAPI" Version="7.1.1" />
+    <PackageReference Include="AngleSharp" />
+    <PackageReference Include="AutoMapper" />
+    <PackageReference Include="Cronos" />
+    <PackageReference Include="MathNet.Numerics" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" />
+    <PackageReference Include="NodaTime" />
+    <PackageReference Include="OpenAI" />
+    <PackageReference Include="Telegram.BotAPI" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\WellBot.DomainServices\WellBot.DomainServices.csproj" />
     <ProjectReference Include="..\WellBot.Infrastructure.Abstractions\WellBot.Infrastructure.Abstractions.csproj" />
     <ProjectReference Include="..\WellBot.UseCases.Common\WellBot.UseCases.Common.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Include="**\*.html" />
   </ItemGroup>
-
 </Project>
