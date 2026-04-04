@@ -1,9 +1,9 @@
-using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Saritasa.Tools.Domain.Exceptions;
 using WellBot.Domain.Chats;
 using WellBot.Infrastructure.Abstractions.Interfaces;
+using WellBot.UseCases.Chats;
 using WellBot.UseCases.Chats.RegularMessageHandles.Reply;
 
 namespace WellBot.UseCases.Chats.Topics.UpsertTopic;
@@ -14,10 +14,10 @@ namespace WellBot.UseCases.Chats.Topics.UpsertTopic;
 internal class UpsertTopicCommandHandler : IRequestHandler<UpsertTopicCommand, int>
 {
     private readonly IAppDbContext dbContext;
-    private readonly IMapper mapper;
+    private readonly ChatMapper mapper;
     private readonly PassiveTopicService passiveTopicService;
 
-    public UpsertTopicCommandHandler(IAppDbContext dbContext, IMapper mapper, PassiveTopicService passiveTopicService)
+    public UpsertTopicCommandHandler(IAppDbContext dbContext, ChatMapper mapper, PassiveTopicService passiveTopicService)
     {
         this.dbContext = dbContext;
         this.mapper = mapper;
@@ -46,7 +46,7 @@ internal class UpsertTopicCommandHandler : IRequestHandler<UpsertTopicCommand, i
             dbContext.PassiveTopics.Add(topic);
         }
 
-        mapper.Map(request, topic);
+        mapper.UpdatePassiveTopic(request, topic);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         // Update topics cache.

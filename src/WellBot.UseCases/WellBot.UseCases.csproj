@@ -4,7 +4,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AngleSharp" />
-    <PackageReference Include="AutoMapper" />
     <PackageReference Include="Cronos" />
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" />
@@ -13,6 +12,7 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" />
     <PackageReference Include="NodaTime" />
     <PackageReference Include="OpenAI" />
+    <PackageReference Include="Riok.Mapperly" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Telegram.BotAPI" />
   </ItemGroup>
   <ItemGroup>

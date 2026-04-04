@@ -1,7 +1,7 @@
-using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using WellBot.Infrastructure.Abstractions.Interfaces;
+using WellBot.UseCases.Chats;
 
 namespace WellBot.UseCases.Chats.Data.SearchData;
 
@@ -11,12 +11,12 @@ namespace WellBot.UseCases.Chats.Data.SearchData;
 internal class SearchDataQueryHandler : IRequestHandler<SearchDataQuery, IEnumerable<DataItem>>
 {
     private readonly IAppDbContext dbContext;
-    private readonly IMapper mapper;
+    private readonly ChatMapper mapper;
 
     /// <summary>
     /// Constructor.
     /// </summary>
-    public SearchDataQueryHandler(IAppDbContext dbContext, IMapper mapper)
+    public SearchDataQueryHandler(IAppDbContext dbContext, ChatMapper mapper)
     {
         this.dbContext = dbContext;
         this.mapper = mapper;
@@ -35,7 +35,8 @@ internal class SearchDataQueryHandler : IRequestHandler<SearchDataQuery, IEnumer
             .Where(d => EF.Functions.Like(d.Key, searchString) || EF.Functions.Like(d.Text, searchString))
             .Take(request.Limit);
 
-        var items = await mapper.ProjectTo<DataItem>(dataQuery)
+        var items = await mapper
+            .ProjectToDataItems(dataQuery)
             .ToListAsync(cancellationToken);
         return items;
     }

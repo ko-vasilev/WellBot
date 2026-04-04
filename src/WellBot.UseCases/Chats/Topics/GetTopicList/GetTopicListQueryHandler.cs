@@ -1,7 +1,7 @@
-using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using WellBot.Infrastructure.Abstractions.Interfaces;
+using WellBot.UseCases.Chats;
 
 namespace WellBot.UseCases.Chats.Topics.GetTopicList;
 
@@ -11,9 +11,9 @@ namespace WellBot.UseCases.Chats.Topics.GetTopicList;
 internal class GetTopicListQueryHandler : IRequestHandler<GetTopicListQuery, IEnumerable<TopicDto>>
 {
     private readonly IAppDbContext dbContext;
-    private readonly IMapper mapper;
+    private readonly ChatMapper mapper;
 
-    public GetTopicListQueryHandler(IAppDbContext dbContext, IMapper mapper)
+    public GetTopicListQueryHandler(IAppDbContext dbContext, ChatMapper mapper)
     {
         this.dbContext = dbContext;
         this.mapper = mapper;
@@ -22,7 +22,8 @@ internal class GetTopicListQueryHandler : IRequestHandler<GetTopicListQuery, IEn
     /// <inheritdoc/>
     public async Task<IEnumerable<TopicDto>> Handle(GetTopicListQuery request, CancellationToken cancellationToken)
     {
-        return await mapper.ProjectTo<TopicDto>(dbContext.PassiveTopics)
+        return await mapper
+            .ProjectToTopicDtos(dbContext.PassiveTopics)
             .ToListAsync(cancellationToken);
     }
 }

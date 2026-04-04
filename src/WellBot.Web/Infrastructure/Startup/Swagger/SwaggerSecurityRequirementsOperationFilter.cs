@@ -30,6 +30,8 @@ internal sealed class SwaggerSecurityRequirementsOperationFilter : IOperationFil
             return;
         }
 
+        operation.Responses ??= new OpenApiResponses();
+        operation.Security ??= new List<OpenApiSecurityRequirement>();
         operation.Responses.Add(UnauthorizedCode, new OpenApiResponse { Description = "Unauthorized" });
         operation.Security.Add(BearerSecurityRequirement);
 
@@ -55,6 +57,8 @@ internal sealed class SwaggerSecurityRequirementsOperationFilter : IOperationFil
 
     private void TryAddForbiddenResponse(OpenApiOperation operation, OperationFilterContext context)
     {
+        operation.Responses ??= new OpenApiResponses();
+
         var authorizeAttributes = context.MethodInfo.ReflectedType
             ?.GetCustomAttributes(true)
             .Union(context.MethodInfo.GetCustomAttributes(true))
@@ -92,12 +96,12 @@ internal sealed class SwaggerSecurityRequirementsOperationFilter : IOperationFil
             return;
         }
 
-        var forbiddenResponse = operation.Responses["403"];
+        var forbiddenResponse = operation.Responses[ForbiddenCode];
 
         // Update response description with list of required roles.
         var sb = new StringBuilder(200);
         // Keep the original description.
-        sb.AppendLine(forbiddenResponse.Description);
+        sb.AppendLine(forbiddenResponse.Description ?? "Forbidden");
 
         if (roleList.Any())
         {

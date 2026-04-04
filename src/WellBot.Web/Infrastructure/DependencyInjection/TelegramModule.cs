@@ -22,7 +22,8 @@ internal static class TelegramModule
         {
             var appSettings = serviceProvider.GetRequiredService<IOptions<AppSettings>>();
             var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-            return new TelegramBotClient(appSettings.Value.BotToken, httpClientFactory.CreateClient());
+            var options = new TelegramBotClientOptions(appSettings.Value.BotToken, httpClientFactory.CreateClient());
+            return new TelegramBotClient(options);
         });
     }
 }
