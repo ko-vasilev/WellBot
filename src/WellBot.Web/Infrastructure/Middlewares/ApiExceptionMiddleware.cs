@@ -97,7 +97,7 @@ internal sealed class ApiExceptionMiddleware
                     .SelectMany(error =>
                     {
                         var field = FormatPropertyPath(error.Key, jsonOptions.Value.JsonSerializerOptions);
-                        return error.Value.Select(message => new ProblemFieldDto(field, message));
+                        return error.Value.Select(message => new ProblemFieldDto(field, message.ToString()));
                     });
                 AddExceptionInfoToProblemDetails(problem, validationException);
                 break;

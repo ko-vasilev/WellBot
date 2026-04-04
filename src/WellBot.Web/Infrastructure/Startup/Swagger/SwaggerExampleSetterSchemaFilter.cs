@@ -1,5 +1,5 @@
-﻿using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
+using System.Text.Json.Nodes;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace WellBot.Web.Infrastructure.Startup.Swagger;
@@ -13,59 +13,64 @@ internal sealed class SwaggerExampleSetterSchemaFilter : ISchemaFilter
     /// <summary>
     /// Maps property name to example value.
     /// </summary>
-    private static readonly IDictionary<string, IOpenApiPrimitive> propertyNameExampleMap =
-        new Dictionary<string, IOpenApiPrimitive>
+    private static readonly IDictionary<string, JsonNode> propertyNameExampleMap =
+        new Dictionary<string, JsonNode>
         {
             // General.
-            ["email"] = new OpenApiString("test@example.com"),
-            ["firstname"] = new OpenApiString("John"),
-            ["lastname"] = new OpenApiString("Doe"),
-            ["password"] = new OpenApiPassword("123"),
-            ["token"] = new OpenApiString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiJmd2QyaXZhbkBnbWFpbC5jb20"),
-            ["accessToken"] = new OpenApiString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiJmd2QyaXZhbkBnbWFpbC5jb20"),
-            ["refreshToken"] = new OpenApiString("gjofdjaojoas23fweok"),
-            ["expires"] = new OpenApiInteger(3600),
-            ["color"] = new OpenApiString("#00ff00"),
-            ["username"] = new OpenApiString("johndoe"),
-            ["url"] = new OpenApiString("https://example.org"),
-            ["state"] = new OpenApiString("CA"),
-            ["country"] = new OpenApiString("USA"),
-            ["phone"] = new OpenApiString("523-523-1129"),
-            ["phone1"] = new OpenApiString("643-234-6734"),
-            ["phone2"] = new OpenApiString("123-634-2167"),
-            ["skype"] = new OpenApiString("skypeacc"),
-            ["address1"] = new OpenApiString("555 East Main St., Suite 5"),
-            ["address2"] = new OpenApiString("Chester, NJ 07930"),
-            ["ip"] = new OpenApiString("192.168.11.103"),
-            ["year"] = new OpenApiString(DateTime.Now.Year.ToString()),
-            ["startdate"] = new OpenApiString(DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd")),
-            ["enddate"] = new OpenApiString(DateTime.Now.ToString("yyyy-MM-dd"))
+            ["email"] = JsonValue.Create("test@example.com")!,
+            ["firstname"] = JsonValue.Create("John")!,
+            ["lastname"] = JsonValue.Create("Doe")!,
+            ["password"] = JsonValue.Create("123")!,
+            ["token"] = JsonValue.Create("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiJmd2QyaXZhbkBnbWFpbC5jb20")!,
+            ["accessToken"] = JsonValue.Create("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eyJzdWIiOiJmd2QyaXZhbkBnbWFpbC5jb20")!,
+            ["refreshToken"] = JsonValue.Create("gjofdjaojoas23fweok")!,
+            ["expires"] = JsonValue.Create(3600)!,
+            ["color"] = JsonValue.Create("#00ff00")!,
+            ["username"] = JsonValue.Create("johndoe")!,
+            ["url"] = JsonValue.Create("https://example.org")!,
+            ["state"] = JsonValue.Create("CA")!,
+            ["country"] = JsonValue.Create("USA")!,
+            ["phone"] = JsonValue.Create("523-523-1129")!,
+            ["phone1"] = JsonValue.Create("643-234-6734")!,
+            ["phone2"] = JsonValue.Create("123-634-2167")!,
+            ["skype"] = JsonValue.Create("skypeacc")!,
+            ["address1"] = JsonValue.Create("555 East Main St., Suite 5")!,
+            ["address2"] = JsonValue.Create("Chester, NJ 07930")!,
+            ["ip"] = JsonValue.Create("192.168.11.103")!,
+            ["year"] = JsonValue.Create(DateTime.Now.Year.ToString())!,
+            ["startdate"] = JsonValue.Create(DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd"))!,
+            ["enddate"] = JsonValue.Create(DateTime.Now.ToString("yyyy-MM-dd"))!
 
             // Custom.
         };
 
     /// <inheritdoc />
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        if (schema.Properties == null)
+        if (schema is not OpenApiSchema mutableSchema || mutableSchema.Properties == null)
         {
             return;
         }
 
-        foreach (var property in schema.Properties)
+        foreach (var property in mutableSchema.Properties)
         {
+            if (property.Value is not OpenApiSchema propertySchema)
+            {
+                continue;
+            }
+
             var key = property.Key.ToLower();
             if (propertyNameExampleMap.TryGetValue(key, out var example))
             {
-                property.Value.Example = example;
+                propertySchema.Example = example;
             }
             else if (key.EndsWith("date", StringComparison.OrdinalIgnoreCase))
             {
-                property.Value.Example = new OpenApiString(DateTime.Now.ToString("yyyy-MM-dd"));
+                propertySchema.Example = JsonValue.Create(DateTime.Now.ToString("yyyy-MM-dd"))!;
             }
             else if (key.EndsWith("time", StringComparison.OrdinalIgnoreCase))
             {
-                property.Value.Example = new OpenApiString("10:25:00");
+                propertySchema.Example = JsonValue.Create("10:25:00")!;
             }
         }
     }

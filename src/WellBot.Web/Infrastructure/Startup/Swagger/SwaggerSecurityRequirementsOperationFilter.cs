@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace WellBot.Web.Infrastructure.Startup.Swagger;
@@ -17,17 +17,7 @@ internal sealed class SwaggerSecurityRequirementsOperationFilter : IOperationFil
     private static readonly OpenApiSecurityRequirement BearerSecurityRequirement = new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer",
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header,
-            },
+            new OpenApiSecuritySchemeReference("Bearer", null, null),
             new List<string>()
         },
     };

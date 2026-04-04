@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 // module: swagger
@@ -16,7 +16,7 @@ internal class EnumDescriptionSchemaFilter : ISchemaFilter
     private const string LineBreakSeparator = "<br />";
 
     /// <inheritdoc/>
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
         var type = context.Type;
         if (!type.IsEnum)

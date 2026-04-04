@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace WellBot.Web.Infrastructure.Startup.Swagger;
@@ -14,7 +14,7 @@ internal class SwaggerEnumDescriptionSchemaOperationFilter : ISchemaFilter, IOpe
     private const string LineBreakSeparator = "<br />";
 
     /// <inheritdoc/>
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
         ApplyEnumCommentsForModel(schema, context);
     }
@@ -23,7 +23,7 @@ internal class SwaggerEnumDescriptionSchemaOperationFilter : ISchemaFilter, IOpe
     {
     }
 
-    private static void ApplyEnumCommentsForModel(OpenApiSchema schema, SchemaFilterContext context)
+    private static void ApplyEnumCommentsForModel(IOpenApiSchema schema, SchemaFilterContext context)
     {
         var type = context.Type;
         if (!type.IsEnum)
