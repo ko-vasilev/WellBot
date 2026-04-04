@@ -5,6 +5,7 @@
     <AssemblyName>WellBot.Web</AssemblyName>
     <Version>0.0.0</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <UserSecretsId>663da3bf-d512-43a6-892b-a8bc7fa2975a</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.Sqlite" />
