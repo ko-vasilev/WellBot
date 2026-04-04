@@ -10,7 +10,6 @@
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.Sqlite" />
     <PackageReference Include="Bogus" />
-    <PackageReference Include="DateOnlyTimeOnly.AspNet.Swashbuckle" />
     <PackageReference Include="Extensions.Hosting.AsyncInitialization" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" />
     <PackageReference Include="McMaster.Extensions.Hosting.CommandLine" />
@@ -26,7 +25,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Telegram.BotAPI" />
-    <PackageReference Include="Unchase.Swashbuckle.AspNetCore.Extensions" />
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.MemoryStorage" />
   </ItemGroup>
