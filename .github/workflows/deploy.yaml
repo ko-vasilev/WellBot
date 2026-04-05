@@ -54,9 +54,13 @@ jobs:
         target: /tmp/wellbot-deploy-${{ github.sha }}
 
     - name: Activate release
-      uses: garygrossgarten/github-action-ssh@v0.6.4
+      uses: appleboy/ssh-action@v1
       with:
-        command: |
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        key: ${{ secrets.REMOTE_SSH_KEY }}
+        passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
+        script: |
           set -e
           TMP_DIR="/tmp/wellbot-deploy-${{ github.sha }}"
           APP_DIR="${{ secrets.REMOTE_DIR }}"
@@ -66,16 +70,4 @@ jobs:
           rsync -a --delete "$TMP_DIR/unpacked/" "$APP_DIR/"
           rm -rf "$TMP_DIR"
           sudo systemctl restart ${{ secrets.SERVICE_NAME }}
-        host: ${{ secrets.REMOTE_HOST }}
-        username: ${{ secrets.REMOTE_USER }}
-        privateKey: ${{ secrets.REMOTE_SSH_KEY }}
-        passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
-
-    - name: Reload Nginx
-      uses: garygrossgarten/github-action-ssh@v0.6.4
-      with:
-        command: sudo nginx -s reload
-        host: ${{ secrets.REMOTE_HOST }}
-        username: ${{ secrets.REMOTE_USER }}
-        privateKey: ${{ secrets.REMOTE_SSH_KEY }}
-        passphrase: ${{ secrets.REMOTE_SSH_KEY_PASS }}
+          sudo systemctl reload nginx
