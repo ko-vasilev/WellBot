@@ -2,6 +2,7 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using WellBot.DomainServices.Chats;
 using WellBot.UseCases.Chats;
+using WellBot.UseCases.Chats.HandleTelegramAction;
 
 namespace WellBot.Web.Infrastructure.DependencyInjection;
 
@@ -18,6 +19,7 @@ internal static class ApplicationModule
     {
         services.AddScoped<CurrentChatService>();
         services.AddTransient<TelegramMessageService>();
+        services.AddSingleton<TelegramUpdateDeduplicationService>();
         services.AddSingleton<MessageRateLimitingService>();
         services.AddSingleton<RandomService>();
         services.AddSingleton<MemeChannelService>();
