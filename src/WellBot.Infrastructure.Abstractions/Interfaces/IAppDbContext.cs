@@ -25,6 +25,7 @@ public interface IAppDbContext : IDbContextWithSets, IDisposable
     /// </summary>
     DbSet<Chat> Chats { get; }
 
+#pragma warning disable CS0612 // Type or member is obsolete
     /// <summary>
     /// List of registrations in Daily Pidor game.
     /// </summary>
@@ -39,6 +40,7 @@ public interface IAppDbContext : IDbContextWithSets, IDisposable
     /// Lis tof messages that can be used to notify about the game results.
     /// </summary>
     DbSet<PidorMessage> PidorResultMessages { get; }
+#pragma warning restore CS0612 // Type or member is obsolete
 
     /// <summary>
     /// List of saved chat key data.

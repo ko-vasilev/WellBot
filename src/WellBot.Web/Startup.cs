@@ -113,7 +113,7 @@ public class Startup
         services.AddHttpClient();
 
         // Other dependencies.
-        Infrastructure.DependencyInjection.AutoMapperModule.Register(services);
+        Infrastructure.DependencyInjection.MapperModule.Register(services);
         Infrastructure.DependencyInjection.ApplicationModule.Register(services);
         Infrastructure.DependencyInjection.MediatRModule.Register(services);
         Infrastructure.DependencyInjection.SystemModule.Register(services);

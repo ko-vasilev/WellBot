@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/Application/">
+    <Project Path="WellBot.Web/WellBot.Web.csproj" />
+  </Folder>
+  <Folder Name="/Domain/">
+    <Project Path="WellBot.Domain/WellBot.Domain.csproj" />
+    <Project Path="WellBot.DomainServices/WellBot.DomainServices.csproj" />
+    <Project Path="WellBot.Infrastructure.Abstractions/WellBot.Infrastructure.Abstractions.csproj" />
+    <Project Path="WellBot.UseCases.Common/WellBot.UseCases.Common.csproj" />
+    <Project Path="WellBot.UseCases/WellBot.UseCases.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="WellBot.Infrastructure.DataAccess/WellBot.Infrastructure.DataAccess.csproj" />
+    <Project Path="WellBot.Infrastructure/WellBot.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="WellBot.Web.Tests/WellBot.Web.Tests.csproj" />
+  </Folder>
+</Solution>

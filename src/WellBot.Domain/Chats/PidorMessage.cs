@@ -6,6 +6,7 @@ namespace WellBot.Domain.Chats;
 /// <summary>
 /// A message that can be used to notify about the game results.
 /// </summary>
+[Obsolete]
 public class PidorMessage
 {
     /// <summary>

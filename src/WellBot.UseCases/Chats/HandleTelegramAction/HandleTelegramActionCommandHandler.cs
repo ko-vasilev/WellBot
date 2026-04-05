@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using Saritasa.Tools.Domain.Exceptions;
 using Telegram.BotAPI;
 using Telegram.BotAPI.AvailableMethods;
@@ -16,11 +17,6 @@ using WellBot.UseCases.Chats.Data.SetChatData;
 using WellBot.UseCases.Chats.Data.ShowData;
 using WellBot.UseCases.Chats.Data.ShowKeys;
 using WellBot.UseCases.Chats.Ememe;
-using WellBot.UseCases.Chats.Pidor.PidorGameRegister;
-using WellBot.UseCases.Chats.Pidor.PidorGameRun;
-using WellBot.UseCases.Chats.Pidor.PidorList;
-using WellBot.UseCases.Chats.Pidor.PidorRules;
-using WellBot.UseCases.Chats.Pidor.PidorStats;
 using WellBot.UseCases.Chats.Prikol;
 using WellBot.UseCases.Chats.RegularMessageHandles;
 using WellBot.UseCases.Chats.Slap;
@@ -43,6 +39,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
     private readonly MemeChannelService memeChannelService;
     private readonly Lazy<IAppDbContext> dbContext;
     private readonly IServiceScopeFactory serviceScopeFactory;
+    private readonly TelegramUpdateDeduplicationService updateDeduplicationService;
 
     /// <summary>
     /// Constructor.
@@ -55,7 +52,8 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         TelegramMessageService telegramMessageService,
         MemeChannelService memeChannelService,
         Lazy<IAppDbContext> dbContext,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory serviceScopeFactory,
+        TelegramUpdateDeduplicationService updateDeduplicationService)
     {
         this.botClient = botClient;
         this.telegramBotSettings = telegramBotSettings;
@@ -65,57 +63,83 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         this.memeChannelService = memeChannelService;
         this.dbContext = dbContext;
         this.serviceScopeFactory = serviceScopeFactory;
+        this.updateDeduplicationService = updateDeduplicationService;
     }
 
     /// <inheritdoc/>
     protected override async Task Handle(HandleTelegramActionCommand request, CancellationToken cancellationToken)
     {
-        if (await HandleInlineQueryAsync(request?.Action?.InlineQuery, cancellationToken))
+        var updateId = request.Action.UpdateId;
+        var stopwatch = Stopwatch.StartNew();
+        if (!updateDeduplicationService.TryBegin(updateId))
         {
+            logger.LogInformation("Skipping in-flight Telegram update {updateId}", updateId);
             return;
         }
 
-        // Check if this is a message.
-        if (request?.Action?.Message == null)
-        {
-            return;
-        }
-        var isDirectMessage = request.Action.Message.Chat.Type == ChatTypes.Private;
-        if (isDirectMessage)
-        {
-            // Ignore direct messages.
-            return;
-        }
-
-        if (await HandleMemeChannelMessageAsync(request.Action.Message, cancellationToken))
-        {
-            return;
-        }
-
-        var plainMessageText = request.Action.Message.Text ?? request.Action.Message.Caption;
-        var textFormatted = telegramMessageService.GetMessageTextHtml(request.Action.Message);
         long? chatId = null;
+        string? textFormatted = null;
+        var releaseUpdateInFinally = true;
         try
         {
+            if (request?.Action?.InlineQuery != null)
+            {
+                await HandleInlineQueryAsync(request.Action.InlineQuery, cancellationToken);
+                logger.LogInformation("Processed Telegram inline update {updateId} in {elapsedMs}ms", updateId, stopwatch.ElapsedMilliseconds);
+                return;
+            }
+
+            // Check if this is a message.
+            if (request?.Action?.Message == null)
+            {
+                logger.LogInformation("Processed Telegram update {updateId} without message in {elapsedMs}ms", updateId, stopwatch.ElapsedMilliseconds);
+                return;
+            }
+
+            chatId = request.Action.Message.Chat.Id;
+            var isDirectMessage = request.Action.Message.Chat.Type == ChatTypes.Private;
+            if (isDirectMessage)
+            {
+                logger.LogInformation("Ignored direct Telegram update {updateId} in {elapsedMs}ms", updateId, stopwatch.ElapsedMilliseconds);
+                return;
+            }
+
+            if (await HandleMemeChannelMessageAsync(request.Action.Message, cancellationToken))
+            {
+                logger.LogInformation("Processed meme channel Telegram update {updateId} in {elapsedMs}ms", updateId, stopwatch.ElapsedMilliseconds);
+                return;
+            }
+
+            var plainMessageText = request.Action.Message.Text ?? request.Action.Message.Caption;
+            textFormatted = telegramMessageService.GetMessageTextHtml(request.Action.Message);
             if (!string.IsNullOrEmpty(plainMessageText))
             {
-                chatId = request.Action.Message.Chat.Id;
                 var command = ParseCommand(plainMessageText, textFormatted, out string arguments, out string argumentsHtml, ref isDirectMessage);
                 if (!string.IsNullOrEmpty(command))
                 {
                     await HandleCommandAsync(command, arguments, argumentsHtml, isDirectMessage, chatId.Value, request.Action.Message.From, request.Action.Message);
+                    logger.LogInformation("Processed Telegram command update {updateId} command {command} in {elapsedMs}ms", updateId, command, stopwatch.ElapsedMilliseconds);
                     return;
                 }
             }
 
-            HandleMessageNotification(request.Action.Message);
+            releaseUpdateInFinally = false;
+            HandleMessageNotification(request.Action.Message, updateId, stopwatch);
+            logger.LogInformation("Scheduled Telegram message update {updateId} background processing after {elapsedMs}ms", updateId, stopwatch.ElapsedMilliseconds);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error handling command {text}", textFormatted);
+            logger.LogError(ex, "Error handling Telegram update {updateId} command {text}", updateId, textFormatted);
             if (chatId.HasValue)
             {
-                await botClient.SendMessageAsync(chatId.Value, "Что-то пошло не так.");
+                await SendGenericErrorAsync(chatId.Value);
+            }
+        }
+        finally
+        {
+            if (releaseUpdateInFinally)
+            {
+                updateDeduplicationService.End(updateId);
             }
         }
     }
@@ -132,33 +156,6 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         }
         Task action = command switch
         {
-            "pidoreg" => mediator.Send(new PidorGameRegisterCommand()
-            {
-                ChatId = chatId,
-                TelegramUserId = GetSenderId(),
-                TelegramUserName = telegramMessageService.GetUserFullName(sender),
-                MessageId = message.MessageId
-            }),
-            "pidorlist" => mediator.Send(new PidorListCommand
-            {
-                ChatId = chatId,
-                TelegramUserId = GetSenderId(),
-                Arguments = arguments,
-                MessageId = message.MessageId
-            }),
-            "pidorules" => mediator.Send(new PidorRulesCommand
-            {
-                ChatId = chatId,
-            }),
-            "pidor" => mediator.Send(new PidorGameRunCommand
-            {
-                ChatId = chatId,
-            }),
-            "pidorstats" => mediator.Send(new PidorStatsCommand
-            {
-                ChatId = chatId,
-                Arguments = arguments
-            }),
             "set" => mediator.Send(new SetChatDataCommand
             {
                 ChatId = chatId,
@@ -274,13 +271,8 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         return command;
     }
 
-    private async Task<bool> HandleInlineQueryAsync(InlineQuery? inlineQuery, CancellationToken cancellationToken)
+    private async Task HandleInlineQueryAsync(InlineQuery inlineQuery, CancellationToken cancellationToken)
     {
-        if (inlineQuery == null)
-        {
-            return false;
-        }
-
         try
         {
             var dataItems = await mediator.Send(new SearchDataQuery
@@ -297,8 +289,6 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         {
             logger.LogError(ex, "Error handling inline query {text}", inlineQuery.Query);
         }
-
-        return true;
     }
 
     private async Task<bool> HandleMemeChannelMessageAsync(Message message, CancellationToken cancellationToken)
@@ -389,7 +379,7 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
         }
     }
 
-    private void HandleMessageNotification(Message message)
+    private void HandleMessageNotification(Message message, long updateId, Stopwatch stopwatch)
     {
         // TODO: ideally this logic should be encapsulated in a separate class.
         // Fire and forget for the notification.
@@ -411,7 +401,24 @@ internal class HandleTelegramActionCommandHandler : AsyncRequestHandler<HandleTe
                 {
                     logger.LogError(ex, "Error sending message notification");
                 }
+                finally
+                {
+                    logger.LogInformation("Processed Telegram message update {updateId} in {elapsedMs}ms", updateId, stopwatch.ElapsedMilliseconds);
+                    updateDeduplicationService.End(updateId);
+                }
             }
         });
+    }
+
+    private async Task SendGenericErrorAsync(long chatId)
+    {
+        try
+        {
+            await botClient.SendMessageAsync(chatId, "Что-то пошло не так.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send generic error response to chat {chatId}", chatId);
+        }
     }
 }

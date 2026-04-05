@@ -1,9 +1,8 @@
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 
 namespace WellBot.Web.Infrastructure.Startup.Swagger;
 
@@ -35,10 +34,9 @@ internal class SwaggerGenOptionsSetup
             Type = SecuritySchemeType.Http
         });
         // TODO: Add your assemblies here.
-        options.IncludeXmlCommentsWithRemarks(GetAssemblyLocationByType(GetType()));
-        options.IncludeXmlCommentsWithRemarks(GetAssemblyLocationByType(typeof(UseCases.Common.Pagination.PageQueryFilter)));
-        options.IncludeXmlCommentsWithRemarks(GetAssemblyLocationByType(typeof(UseCases.Users.AuthenticateUser.TokenModel)));
-        options.IncludeXmlCommentsFromInheritDocs(includeRemarks: true);
+        options.IncludeXmlComments(GetAssemblyLocationByType(GetType()), includeControllerXmlComments: true);
+        options.IncludeXmlComments(GetAssemblyLocationByType(typeof(UseCases.Common.Pagination.PageQueryFilter)), includeControllerXmlComments: true);
+        options.IncludeXmlComments(GetAssemblyLocationByType(typeof(UseCases.Users.AuthenticateUser.TokenModel)), includeControllerXmlComments: true);
 
         // Our custom filters.
         options.SchemaFilter<SwaggerExampleSetterSchemaFilter>();
@@ -58,7 +56,26 @@ internal class SwaggerGenOptionsSetup
                 ? string.Concat(controllerActionDescriptor.ControllerName, "/", controllerActionDescriptor.ActionName)
                 : string.Empty);
 
-        options.UseDateOnlyTimeOnlyStringConverters();
+        options.MapType<DateOnly>(() => new OpenApiSchema
+        {
+            Type = JsonSchemaType.String,
+            Format = "date"
+        });
+        options.MapType<DateOnly?>(() => new OpenApiSchema
+        {
+            Type = JsonSchemaType.String,
+            Format = "date"
+        });
+        options.MapType<TimeOnly>(() => new OpenApiSchema
+        {
+            Type = JsonSchemaType.String,
+            Format = "time"
+        });
+        options.MapType<TimeOnly?>(() => new OpenApiSchema
+        {
+            Type = JsonSchemaType.String,
+            Format = "time"
+        });
     }
 
     private static string GetAssemblyLocationByType(Type type) =>

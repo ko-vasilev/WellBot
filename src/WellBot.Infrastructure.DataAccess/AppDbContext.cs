@@ -18,6 +18,7 @@ public class AppDbContext : IdentityDbContext<User, AppIdentityRole, int>, IAppD
     /// <inheritdoc />
     public DbSet<Chat> Chats { get; protected set; }
 
+#pragma warning disable CS0612 // Type or member is obsolete
     /// <inheritdoc />
     public DbSet<PidorRegistration> PidorRegistrations { get; protected set; }
 
@@ -26,6 +27,7 @@ public class AppDbContext : IdentityDbContext<User, AppIdentityRole, int>, IAppD
 
     /// <inheritdoc />
     public DbSet<PidorMessage> PidorResultMessages { get; protected set; }
+#pragma warning restore CS0612 // Type or member is obsolete
 
     /// <inheritdoc />
     public DbSet<ChatData> ChatDatas { get; protected set; }
@@ -76,15 +78,16 @@ public class AppDbContext : IdentityDbContext<User, AppIdentityRole, int>, IAppD
         modelBuilder.Entity<Chat>()
             .HasIndex(c => c.TelegramId);
 
+#pragma warning disable CS0612 // Type or member is obsolete
         modelBuilder.Entity<PidorRegistration>()
             .HasOne(reg => reg.Chat)
-            .WithMany(ch => ch.PidorRegistrations);
+            .WithMany();
         modelBuilder.Entity<PidorRegistration>()
             .HasIndex(r => r.TelegramUserId);
 
         modelBuilder.Entity<ChatPidor>()
             .HasOne(p => p.Chat)
-            .WithMany(ch => ch.Pidors);
+            .WithMany();
         modelBuilder.Entity<ChatPidor>()
             .HasOne(p => p.Registration)
             .WithMany(r => r.Wins);
@@ -92,6 +95,7 @@ public class AppDbContext : IdentityDbContext<User, AppIdentityRole, int>, IAppD
         modelBuilder.Entity<ChatPidor>()
             .HasOne(p => p.UsedMessage)
             .WithMany(m => m.UsedWins);
+#pragma warning restore CS0612 // Type or member is obsolete
 
         modelBuilder.Entity<ChatData>()
             .HasOne(d => d.Chat)

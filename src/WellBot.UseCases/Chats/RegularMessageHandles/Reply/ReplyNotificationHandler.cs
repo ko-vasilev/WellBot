@@ -46,32 +46,33 @@ internal class ReplyNotificationHandler : INotificationHandler<MessageNotificati
             .Distinct()
             .Select(option => option.Id)
             .ToListAsync(cancellationToken);
-        var maxRetriesCount = 5;
-        while (maxRetriesCount > 0)
+        if (allOptions.Count == 0)
         {
-            PassiveReplyOption? replyOption = null;
-            try
-            {
-                var optionId = randomService.PickRandom(allOptions);
-                replyOption = await dbContext.PassiveReplyOptions
-                    .FirstAsync(opt => opt.Id == optionId, cancellationToken);
-                await telegramMessageService.SendMessageAsync(new Dtos.GenericMessage
-                {
-                    Text = replyOption.Text,
-                    FileId = replyOption.FileId,
-                    DataType = replyOption.DataType
-                },
-                message.Chat.Id,
-                message.MessageId);
+            return;
+        }
 
-                return;
-            }
-            catch (Exception ex)
+        PassiveReplyOption? replyOption = null;
+        try
+        {
+            var optionId = randomService.PickRandom(allOptions);
+            replyOption = await dbContext.PassiveReplyOptions
+                .FirstAsync(opt => opt.Id == optionId, cancellationToken);
+            await telegramMessageService.SendMessageAsync(new Dtos.GenericMessage
             {
-                logger.LogWarning(ex, "Error replying with message {reply}", replyOption);
-            }
-
-            --maxRetriesCount;
+                Text = replyOption.Text,
+                FileId = replyOption.FileId,
+                DataType = replyOption.DataType
+            },
+            message.Chat.Id,
+            message.MessageId);
+        }
+        catch (TaskCanceledException ex)
+        {
+            logger.LogWarning(ex, "Timed out replying with message {reply}", replyOption);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Error replying with message {reply}", replyOption);
         }
     }
 

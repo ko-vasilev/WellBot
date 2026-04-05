@@ -1,7 +1,7 @@
-using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using WellBot.Infrastructure.Abstractions.Interfaces;
+using WellBot.UseCases.Chats;
 
 namespace WellBot.UseCases.Chats.AutomaticMessages.GetAutomaticMessages;
 
@@ -11,9 +11,9 @@ namespace WellBot.UseCases.Chats.AutomaticMessages.GetAutomaticMessages;
 internal class GetAutomaticMessagesCommandHandler : IRequestHandler<GetAutomaticMessagesCommand, IEnumerable<AutomaticMessageDto>>
 {
     private readonly IAppDbContext dbContext;
-    private readonly IMapper mapper;
+    private readonly ChatMapper mapper;
 
-    public GetAutomaticMessagesCommandHandler(IAppDbContext dbContext, IMapper mapper)
+    public GetAutomaticMessagesCommandHandler(IAppDbContext dbContext, ChatMapper mapper)
     {
         this.dbContext = dbContext;
         this.mapper = mapper;
@@ -22,7 +22,8 @@ internal class GetAutomaticMessagesCommandHandler : IRequestHandler<GetAutomatic
     /// <inheritdoc/>
     public async Task<IEnumerable<AutomaticMessageDto>> Handle(GetAutomaticMessagesCommand request, CancellationToken cancellationToken)
     {
-        return await mapper.ProjectTo<AutomaticMessageDto>(dbContext.AutomaticMessageTemplates)
+        return await mapper
+            .ProjectToAutomaticMessageDtos(dbContext.AutomaticMessageTemplates)
             .ToListAsync(cancellationToken);
     }
 }

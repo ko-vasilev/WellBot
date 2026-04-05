@@ -1,48 +1,41 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>WellBot.Web</RootNamespace>
     <AssemblyName>WellBot.Web</AssemblyName>
     <Version>0.0.0</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <UserSecretsId>663da3bf-d512-43a6-892b-a8bc7fa2975a</UserSecretsId>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="AspNetCore.HealthChecks.Sqlite" Version="8.0.0" />
-    <PackageReference Include="Bogus" Version="35.0.1" />
-    <PackageReference Include="DateOnlyTimeOnly.AspNet.Swashbuckle" Version="2.1.1" />
-    <PackageReference Include="Extensions.Hosting.AsyncInitialization" Version="3.0.1" />
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
-    <PackageReference Include="McMaster.Extensions.Hosting.CommandLine" Version="4.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="8.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.2">
+    <PackageReference Include="AspNetCore.HealthChecks.Sqlite" />
+    <PackageReference Include="Bogus" />
+    <PackageReference Include="Extensions.Hosting.AsyncInitialization" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" />
+    <PackageReference Include="McMaster.Extensions.Hosting.CommandLine" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.2">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Saritasa.Tools.Common" Version="5.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Include="Telegram.BotAPI" Version="7.1.1" />
-    <PackageReference Include="Unchase.Swashbuckle.AspNetCore.Extensions" Version="2.7.1" />
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.11" />
-    <PackageReference Include="Hangfire.MemoryStorage" Version="1.8.0" />
+    <PackageReference Include="Saritasa.Tools.Common" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Telegram.BotAPI" />
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <PackageReference Include="Hangfire.MemoryStorage" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\WellBot.Infrastructure.DataAccess\WellBot.Infrastructure.DataAccess.csproj" />
     <ProjectReference Include="..\WellBot.Infrastructure\WellBot.Infrastructure.csproj" />
     <ProjectReference Include="..\WellBot.UseCases\WellBot.UseCases.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="appsettings.json.template">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>

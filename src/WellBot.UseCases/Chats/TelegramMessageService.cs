@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Saritasa.Tools.Domain.Exceptions;
 using Telegram.BotAPI;
 using Telegram.BotAPI.AvailableMethods;
-using Telegram.BotAPI.AvailableMethods.FormattingOptions;
 using Telegram.BotAPI.AvailableTypes;
 using Telegram.BotAPI.Stickers;
 using WellBot.Domain.Chats;
@@ -49,7 +48,7 @@ public class TelegramMessageService
         var reply = randomService.PickRandom(successReplies);
         await botClient.SetMessageReactionAsync(chatId, messageId, new[]
         {
-            new ReactionTypeEmoji() { Emoji = reply }
+            new ReactionTypeEmoji(reply)
         });
     }
 
@@ -165,10 +164,7 @@ public class TelegramMessageService
                     logger.LogWarning("Cannot send a reaction without a message.");
                     break;
                 }
-                var reaction = new ReactionTypeEmoji()
-                {
-                    Emoji = message.Text ?? string.Empty
-                };
+                var reaction = new ReactionTypeEmoji(message.Text ?? string.Empty);
                 await botClient.SetMessageReactionAsync(chatId,
                     replyMessageId.Value,
                     new[] { reaction });
