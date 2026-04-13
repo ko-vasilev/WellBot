@@ -5,7 +5,7 @@ namespace WellBot.UseCases.Chats.Ememe;
 /// <summary>
 /// Send a random meme to the chat.
 /// </summary>
-public record EmemeCommand : IRequest<Unit>
+public record EmemeCommand : IRequest<Unit>, IChatInfo
 {
     /// <summary>
     /// Id of the chat.

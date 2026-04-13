@@ -37,6 +37,6 @@ public class TelegramChatSetterPipelineBehavior<TRequest, TResponse> : IPipeline
             }
         }
 
-        return await next();
+        return await next(cancellationToken);
     }
 }
